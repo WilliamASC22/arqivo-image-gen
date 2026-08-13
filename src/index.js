@@ -4,117 +4,135 @@ const MODELS = [
     id: "@cf/bytedance/stable-diffusion-xl-lightning",
     standardSteps: 10,
     bestSteps: 20,
-    guidance: 7.5
+    guidance: 7.5,
+    priority: 1
   },
   {
     label: "SDXL Base",
     id: "@cf/stabilityai/stable-diffusion-xl-base-1.0",
-    standardSteps: 16,
+    standardSteps: 12,
     bestSteps: 20,
-    guidance: 7.5
-  },
-  {
-    label: "Lucid Origin",
-    id: "@cf/leonardo/lucid-origin",
-    standardSteps: 20,
-    bestSteps: 32,
-    guidance: 5.5
+    guidance: 7.5,
+    priority: 2
   },
   {
     label: "Phoenix",
     id: "@cf/leonardo/phoenix-1.0",
-    standardSteps: 25,
-    bestSteps: 35,
-    guidance: 7.5
+    standardSteps: 20,
+    bestSteps: 30,
+    guidance: 6.0,
+    priority: 3
+  },
+  {
+    label: "Lucid Origin",
+    id: "@cf/leonardo/lucid-origin",
+    standardSteps: 16,
+    bestSteps: 28,
+    guidance: 5.0,
+    priority: 4
   }
 ];
 
 const SIZES = {
+  economy: {
+    label: "Square — 512 × 512",
+    width: 512,
+    height: 512
+  },
+
   square: {
-    label: "Square",
+    label: "Square HD — 1024 × 1024",
     width: 1024,
     height: 1024
   },
+
   landscape: {
-    label: "Landscape 4:3",
+    label: "Landscape — 1024 × 768",
     width: 1024,
     height: 768
   },
+
   portrait: {
-    label: "Portrait 3:4",
+    label: "Portrait — 768 × 1024",
     width: 768,
     height: 1024
   },
+
   widescreen: {
-    label: "Widescreen 16:9",
+    label: "Widescreen — 1024 × 576",
     width: 1024,
     height: 576
   },
+
   tall: {
-    label: "Tall 9:16",
+    label: "Tall — 576 × 1024",
     width: 576,
     height: 1024
-  },
-  economy: {
-    label: "Economy Square",
-    width: 512,
-    height: 512
   }
 };
 
 const STYLES = {
   photorealistic: {
     label: "Photorealistic",
+
     instruction:
-      "High-end photorealistic image with true-to-life materials, realistic lighting, realistic shadows, realistic reflections, natural depth, believable geometry, fine detail, and no illustrated or CGI appearance."
+      "Photorealistic image with true-to-life materials, realistic lighting, realistic shadows and reflections, believable geometry, natural depth, fine detail, and no illustrated or obvious CGI appearance."
   },
 
   natural: {
     label: "Natural",
+
     instruction:
       "Natural realistic photograph with believable ambient light, restrained contrast, authentic colors, natural textures, realistic imperfections, and documentary-style realism."
   },
 
   cinematic: {
     label: "Cinematic",
+
     instruction:
       "Photorealistic cinematic still with realistic dramatic lighting, controlled contrast, natural depth of field, believable materials, film-like composition, and realistic color grading."
   },
 
   product: {
     label: "Product",
+
     instruction:
-      "Premium commercial product photography with highly realistic materials, controlled professional lighting, accurate reflections, crisp details, clean composition, and realistic proportions."
+      "Premium commercial product photography with highly realistic materials, controlled professional lighting, accurate reflections, crisp detail, clean composition, and realistic proportions."
   },
 
   editorial: {
     label: "Editorial",
+
     instruction:
-      "Photorealistic editorial magazine photography with refined composition, realistic lighting, natural detail, sophisticated color treatment, and authentic materials."
+      "Photorealistic editorial photography with refined composition, realistic lighting, natural detail, sophisticated color treatment, and authentic materials."
   }
 };
 
 const FRAMING = {
   full_subject: {
     label: "Full subject",
+
     instruction:
-      "The entire primary subject must be fully visible inside the frame. Pull the camera back enough to show the complete subject and leave comfortable visible margin around it. Do not cut off important parts."
+      "The entire primary subject must be fully visible inside the image. Pull the camera back enough to show the complete subject. Leave comfortable visible margin around it. Do not cut off important parts."
   },
 
   auto: {
     label: "Automatic",
+
     instruction:
-      "Choose the most appropriate professional composition for the user's request while keeping the main subject clear and visually dominant."
+      "Choose the most appropriate professional composition for the request while keeping the main subject clear and visually dominant."
   },
 
   wide: {
     label: "Wide scene",
+
     instruction:
-      "Use a wider composition that shows the primary subject clearly together with meaningful surrounding environment. Avoid placing important elements against the edges."
+      "Use a wider composition that clearly shows the primary subject together with meaningful surrounding environment. Avoid putting important elements against the image edges."
   },
 
   closeup: {
     label: "Close-up",
+
     instruction:
       "Use a deliberate close-up composition focused on the most important part of the requested subject while maintaining realistic perspective and clear visual intent."
   }
@@ -124,6 +142,7 @@ const HTML = (siteKey) => `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
@@ -131,7 +150,10 @@ const HTML = (siteKey) => `<!doctype html>
 
   <title>Arqivo Image Gen</title>
 
-  <link rel="stylesheet" href="/styles.css" />
+  <link
+    rel="stylesheet"
+    href="/styles.css"
+  />
 
   <script
     src="https://challenges.cloudflare.com/turnstile/v0/api.js"
@@ -139,58 +161,85 @@ const HTML = (siteKey) => `<!doctype html>
     defer
   ></script>
 
-  <script src="/app.js" defer></script>
+  <script
+    src="/app.js"
+    defer
+  ></script>
 </head>
 
 <body>
+
   <main class="container">
 
     <header class="hero">
-      <h1>Arqivo Image Gen</h1>
+
+      <h1>
+        Arqivo Image Gen
+      </h1>
 
       <p class="lead">
         Private-by-default text-to-image generation.
         No accounts. No prompt history. No database.
       </p>
+
     </header>
 
-    <form id="gen-form" novalidate>
 
-      <div class="prompt-section">
-        <label for="prompt">
-          Describe the image you want
-        </label>
+    <form
+      id="gen-form"
+      novalidate
+    >
 
-        <textarea
-          id="prompt"
-          name="prompt"
-          rows="6"
-          maxlength="700"
-          placeholder="Example: an all-black exotic sports car parked on a wet city street at night, photorealistic"
-          required
-        ></textarea>
+      <label for="prompt">
+        Describe the image you want
+      </label>
 
-        <div class="prompt-footer">
-          <span>
-            Describe the subject first. Arqivo adds the quality instructions automatically.
-          </span>
+      <textarea
+        id="prompt"
+        name="prompt"
+        rows="6"
+        maxlength="700"
+        placeholder="Example: an all-black exotic sports car parked on a wet city street at night"
+        required
+      ></textarea>
 
-          <span id="character-count">
-            0 / 700
-          </span>
-        </div>
+
+      <div class="prompt-footer">
+
+        <span>
+          Describe the subject first.
+          Arqivo adds quality instructions automatically.
+        </span>
+
+        <span id="character-count">
+          0 / 700
+        </span>
+
       </div>
+
 
       <div class="controls">
 
         <div class="control">
+
           <label for="size">
             Image size
           </label>
 
-          <select id="size" name="size">
-            <option value="square" selected>
-              Square — 1024 × 1024
+          <select
+            id="size"
+            name="size"
+          >
+
+            <option
+              value="economy"
+              selected
+            >
+              Square — 512 × 512 (free-tier friendly)
+            </option>
+
+            <option value="square">
+              Square HD — 1024 × 1024
             </option>
 
             <option value="landscape">
@@ -209,35 +258,53 @@ const HTML = (siteKey) => `<!doctype html>
               Tall — 576 × 1024
             </option>
 
-            <option value="economy">
-              Economy — 512 × 512
-            </option>
           </select>
+
         </div>
 
+
         <div class="control">
+
           <label for="quality">
             Quality
           </label>
 
-          <select id="quality" name="quality">
-            <option value="best" selected>
+          <select
+            id="quality"
+            name="quality"
+          >
+
+            <option
+              value="standard"
+              selected
+            >
+              Standard (recommended on free tier)
+            </option>
+
+            <option value="best">
               Best quality
             </option>
 
-            <option value="standard">
-              Standard
-            </option>
           </select>
+
         </div>
 
+
         <div class="control">
+
           <label for="style">
             Visual style
           </label>
 
-          <select id="style" name="style">
-            <option value="photorealistic" selected>
+          <select
+            id="style"
+            name="style"
+          >
+
+            <option
+              value="photorealistic"
+              selected
+            >
               Photorealistic
             </option>
 
@@ -256,16 +323,27 @@ const HTML = (siteKey) => `<!doctype html>
             <option value="editorial">
               Editorial photography
             </option>
+
           </select>
+
         </div>
 
+
         <div class="control">
+
           <label for="framing">
             Framing
           </label>
 
-          <select id="framing" name="framing">
-            <option value="full_subject" selected>
+          <select
+            id="framing"
+            name="framing"
+          >
+
+            <option
+              value="full_subject"
+              selected
+            >
               Full subject in frame
             </option>
 
@@ -280,10 +358,14 @@ const HTML = (siteKey) => `<!doctype html>
             <option value="closeup">
               Close-up
             </option>
+
           </select>
+
         </div>
 
+
         <div class="control">
+
           <label for="seed">
             Seed
             <span class="optional">
@@ -300,19 +382,28 @@ const HTML = (siteKey) => `<!doctype html>
             step="1"
             placeholder="Random"
           />
+
         </div>
 
       </div>
 
-      <p class="quota-note">
-        Larger images and Best quality use more of the daily free AI allowance.
-      </p>
+
+      <div
+        class="usage-warning"
+        id="usage-warning"
+      >
+        512 × 512 + Standard is the recommended setting
+        for the completely free tier. HD sizes and Best
+        quality can use the daily AI allowance very quickly.
+      </div>
+
 
       <div
         class="cf-turnstile"
         data-sitekey="${siteKey}"
         data-error-callback="onTurnstileError"
       ></div>
+
 
       <button
         id="submit-btn"
@@ -323,11 +414,13 @@ const HTML = (siteKey) => `<!doctype html>
 
     </form>
 
+
     <p
       id="status"
       class="status"
       aria-live="polite"
     ></p>
+
 
     <section
       id="results"
@@ -336,11 +429,14 @@ const HTML = (siteKey) => `<!doctype html>
     ></section>
 
   </main>
+
 </body>
 </html>`;
 
+
 const CSS = `
 :root {
+
   --bg: #0b1020;
   --bg-secondary: #111832;
 
@@ -357,14 +453,18 @@ const CSS = `
   --accent-hover: #8ab8ff;
 
   --danger: #ff8d8d;
+  --warning: #ffd38a;
 }
+
 
 * {
   box-sizing: border-box;
 }
 
+
 html,
 body {
+
   margin: 0;
   padding: 0;
 
@@ -387,15 +487,19 @@ body {
     sans-serif;
 }
 
+
 body {
   min-height: 100vh;
 }
 
+
 .container {
-  width: min(
-    1200px,
-    calc(100% - 2rem)
-  );
+
+  width:
+    min(
+      1200px,
+      calc(100% - 2rem)
+    );
 
   margin: 0 auto;
 
@@ -405,11 +509,14 @@ body {
     5rem;
 }
 
+
 .hero {
   margin-bottom: 1.5rem;
 }
 
+
 h1 {
+
   margin:
     0
     0
@@ -425,7 +532,9 @@ h1 {
   letter-spacing: -0.04em;
 }
 
+
 .lead {
+
   margin: 0;
 
   color: var(--muted);
@@ -440,7 +549,9 @@ h1 {
     );
 }
 
+
 form {
+
   background:
     rgba(
       21,
@@ -458,10 +569,13 @@ form {
 
   padding: 1.25rem;
 
-  backdrop-filter: blur(12px);
+  backdrop-filter:
+    blur(12px);
 }
 
+
 label {
+
   display: block;
 
   margin-bottom: 0.5rem;
@@ -471,16 +585,20 @@ label {
   font-weight: 700;
 }
 
+
 textarea {
+
   width: 100%;
 
   min-height: 190px;
 
   resize: vertical;
 
-  background: var(--panel-2);
+  background:
+    var(--panel-2);
 
-  color: var(--text);
+  color:
+    var(--text);
 
   border:
     1px
@@ -496,26 +614,35 @@ textarea {
   line-height: 1.5;
 }
 
+
 textarea::placeholder,
 input::placeholder {
-  color: #9099b9;
+
+  color:
+    #9099b9;
 }
+
 
 textarea:focus,
 select:focus,
 input[type="number"]:focus {
+
   outline:
     2px
     solid
     var(--accent);
 
-  outline-offset: 2px;
+  outline-offset:
+    2px;
 }
 
+
 .prompt-footer {
+
   display: flex;
 
-  justify-content: space-between;
+  justify-content:
+    space-between;
 
   gap: 1rem;
 
@@ -524,18 +651,26 @@ input[type="number"]:focus {
     0
     1.25rem;
 
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  font-size: 0.82rem;
+  font-size:
+    0.82rem;
 
-  line-height: 1.4;
+  line-height:
+    1.4;
 }
+
 
 #character-count {
-  white-space: nowrap;
+
+  white-space:
+    nowrap;
 }
 
+
 .controls {
+
   display: grid;
 
   grid-template-columns:
@@ -546,86 +681,141 @@ input[type="number"]:focus {
 
   gap: 1rem;
 
-  margin-bottom: 1rem;
+  margin-bottom:
+    1rem;
 }
+
 
 .control {
+
   display: flex;
 
-  flex-direction: column;
+  flex-direction:
+    column;
 
-  gap: 0.4rem;
+  gap:
+    0.4rem;
 }
+
 
 .control label {
+
   margin: 0;
 
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  font-size: 0.88rem;
+  font-size:
+    0.88rem;
 }
+
 
 .optional {
-  font-weight: 400;
 
-  opacity: 0.7;
+  font-weight:
+    400;
+
+  opacity:
+    0.7;
 }
+
 
 select,
 input[type="number"] {
+
   width: 100%;
 
-  background: var(--panel-2);
+  background:
+    var(--panel-2);
 
-  color: var(--text);
+  color:
+    var(--text);
 
   border:
     1px
     solid
     var(--border);
 
-  border-radius: 11px;
+  border-radius:
+    11px;
 
-  padding: 0.8rem;
+  padding:
+    0.8rem;
 
   font: inherit;
 }
 
-.quota-note {
+
+.usage-warning {
+
   margin:
     0
     0
     1rem;
 
-  color: var(--muted);
+  padding:
+    0.8rem
+    0.9rem;
 
-  font-size: 0.82rem;
+  border:
+    1px
+    solid
+    #5f512c;
 
-  line-height: 1.4;
+  border-radius:
+    12px;
+
+  color:
+    var(--warning);
+
+  background:
+    rgba(
+      95,
+      81,
+      44,
+      0.12
+    );
+
+  font-size:
+    0.84rem;
+
+  line-height:
+    1.45;
 }
 
+
 button {
-  appearance: none;
 
-  border: none;
+  appearance:
+    none;
 
-  margin-top: 1rem;
+  border:
+    none;
+
+  margin-top:
+    1rem;
 
   padding:
     0.95rem
     1.4rem;
 
-  border-radius: 999px;
+  border-radius:
+    999px;
 
-  background: var(--accent);
+  background:
+    var(--accent);
 
-  color: #08101f;
+  color:
+    #08101f;
 
-  font-size: 1rem;
+  font-size:
+    1rem;
 
-  font-weight: 800;
+  font-weight:
+    800;
 
-  cursor: pointer;
+  cursor:
+    pointer;
 
   transition:
     transform 120ms ease,
@@ -633,32 +823,48 @@ button {
     opacity 120ms ease;
 }
 
-button:hover:not(:disabled) {
-  background: var(--accent-hover);
 
-  transform: translateY(-1px);
+button:hover:not(:disabled) {
+
+  background:
+    var(--accent-hover);
+
+  transform:
+    translateY(-1px);
 }
+
 
 button:disabled {
-  opacity: 0.6;
 
-  cursor: not-allowed;
+  opacity:
+    0.6;
+
+  cursor:
+    not-allowed;
 }
 
+
 .status {
-  min-height: 1.5rem;
+
+  min-height:
+    1.5rem;
 
   margin:
     1rem
     0;
 
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  font-size: 1rem;
+  font-size:
+    1rem;
 }
 
+
 .results {
-  display: grid;
+
+  display:
+    grid;
 
   grid-template-columns:
     repeat(
@@ -666,13 +872,18 @@ button:disabled {
       minmax(0, 1fr)
     );
 
-  gap: 1rem;
+  gap:
+    1rem;
 
-  margin-top: 1rem;
+  margin-top:
+    1rem;
 }
 
+
 .result-card {
-  min-width: 0;
+
+  min-width:
+    0;
 
   background:
     rgba(
@@ -687,65 +898,103 @@ button:disabled {
     solid
     var(--border);
 
-  border-radius: 20px;
+  border-radius:
+    20px;
 
-  padding: 1rem;
+  padding:
+    1rem;
 }
+
 
 .result-header {
-  display: flex;
 
-  align-items: flex-start;
+  display:
+    flex;
 
-  justify-content: space-between;
+  align-items:
+    flex-start;
 
-  gap: 1rem;
+  justify-content:
+    space-between;
 
-  margin-bottom: 0.8rem;
+  gap:
+    1rem;
+
+  margin-bottom:
+    0.8rem;
 }
+
 
 .result-title {
-  margin: 0;
 
-  font-size: 1.05rem;
+  margin:
+    0;
+
+  font-size:
+    1.05rem;
 }
+
 
 .result-meta {
-  margin: 0.25rem 0 0;
 
-  color: var(--muted);
+  margin:
+    0.25rem
+    0
+    0;
 
-  font-size: 0.78rem;
+  color:
+    var(--muted);
 
-  line-height: 1.4;
+  font-size:
+    0.78rem;
+
+  line-height:
+    1.4;
 }
+
 
 .result-card img {
-  display: block;
 
-  width: 100%;
+  display:
+    block;
 
-  height: auto;
+  width:
+    100%;
 
-  border-radius: 14px;
+  height:
+    auto;
 
-  background: #070a12;
+  border-radius:
+    14px;
 
-  object-fit: contain;
+  background:
+    #070a12;
+
+  object-fit:
+    contain;
 }
+
 
 .result-actions {
-  display: flex;
 
-  flex-wrap: wrap;
+  display:
+    flex;
 
-  gap: 0.6rem;
+  flex-wrap:
+    wrap;
 
-  margin-top: 0.8rem;
+  gap:
+    0.6rem;
+
+  margin-top:
+    0.8rem;
 }
 
+
 .result-actions a {
-  display: inline-block;
+
+  display:
+    inline-block;
 
   padding:
     0.55rem
@@ -756,41 +1005,65 @@ button:disabled {
     solid
     var(--border-bright);
 
-  border-radius: 999px;
+  border-radius:
+    999px;
 
-  color: var(--text);
+  color:
+    var(--text);
 
-  text-decoration: none;
+  text-decoration:
+    none;
 
-  font-size: 0.9rem;
+  font-size:
+    0.9rem;
 }
+
 
 .result-actions a:hover {
-  border-color: var(--accent);
+
+  border-color:
+    var(--accent);
 }
+
 
 .error-card {
-  border-color: #6a2d2d;
+
+  border-color:
+    #6a2d2d;
 }
+
 
 .error-message {
-  margin: 0;
 
-  color: var(--danger);
+  margin:
+    0;
 
-  line-height: 1.5;
+  color:
+    var(--danger);
+
+  line-height:
+    1.5;
 }
+
 
 .hidden {
-  display: none;
+
+  display:
+    none;
 }
 
+
 @media (max-width: 900px) {
+
   .results {
-    grid-template-columns: 1fr;
+
+    grid-template-columns:
+      1fr;
   }
 
+
   .controls {
+
     grid-template-columns:
       repeat(
         2,
@@ -799,8 +1072,11 @@ button:disabled {
   }
 }
 
+
 @media (max-width: 650px) {
+
   .container {
+
     width:
       min(
         100% - 1rem,
@@ -808,28 +1084,43 @@ button:disabled {
       );
   }
 
+
   form {
-    padding: 1rem;
+
+    padding:
+      1rem;
   }
+
 
   .controls {
-    grid-template-columns: 1fr;
+
+    grid-template-columns:
+      1fr;
   }
+
 
   .prompt-footer {
-    flex-direction: column;
 
-    gap: 0.3rem;
+    flex-direction:
+      column;
+
+    gap:
+      0.3rem;
   }
 
+
   .result-header {
-    flex-direction: column;
+
+    flex-direction:
+      column;
   }
 }
 `;
 
+
 const JS = `
-const form = document.getElementById('gen-form');
+const form =
+  document.getElementById('gen-form');
 
 const promptEl =
   document.getElementById('prompt');
@@ -861,11 +1152,15 @@ const seedEl =
 const characterCountEl =
   document.getElementById('character-count');
 
+const usageWarningEl =
+  document.getElementById('usage-warning');
+
 
 function setStatus(
   message,
-  isError = false
+  isError
 ) {
+
   statusEl.textContent =
     message;
 
@@ -877,9 +1172,55 @@ function setStatus(
 
 
 function updateCharacterCount() {
+
   characterCountEl.textContent =
-    String(promptEl.value.length)
-    + ' / 700';
+    String(
+      promptEl.value.length
+    )
+    +
+    ' / 700';
+}
+
+
+function updateUsageWarning() {
+
+  const isEconomy =
+    sizeEl.value ===
+    'economy';
+
+  const isBest =
+    qualityEl.value ===
+    'best';
+
+
+  if (
+    isEconomy
+    &&
+    !isBest
+  ) {
+
+    usageWarningEl.textContent =
+      'Free-tier friendly setting: 512 × 512 + Standard. This uses much less of the daily AI allowance.';
+
+    return;
+  }
+
+
+  if (
+    isEconomy
+    &&
+    isBest
+  ) {
+
+    usageWarningEl.textContent =
+      'Best quality at 512 × 512 uses more AI allowance than Standard, but is still much lighter than HD sizes.';
+
+    return;
+  }
+
+
+  usageWarningEl.textContent =
+    'HD sizes use substantially more of the daily free AI allowance for Lucid Origin and Phoenix. If all models suddenly stop, the daily Cloudflare AI limit may have been reached.';
 }
 
 
@@ -889,27 +1230,46 @@ promptEl.addEventListener(
 );
 
 
+sizeEl.addEventListener(
+  'change',
+  updateUsageWarning
+);
+
+
+qualityEl.addEventListener(
+  'change',
+  updateUsageWarning
+);
+
+
 updateCharacterCount();
+
+updateUsageWarning();
 
 
 window.onTurnstileError =
   function(errorCode) {
 
-    console.error(
-      'Turnstile error:',
-      errorCode
-    );
+    /*
+      Do not turn this into a page-level
+      generation error.
 
-    setStatus(
-      'Turnstile error: '
-      + errorCode,
-      true
+      Turnstile 300* errors can be temporary
+      challenge failures, including after
+      the widget resets.
+    */
+
+    console.warn(
+      'Turnstile client warning:',
+      errorCode
     );
   };
 
 
 function clearResults() {
-  resultsEl.innerHTML = '';
+
+  resultsEl.innerHTML =
+    '';
 
   resultsEl.classList.add(
     'hidden'
@@ -917,28 +1277,78 @@ function clearResults() {
 }
 
 
-function makeResultCard(item) {
+function nextUtcResetText() {
+
+  const now =
+    new Date();
+
+
+  const next =
+    new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate() + 1,
+        0,
+        0,
+        0,
+        0
+      )
+    );
+
+
+  return next.toLocaleString(
+    [],
+
+    {
+      weekday:
+        'short',
+
+      hour:
+        'numeric',
+
+      minute:
+        '2-digit',
+
+      timeZoneName:
+        'short'
+    }
+  );
+}
+
+
+function makeResultCard(
+  item
+) {
+
   const card =
     document.createElement(
       'article'
     );
 
+
   card.className =
     'result-card';
 
 
-  if (item.error) {
+  if (
+    item.error
+  ) {
+
     card.classList.add(
       'error-card'
     );
+
 
     const title =
       document.createElement(
         'h3'
       );
 
+
     title.className =
       'result-title';
+
 
     title.textContent =
       item.label;
@@ -949,8 +1359,10 @@ function makeResultCard(item) {
         'p'
       );
 
+
     error.className =
       'error-message';
+
 
     error.textContent =
       item.error;
@@ -960,9 +1372,11 @@ function makeResultCard(item) {
       title
     );
 
+
     card.appendChild(
       error
     );
+
 
     return card;
   }
@@ -972,6 +1386,7 @@ function makeResultCard(item) {
     document.createElement(
       'div'
     );
+
 
   header.className =
     'result-header';
@@ -988,8 +1403,10 @@ function makeResultCard(item) {
       'h3'
     );
 
+
   title.className =
     'result-title';
+
 
   title.textContent =
     item.label;
@@ -1000,28 +1417,40 @@ function makeResultCard(item) {
       'p'
     );
 
+
   meta.className =
     'result-meta';
 
+
   meta.textContent =
     item.width
-    + ' × '
-    + item.height
-    + ' • '
-    + item.qualityLabel
-    + ' • '
-    + item.steps
-    + ' steps • seed '
-    + item.seed;
+    +
+    ' × '
+    +
+    item.height
+    +
+    ' • '
+    +
+    item.qualityLabel
+    +
+    ' • '
+    +
+    item.steps
+    +
+    ' steps • seed '
+    +
+    item.seed;
 
 
   headingWrapper.appendChild(
     title
   );
 
+
   headingWrapper.appendChild(
     meta
   );
+
 
   header.appendChild(
     headingWrapper
@@ -1033,18 +1462,22 @@ function makeResultCard(item) {
       'img'
     );
 
+
   image.src =
     item.dataURI;
 
+
   image.alt =
     item.label
-    + ' generated image';
+    +
+    ' generated image';
 
 
   const actions =
     document.createElement(
       'div'
     );
+
 
   actions.className =
     'result-actions';
@@ -1054,6 +1487,7 @@ function makeResultCard(item) {
     document.createElement(
       'a'
     );
+
 
   download.href =
     item.dataURI;
@@ -1074,14 +1508,22 @@ function makeResultCard(item) {
 
   download.download =
     'arqivo-'
-    + safeName
-    + '-'
-    + item.width
-    + 'x'
-    + item.height
-    + '-seed-'
-    + item.seed
-    + item.extension;
+    +
+    safeName
+    +
+    '-'
+    +
+    item.width
+    +
+    'x'
+    +
+    item.height
+    +
+    '-seed-'
+    +
+    item.seed
+    +
+    item.extension;
 
 
   download.textContent =
@@ -1097,9 +1539,11 @@ function makeResultCard(item) {
     header
   );
 
+
   card.appendChild(
     image
   );
+
 
   card.appendChild(
     actions
@@ -1110,17 +1554,26 @@ function makeResultCard(item) {
 }
 
 
-function renderResults(results) {
-  resultsEl.innerHTML = '';
+function renderResults(
+  results
+) {
+
+  resultsEl.innerHTML =
+    '';
+
 
   for (
     const item
     of results
   ) {
+
     resultsEl.appendChild(
-      makeResultCard(item)
+      makeResultCard(
+        item
+      )
     );
   }
+
 
   resultsEl.classList.remove(
     'hidden'
@@ -1130,6 +1583,7 @@ function renderResults(results) {
 
 form.addEventListener(
   'submit',
+
   async function(event) {
 
     event.preventDefault();
@@ -1138,14 +1592,18 @@ form.addEventListener(
     const prompt =
       promptEl.value.trim();
 
+
     const size =
       sizeEl.value;
+
 
     const quality =
       qualityEl.value;
 
+
     const style =
       styleEl.value;
+
 
     const framing =
       framingEl.value;
@@ -1166,10 +1624,16 @@ form.addEventListener(
 
     const turnstileToken =
       globalThis.turnstile
-        ?.getResponse?.();
+      &&
+      globalThis.turnstile.getResponse
+        ? globalThis.turnstile.getResponse()
+        : '';
 
 
-    if (!prompt) {
+    if (
+      !prompt
+    ) {
+
       setStatus(
         'Please enter a prompt.',
         true
@@ -1192,6 +1656,7 @@ form.addEventListener(
         seed > 2147483647
       )
     ) {
+
       setStatus(
         'Seed must be a whole number between 0 and 2147483647.',
         true
@@ -1201,7 +1666,10 @@ form.addEventListener(
     }
 
 
-    if (!turnstileToken) {
+    if (
+      !turnstileToken
+    ) {
+
       setStatus(
         'Please complete the verification first.',
         true
@@ -1214,6 +1682,7 @@ form.addEventListener(
     button.disabled =
       true;
 
+
     button.textContent =
       'Generating...';
 
@@ -1221,16 +1690,9 @@ form.addEventListener(
     clearResults();
 
 
-    const selectedSizeText =
-      sizeEl.options[
-        sizeEl.selectedIndex
-      ].text;
-
-
     setStatus(
-      'Generating 4 images at '
-      + selectedSizeText
-      + '. This may take a little while.'
+      'Generating with 4 models. The models are attempted in a quota-safe order.',
+      false
     );
 
 
@@ -1239,8 +1701,10 @@ form.addEventListener(
       const response =
         await fetch(
           '/api/generate',
+
           {
-            method: 'POST',
+            method:
+              'POST',
 
             headers: {
               'Content-Type':
@@ -1248,15 +1712,30 @@ form.addEventListener(
             },
 
             body:
-              JSON.stringify({
-                prompt,
-                size,
-                quality,
-                style,
-                framing,
-                seed,
-                turnstileToken
-              })
+              JSON.stringify(
+                {
+                  prompt:
+                    prompt,
+
+                  size:
+                    size,
+
+                  quality:
+                    quality,
+
+                  style:
+                    style,
+
+                  framing:
+                    framing,
+
+                  seed:
+                    seed,
+
+                  turnstileToken:
+                    turnstileToken
+                }
+              )
           }
         );
 
@@ -1265,69 +1744,117 @@ form.addEventListener(
         await response.json();
 
 
-      if (!response.ok) {
+      if (
+        !response.ok
+      ) {
+
         throw new Error(
-          data?.error
-          ||
-          'Generation failed.'
+          data
+          &&
+          data.error
+            ? data.error
+            : 'Generation failed.'
         );
       }
 
 
       renderResults(
-        data.results || []
+        data.results
+        ||
+        []
       );
 
 
-      const successCount =
-        (
-          data.results
-          ||
-          []
-        )
-        .filter(
-          function(item) {
-            return !item.error;
-          }
-        )
-        .length;
+      if (
+        data.dailyLimitReached
+      ) {
 
-
-      if (successCount === 4) {
         setStatus(
-          'Done. All 4 models generated successfully.'
+          "Cloudflare's free AI allowance has been used for today. "
+          +
+          "It resets at 00:00 UTC. Your next local reset is "
+          +
+          nextUtcResetText()
+          +
+          ". On Workers Free, this stops rather than using paid overage.",
+          true
         );
       }
+
       else {
-        setStatus(
-          'Done. '
-          + successCount
-          + ' of 4 models generated successfully.'
-        );
+
+        const successCount =
+          (
+            data.results
+            ||
+            []
+          )
+          .filter(
+            function(item) {
+
+              return !item.error;
+            }
+          )
+          .length;
+
+
+        if (
+          successCount === 4
+        ) {
+
+          setStatus(
+            'Done. All 4 models generated successfully.',
+            false
+          );
+        }
+
+        else {
+
+          setStatus(
+            'Done. '
+            +
+            successCount
+            +
+            ' of 4 models generated successfully. Read each failed card for the reason.',
+            successCount === 0
+          );
+        }
       }
 
     }
-    catch (error) {
+
+    catch(error) {
 
       console.error(
         error
       );
 
+
       setStatus(
+        error
+        &&
         error.message
-        ||
-        'Something went wrong.',
+          ? error.message
+          : 'Something went wrong.',
         true
       );
     }
+
     finally {
 
-      globalThis.turnstile
-        ?.reset?.();
+      if (
+        globalThis.turnstile
+        &&
+        globalThis.turnstile.reset
+      ) {
+
+        globalThis.turnstile.reset();
+      }
 
 
       button.disabled =
         false;
+
 
       button.textContent =
         'Generate 4 images';
@@ -1336,7 +1863,9 @@ form.addEventListener(
 );
 `;
 
+
 const COMMON_HEADERS = {
+
   "Cache-Control":
     "no-store, no-cache, must-revalidate, max-age=0",
 
@@ -1359,15 +1888,24 @@ const COMMON_HEADERS = {
     "camera=(), microphone=(), geolocation=()",
 
   "Content-Security-Policy":
-    "default-src 'self'; " +
-    "img-src 'self' blob: data:; " +
-    "style-src 'self'; " +
-    "script-src 'self' https://challenges.cloudflare.com; " +
-    "frame-src https://challenges.cloudflare.com; " +
-    "connect-src 'self' https://challenges.cloudflare.com; " +
-    "object-src 'none'; " +
-    "base-uri 'self'; " +
-    "form-action 'self'; " +
+    "default-src 'self'; "
+    +
+    "img-src 'self' blob: data:; "
+    +
+    "style-src 'self'; "
+    +
+    "script-src 'self' https://challenges.cloudflare.com; "
+    +
+    "frame-src https://challenges.cloudflare.com; "
+    +
+    "connect-src 'self' https://challenges.cloudflare.com; "
+    +
+    "object-src 'none'; "
+    +
+    "base-uri 'self'; "
+    +
+    "form-action 'self'; "
+    +
     "frame-ancestors 'none'"
 };
 
@@ -1392,6 +1930,7 @@ export default {
     ) {
 
       return new Response(
+
         HTML(
           env.TURNSTILE_SITE_KEY
           ||
@@ -1400,6 +1939,7 @@ export default {
 
         {
           headers: {
+
             ...COMMON_HEADERS,
 
             "Content-Type":
@@ -1417,10 +1957,12 @@ export default {
     ) {
 
       return new Response(
+
         CSS,
 
         {
           headers: {
+
             ...COMMON_HEADERS,
 
             "Content-Type":
@@ -1438,10 +1980,12 @@ export default {
     ) {
 
       return new Response(
+
         JS,
 
         {
           headers: {
+
             ...COMMON_HEADERS,
 
             "Content-Type":
@@ -1470,7 +2014,6 @@ export default {
         error:
           "Not found"
       },
-
       404
     );
   }
@@ -1505,7 +2048,6 @@ async function handleGenerate(
         error:
           "Forbidden origin."
       },
-
       403
     );
   }
@@ -1530,7 +2072,6 @@ async function handleGenerate(
         error:
           "Content-Type must be application/json."
       },
-
       415
     );
   }
@@ -1557,7 +2098,6 @@ async function handleGenerate(
         error:
           "Request is too large."
       },
-
       413
     );
   }
@@ -1572,6 +2112,7 @@ async function handleGenerate(
       await request.json();
 
   }
+
   catch {
 
     return json(
@@ -1579,7 +2120,6 @@ async function handleGenerate(
         error:
           "Invalid JSON body."
       },
-
       400
     );
   }
@@ -1605,7 +2145,7 @@ async function handleGenerate(
     String(
       body?.size
       ||
-      "square"
+      "economy"
     );
 
 
@@ -1626,9 +2166,9 @@ async function handleGenerate(
 
 
   const quality =
-    body?.quality === "standard"
-      ? "standard"
-      : "best";
+    body?.quality === "best"
+      ? "best"
+      : "standard";
 
 
   const size =
@@ -1649,40 +2189,43 @@ async function handleGenerate(
     ];
 
 
-  if (!size) {
+  if (
+    !size
+  ) {
 
     return json(
       {
         error:
           "Invalid image size."
       },
-
       400
     );
   }
 
 
-  if (!style) {
+  if (
+    !style
+  ) {
 
     return json(
       {
         error:
           "Invalid visual style."
       },
-
       400
     );
   }
 
 
-  if (!framing) {
+  if (
+    !framing
+  ) {
 
     return json(
       {
         error:
           "Invalid framing option."
       },
-
       400
     );
   }
@@ -1705,8 +2248,8 @@ async function handleGenerate(
         *
         1000000000
       );
-
   }
+
   else {
 
     seed =
@@ -1731,7 +2274,6 @@ async function handleGenerate(
           error:
             "Invalid seed."
         },
-
         400
       );
     }
@@ -1749,20 +2291,20 @@ async function handleGenerate(
         error:
           "Prompt must be between 3 and 700 characters."
       },
-
       400
     );
   }
 
 
-  if (!turnstileToken) {
+  if (
+    !turnstileToken
+  ) {
 
     return json(
       {
         error:
           "Missing verification token."
       },
-
       400
     );
   }
@@ -1778,9 +2320,13 @@ async function handleGenerate(
 
   const verification =
     await verifyTurnstile(
+
       env.TURNSTILE_SECRET_KEY,
+
       turnstileToken,
+
       remoteip,
+
       env.EXPECTED_HOSTNAME
     );
 
@@ -1800,7 +2346,6 @@ async function handleGenerate(
         error:
           "Verification failed."
       },
-
       403
     );
   }
@@ -1808,8 +2353,11 @@ async function handleGenerate(
 
   const finalPrompt =
     buildPrompt(
+
       prompt,
+
       style.instruction,
+
       framing.instruction
     );
 
@@ -1821,28 +2369,100 @@ async function handleGenerate(
 
 
   const results =
-    await Promise.all(
+    [];
 
-      MODELS.map(
-        function(model) {
 
-          return generateImageForModel(
-            env,
-            model,
-            finalPrompt,
-            negativePrompt,
-            size,
-            quality,
-            seed
-          );
+  let dailyLimitReached =
+    false;
+
+
+  /*
+    IMPORTANT:
+
+    We run the models sequentially.
+
+    That is deliberate.
+
+    SDXL runs first.
+
+    Phoenix and Lucid are attempted
+    afterward.
+
+    If Cloudflare tells us the
+    free daily allowance is exhausted,
+    we STOP launching further
+    generation calls.
+  */
+
+  for (
+    const model
+    of MODELS
+  ) {
+
+    if (
+      dailyLimitReached
+    ) {
+
+      results.push(
+        {
+          label:
+            model.label,
+
+          model:
+            model.id,
+
+          error:
+            "Not attempted because the daily free AI allowance was already reached.",
+
+          errorCode:
+            "DAILY_LIMIT"
         }
-      )
+      );
+
+
+      continue;
+    }
+
+
+    const result =
+      await generateImageForModel(
+
+        env,
+
+        model,
+
+        finalPrompt,
+
+        negativePrompt,
+
+        size,
+
+        quality,
+
+        seed
+      );
+
+
+    results.push(
+      result
     );
+
+
+    if (
+      result.errorCode ===
+      "DAILY_LIMIT"
+    ) {
+
+      dailyLimitReached =
+        true;
+    }
+  }
 
 
   return json(
     {
-      results
+      results,
+      dailyLimitReached
     }
   );
 }
@@ -1855,39 +2475,55 @@ function buildPrompt(
 ) {
 
   return [
+
     "PRIMARY USER REQUEST:",
+
     userPrompt,
 
     "",
 
     "IMPORTANT:",
+
     "Follow the user's requested subject literally.",
-    "Do not replace the requested subject with photography equipment or unrelated objects.",
-    "Do not invent a different primary subject.",
+
+    "The requested subject is the primary subject of the image.",
+
+    "Do not replace it with unrelated objects.",
 
     "",
 
     "VISUAL STYLE:",
+
     styleInstruction,
 
     "",
 
     "COMPOSITION:",
+
     framingInstruction,
 
     "",
 
     "QUALITY REQUIREMENTS:",
+
     "Believable geometry and proportions.",
+
     "Accurate material appearance.",
+
     "Realistic lighting behavior.",
+
     "Realistic reflections and shadows.",
+
     "Clear intentional composition.",
+
     "High detail.",
+
     "Sharp primary subject.",
-    "No accidental text, logos, borders, frames, or watermarks."
+
+    "No accidental text, decorative borders, or watermarks."
+
   ].join(
-    "\\n"
+    "\n"
   );
 }
 
@@ -1896,29 +2532,49 @@ function buildNegativePrompt(
   framingKey
 ) {
 
-  const negatives = [
-    "wrong subject",
-    "unrelated primary subject",
-    "cartoon",
-    "anime",
-    "illustration",
-    "painting",
-    "drawing",
-    "obvious CGI",
-    "plastic-looking materials",
-    "bad geometry",
-    "deformed",
-    "distorted",
-    "duplicate subject",
-    "blurry",
-    "low resolution",
-    "low detail",
-    "watermark",
-    "logo",
-    "accidental text",
-    "decorative frame",
-    "image border"
-  ];
+  const negatives =
+    [
+
+      "wrong subject",
+
+      "unrelated primary subject",
+
+      "cartoon",
+
+      "anime",
+
+      "illustration",
+
+      "painting",
+
+      "drawing",
+
+      "obvious CGI",
+
+      "plastic-looking materials",
+
+      "bad geometry",
+
+      "deformed",
+
+      "distorted",
+
+      "duplicate subject",
+
+      "blurry",
+
+      "low resolution",
+
+      "low detail",
+
+      "watermark",
+
+      "accidental text",
+
+      "decorative frame",
+
+      "image border"
+    ];
 
 
   if (
@@ -1927,10 +2583,15 @@ function buildNegativePrompt(
   ) {
 
     negatives.push(
+
       "cropped primary subject",
+
       "cut off primary subject",
+
       "subject outside frame",
+
       "important parts outside frame",
+
       "extreme close-up"
     );
   }
@@ -1952,16 +2613,17 @@ async function generateImageForModel(
   seed
 ) {
 
+  const steps =
+    quality === "best"
+      ? model.bestSteps
+      : model.standardSteps;
+
+
   try {
-
-    const steps =
-      quality === "best"
-        ? model.bestSteps
-        : model.standardSteps;
-
 
     const output =
       await env.AI.run(
+
         model.id,
 
         {
@@ -1987,33 +2649,14 @@ async function generateImageForModel(
       );
 
 
-    let imageInfo;
-
-
-    if (
-      output
-      &&
-      typeof output === "object"
-      &&
-      typeof output.image === "string"
-    ) {
-
-      imageInfo =
-        base64ImageToDataURI(
-          output.image
-        );
-
-    }
-    else {
-
-      imageInfo =
-        await streamToImageDataURI(
-          output
-        );
-    }
+    const imageInfo =
+      await normalizeImageOutput(
+        output
+      );
 
 
     return {
+
       label:
         model.label,
 
@@ -2043,7 +2686,8 @@ async function generateImageForModel(
     };
 
   }
-  catch (error) {
+
+  catch(error) {
 
     console.error(
       "Model failed:",
@@ -2052,7 +2696,14 @@ async function generateImageForModel(
     );
 
 
+    const classified =
+      classifyAIError(
+        error
+      );
+
+
     return {
+
       label:
         model.label,
 
@@ -2060,9 +2711,186 @@ async function generateImageForModel(
         model.id,
 
       error:
-        "This model failed to generate an image."
+        classified.message,
+
+      errorCode:
+        classified.code
     };
   }
+}
+
+
+function classifyAIError(
+  error
+) {
+
+  const pieces =
+    [
+
+      error?.code,
+
+      error?.message,
+
+      error?.name,
+
+      error?.cause?.code,
+
+      error?.cause?.message,
+
+      String(
+        error
+        ||
+        ""
+      )
+    ];
+
+
+  const text =
+    pieces
+      .filter(Boolean)
+      .join(" ");
+
+
+  if (
+    /3036|daily free allocation|10,000 neurons|account limited/i
+      .test(
+        text
+      )
+  ) {
+
+    return {
+
+      code:
+        "DAILY_LIMIT",
+
+      message:
+        "Cloudflare's daily free AI allowance has been reached. Generation will work again after the daily reset at 00:00 UTC."
+    };
+  }
+
+
+  if (
+    /3040|out of capacity|no more data centers/i
+      .test(
+        text
+      )
+  ) {
+
+    return {
+
+      code:
+        "CAPACITY",
+
+      message:
+        "Cloudflare AI is temporarily out of capacity for this model. Try again later."
+    };
+  }
+
+
+  if (
+    /3007|timeout|timed out/i
+      .test(
+        text
+      )
+  ) {
+
+    return {
+
+      code:
+        "TIMEOUT",
+
+      message:
+        "This model timed out before finishing. Try again, or use 512 × 512 / Standard."
+    };
+  }
+
+
+  if (
+    /5035|requires workers paid/i
+      .test(
+        text
+      )
+  ) {
+
+    return {
+
+      code:
+        "PAID_REQUIRED",
+
+      message:
+        "Cloudflare says this model requires the Workers Paid plan, so Arqivo did not use it."
+    };
+  }
+
+
+  if (
+    /3042|invalid model|no such model|5007/i
+      .test(
+        text
+      )
+  ) {
+
+    return {
+
+      code:
+        "MODEL_UNAVAILABLE",
+
+      message:
+        "This model is currently unavailable or its Cloudflare model ID changed."
+    };
+  }
+
+
+  if (
+    /invalid|validation|width|height|steps|guidance|parameter/i
+      .test(
+        text
+      )
+  ) {
+
+    return {
+
+      code:
+        "INVALID_SETTINGS",
+
+      message:
+        "Cloudflare rejected this model's generation settings. Try 512 × 512 / Standard."
+    };
+  }
+
+
+  return {
+
+    code:
+      "AI_ERROR",
+
+    message:
+      "Cloudflare AI rejected this generation request. Check Worker logs with: npx wrangler tail arqivo-image-gen"
+  };
+}
+
+
+async function normalizeImageOutput(
+  output
+) {
+
+  if (
+    output
+    &&
+    typeof output === "object"
+    &&
+    typeof output.image === "string"
+  ) {
+
+    return base64ImageToDataURI(
+      output.image
+    );
+  }
+
+
+  return streamToImageDataURI(
+    output
+  );
 }
 
 
@@ -2076,17 +2904,15 @@ function base64ImageToDataURI(
     )
   ) {
 
-    const extension =
-      extensionFromDataURI(
-        imageBase64
-      );
-
-
     return {
+
       dataURI:
         imageBase64,
 
-      extension
+      extension:
+        extensionFromDataURI(
+          imageBase64
+        )
     };
   }
 
@@ -2115,20 +2941,6 @@ function base64ImageToDataURI(
 
   else if (
     imageBase64.startsWith(
-      "iVBOR"
-    )
-  ) {
-
-    mimeType =
-      "image/png";
-
-    extension =
-      ".png";
-  }
-
-
-  else if (
-    imageBase64.startsWith(
       "UklGR"
     )
   ) {
@@ -2142,6 +2954,7 @@ function base64ImageToDataURI(
 
 
   return {
+
     dataURI:
       "data:"
       +
@@ -2185,6 +2998,7 @@ async function streamToImageDataURI(
 
 
   return {
+
     dataURI:
       "data:"
       +
@@ -2217,6 +3031,7 @@ function detectImageType(
   ) {
 
     return {
+
       mimeType:
         "image/png",
 
@@ -2237,6 +3052,7 @@ function detectImageType(
   ) {
 
     return {
+
       mimeType:
         "image/jpeg",
 
@@ -2267,6 +3083,7 @@ function detectImageType(
   ) {
 
     return {
+
       mimeType:
         "image/webp",
 
@@ -2277,6 +3094,7 @@ function detectImageType(
 
 
   return {
+
     mimeType:
       "image/png",
 
@@ -2366,7 +3184,10 @@ async function verifyTurnstile(
   ) {
 
     return {
-      success: false,
+
+      success:
+        false,
+
       reason:
         "Missing server configuration."
     };
@@ -2389,7 +3210,9 @@ async function verifyTurnstile(
   );
 
 
-  if (remoteip) {
+  if (
+    remoteip
+  ) {
 
     params.set(
       "remoteip",
@@ -2402,6 +3225,7 @@ async function verifyTurnstile(
 
     const response =
       await fetch(
+
         "https://challenges.cloudflare.com/turnstile/v0/siteverify",
 
         {
@@ -2409,6 +3233,7 @@ async function verifyTurnstile(
             "POST",
 
           headers: {
+
             "Content-Type":
               "application/x-www-form-urlencoded"
           },
@@ -2419,10 +3244,15 @@ async function verifyTurnstile(
       );
 
 
-    if (!response.ok) {
+    if (
+      !response.ok
+    ) {
 
       return {
-        success: false,
+
+        success:
+          false,
+
         reason:
           "Siteverify request failed."
       };
@@ -2438,7 +3268,9 @@ async function verifyTurnstile(
     ) {
 
       return {
-        success: false,
+
+        success:
+          false,
 
         reason:
           "Turnstile rejected token.",
@@ -2457,7 +3289,9 @@ async function verifyTurnstile(
     ) {
 
       return {
-        success: false,
+
+        success:
+          false,
 
         reason:
           "Hostname mismatch.",
@@ -2471,14 +3305,17 @@ async function verifyTurnstile(
 
 
     return {
-      success: true,
+
+      success:
+        true,
 
       hostname:
         data.hostname
     };
 
   }
-  catch (error) {
+
+  catch(error) {
 
     console.error(
       "Turnstile verify error:",
@@ -2487,7 +3324,9 @@ async function verifyTurnstile(
 
 
     return {
-      success: false,
+
+      success:
+        false,
 
       reason:
         "Turnstile request error."
@@ -2502,6 +3341,7 @@ function json(
 ) {
 
   return new Response(
+
     JSON.stringify(
       data
     ),
@@ -2510,6 +3350,7 @@ function json(
       status,
 
       headers: {
+
         ...COMMON_HEADERS,
 
         "Content-Type":
