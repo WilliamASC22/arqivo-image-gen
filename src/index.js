@@ -1,3 +1,38 @@
+const MODELS = [
+  {
+    label: "SDXL Lightning",
+    id: "@cf/bytedance/stable-diffusion-xl-lightning",
+    width: 1024,
+    height: 1024,
+    num_steps: 20,
+    guidance: 7.5
+  },
+  {
+    label: "SDXL Base",
+    id: "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+    width: 1024,
+    height: 1024,
+    num_steps: 20,
+    guidance: 7.5
+  },
+  {
+    label: "DreamShaper",
+    id: "@cf/lykon/dreamshaper-8-lcm",
+    width: 1024,
+    height: 1024,
+    num_steps: 20,
+    guidance: 7.5
+  },
+  {
+    label: "Phoenix",
+    id: "@cf/leonardo/phoenix-1.0",
+    width: 1024,
+    height: 1024,
+    num_steps: 25,
+    guidance: 7.5
+  }
+];
+
 const HTML = (siteKey) => `<!doctype html>
 <html lang="en">
 <head>
@@ -12,8 +47,7 @@ const HTML = (siteKey) => `<!doctype html>
   <main class="container">
     <h1>Arqivo Image Gen</h1>
     <p class="lead">
-      Private-by-default text-to-image generation.
-      No accounts. No prompt history. No database.
+      Private-by-default text-to-image generation. No accounts. No prompt history. No database.
     </p>
 
     <form id="gen-form" novalidate>
@@ -23,24 +57,22 @@ const HTML = (siteKey) => `<!doctype html>
         name="prompt"
         rows="6"
         maxlength="500"
-        placeholder="Example: A photorealistic portrait of a woman in soft window light, shallow depth of field, natural skin texture, cinematic realism"
+        placeholder="Example: a photorealistic black sports car parked on a city street at night"
         required
       ></textarea>
 
-		<div
-			class="cf-turnstile"
-			data-sitekey="${siteKey}"
-			data-error-callback="onTurnstileError"
-		></div>
+      <div
+        class="cf-turnstile"
+        data-sitekey="${siteKey}"
+        data-error-callback="onTurnstileError"
+      ></div>
 
-      <button id="submit-btn" type="submit">Generate image</button>
+      <button id="submit-btn" type="submit">Generate 4 images</button>
     </form>
 
     <p id="status" class="status" aria-live="polite"></p>
 
-    <section id="result-card" class="result-card hidden">
-      <img id="result-image" alt="Generated image" />
-    </section>
+    <section id="results" class="results hidden"></section>
   </main>
 </body>
 </html>`;
@@ -72,13 +104,13 @@ body {
 }
 
 .container {
-  width: min(900px, calc(100% - 2rem));
+  width: min(1200px, calc(100% - 2rem));
   margin: 0 auto;
   padding: 2rem 0 4rem;
 }
 
 h1 {
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: clamp(2rem, 4vw, 4rem);
   margin-bottom: 0.5rem;
 }
 
@@ -88,7 +120,7 @@ h1 {
   line-height: 1.6;
 }
 
-form, .result-card {
+form {
   background: rgba(21, 27, 47, 0.9);
   border: 1px solid var(--border);
   border-radius: 18px;
@@ -100,12 +132,13 @@ label {
   display: block;
   font-weight: 700;
   margin-bottom: 0.5rem;
+  font-size: 1.05rem;
 }
 
 textarea {
   width: 100%;
   resize: vertical;
-  min-height: 150px;
+  min-height: 180px;
   border: 1px solid var(--border);
   background: var(--panel-2);
   color: var(--text);
@@ -123,9 +156,10 @@ button {
   color: #08101f;
   font-weight: 800;
   border-radius: 999px;
-  padding: 0.9rem 1.2rem;
+  padding: 0.95rem 1.3rem;
   cursor: pointer;
   margin-top: 1rem;
+  font-size: 1rem;
 }
 
 button:disabled {
@@ -137,10 +171,26 @@ button:disabled {
   min-height: 1.5rem;
   margin: 1rem 0;
   color: var(--muted);
+  font-size: 1.05rem;
+}
+
+.results {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
 .result-card {
-  margin-top: 1rem;
+  background: rgba(21, 27, 47, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1rem;
+}
+
+.result-card h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
 }
 
 .result-card img {
@@ -148,10 +198,40 @@ button:disabled {
   height: auto;
   display: block;
   border-radius: 14px;
+  background: #0a0d18;
+}
+
+.result-actions {
+  margin-top: 0.75rem;
+}
+
+.result-actions a {
+  display: inline-block;
+  text-decoration: none;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.95rem;
+}
+
+.error-card {
+  border-color: #6a2d2d;
+}
+
+.error-card p {
+  color: var(--danger);
+  margin: 0;
 }
 
 .hidden {
   display: none;
+}
+
+@media (max-width: 900px) {
+  .results {
+    grid-template-columns: 1fr;
+  }
 }
 `;
 
@@ -160,23 +240,59 @@ const form = document.getElementById('gen-form');
 const promptEl = document.getElementById('prompt');
 const button = document.getElementById('submit-btn');
 const statusEl = document.getElementById('status');
-const resultCard = document.getElementById('result-card');
-const resultImage = document.getElementById('result-image');
-
-let currentObjectUrl = null;
-
-window.onTurnstileError = function(errorCode) {
-  setStatus(
-    'Turnstile error: ' + errorCode,
-    true
-  );
-
-  console.error('Turnstile error code:', errorCode);
-};
+const resultsEl = document.getElementById('results');
 
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
   statusEl.style.color = isError ? '#ff8d8d' : '#b8c1e0';
+}
+
+window.onTurnstileError = function(errorCode) {
+  console.error('Turnstile error:', errorCode);
+  setStatus('Turnstile error: ' + errorCode, true);
+};
+
+function escapeHtml(value) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function renderResults(results) {
+  resultsEl.innerHTML = '';
+
+  for (const item of results) {
+    const card = document.createElement('article');
+
+    if (item.error) {
+      card.className = 'result-card error-card';
+      card.innerHTML = \`
+        <h3>\${escapeHtml(item.label)}</h3>
+        <p>\${escapeHtml(item.error)}</p>
+      \`;
+      resultsEl.appendChild(card);
+      continue;
+    }
+
+    card.className = 'result-card';
+
+    const fileName = item.label.toLowerCase().replaceAll(/[^a-z0-9]+/g, '-');
+
+    card.innerHTML = \`
+      <h3>\${escapeHtml(item.label)}</h3>
+      <img src="\${item.dataURI}" alt="\${escapeHtml(item.label)} generated image" />
+      <div class="result-actions">
+        <a href="\${item.dataURI}" download="\${fileName}.png">Download</a>
+      </div>
+    \`;
+
+    resultsEl.appendChild(card);
+  }
+
+  resultsEl.classList.remove('hidden');
 }
 
 form.addEventListener('submit', async (event) => {
@@ -197,8 +313,9 @@ form.addEventListener('submit', async (event) => {
 
   button.disabled = true;
   button.textContent = 'Generating...';
-  setStatus('Generating your image. This can take a little while.');
-  resultCard.classList.add('hidden');
+  resultsEl.classList.add('hidden');
+  resultsEl.innerHTML = '';
+  setStatus('Generating 4 images. This may take a little while.');
 
   try {
     const response = await fetch('/api/generate', {
@@ -207,36 +324,22 @@ form.addEventListener('submit', async (event) => {
       body: JSON.stringify({ prompt, turnstileToken })
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      let message = 'Generation failed.';
-      try {
-        const data = await response.json();
-        if (data?.error) message = data.error;
-      } catch (_) {}
-      throw new Error(message);
+      throw new Error(data?.error || 'Generation failed.');
     }
 
-    const blob = await response.blob();
-
-    if (currentObjectUrl) {
-      URL.revokeObjectURL(currentObjectUrl);
-    }
-
-    currentObjectUrl = URL.createObjectURL(blob);
-    resultImage.src = currentObjectUrl;
-    resultCard.classList.remove('hidden');
+    renderResults(data.results || []);
     setStatus('Done.');
   } catch (error) {
+    console.error(error);
     setStatus(error.message || 'Something went wrong.', true);
   } finally {
     globalThis.turnstile?.reset?.();
     button.disabled = false;
-    button.textContent = 'Generate image';
+    button.textContent = 'Generate 4 images';
   }
-});
-
-window.addEventListener('beforeunload', () => {
-  if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
 });
 `;
 
@@ -254,7 +357,7 @@ const COMMON_HEADERS = {
     "style-src 'self'; " +
     "script-src 'self' https://challenges.cloudflare.com; " +
     "frame-src https://challenges.cloudflare.com; " +
-    "connect-src 'self'; " +
+    "connect-src 'self' https://challenges.cloudflare.com; " +
     "object-src 'none'; " +
     "base-uri 'self'; " +
     "form-action 'self'; " +
@@ -332,131 +435,144 @@ async function handleGenerate(request, env) {
   }
 
   const remoteip = request.headers.get("CF-Connecting-IP") || "";
+
   const verification = await verifyTurnstile(
-	env.TURNSTILE_SECRET_KEY,
-	turnstileToken,
-	remoteip,
-	env.EXPECTED_HOSTNAME
-	);
+    env.TURNSTILE_SECRET_KEY,
+    turnstileToken,
+    remoteip,
+    env.EXPECTED_HOSTNAME
+  );
 
-	if (!verification.success) {
-	console.error("Turnstile verification failed:", {
-		errorCodes: verification.errorCodes,
-		hostname: verification.hostname,
-		expectedHostname: env.EXPECTED_HOSTNAME
-	});
+  if (!verification.success) {
+    console.error("Turnstile verification failed:", verification);
+    return json({ error: "Verification failed." }, 403);
+  }
 
-	return json({
-		error: "Verification failed.",
-		code: verification.errorCodes?.join(", ") || "unknown"
-	}, 403);
-	}
+  const finalPrompt = buildPrompt(prompt);
+  const negativePrompt = buildNegativePrompt();
 
-  const modelId = env.MODEL_ID || "@cf/lykon/dreamshaper-8-lcm";
+  const results = await Promise.all(
+    MODELS.map((model) => generateImageForModel(env, model, finalPrompt, negativePrompt))
+  );
 
-  const finalPrompt = `
-	SUBJECT:
-	${prompt}
+  return json({ results });
+}
 
-	Create a realistic photograph of exactly the subject described above.
+function buildPrompt(userPrompt) {
+  return `
+SUBJECT:
+${userPrompt}
 
-	Composition:
-	- the entire primary subject is clearly visible
-	- subject centered in frame
-	- no part of the subject is cropped
-	- camera pulled back enough to show the complete subject
-	- natural realistic proportions
-	- clear separation between subject and background
+Create an image of exactly the subject described above.
 
-	Visual quality:
-	- true-to-life photography
-	- realistic materials and textures
-	- physically believable lighting
-	- realistic reflections and shadows
-	- natural color
-	- high detail
-	- sharp focus
-	- professional commercial photography
-	- no illustration or CGI appearance
-	`;
+REQUIREMENTS:
+- photorealistic
+- true-to-life materials and textures
+- realistic lighting and reflections
+- the primary subject must be fully visible
+- keep the entire subject clearly inside the frame
+- leave visible space around the subject
+- do not crop the main subject
+- center the main subject
+- natural perspective
+- sharp focus
+- high detail
+- professional commercial photography
+- no stylized illustration look
+`;
+}
 
-	const negativePrompt = `
-	cartoon,
-	anime,
-	illustration,
-	digital art,
-	3d render,
-	cgi,
-	painting,
-	drawing,
-	camera equipment,
-	photography equipment,
-	wrong subject,
-	cropped subject,
-	cut off,
-	partially outside frame,
-	deformed,
-	distorted,
-	blurry,
-	low resolution,
-	watermark,
-	logo,
-	text
-	`;
+function buildNegativePrompt() {
+  return `
+wrong subject,
+camera,
+camera equipment,
+lens,
+tripod,
+microphone,
+cartoon,
+anime,
+illustration,
+painting,
+drawing,
+3d render,
+cgi,
+stylized,
+cropped,
+cut off,
+partially outside frame,
+subject outside frame,
+close up crop,
+extreme close up,
+blurry,
+low quality,
+low detail,
+deformed,
+distorted,
+watermark,
+logo,
+text
+`;
+}
 
+async function generateImageForModel(env, model, prompt, negativePrompt) {
   try {
-    const imageStream = await env.AI.run(modelId, {
-      prompt: finalPrompt,
+    const stream = await env.AI.run(model.id, {
+      prompt,
       negative_prompt: negativePrompt,
-      width: 1024,
-      height: 1024,
-      num_steps: 20,
-      guidance: 7.5,
+      width: model.width,
+      height: model.height,
+      num_steps: model.num_steps,
+      guidance: model.guidance,
       seed: Math.floor(Math.random() * 1000000)
     });
 
-    return new Response(imageStream, {
-      headers: {
-        ...COMMON_HEADERS,
-        "Content-Type": "image/png"
-      }
-    });
-  } catch {
-    return json(
-      { error: "Image generation failed. Please try again in a moment." },
-      500
-    );
+    const dataURI = await streamToDataURI(stream, "image/png");
+
+    return {
+      label: model.label,
+      model: model.id,
+      dataURI
+    };
+  } catch (error) {
+    console.error("Model failed:", model.label, error);
+
+    return {
+      label: model.label,
+      model: model.id,
+      error: "This model failed to generate an image."
+    };
   }
 }
 
-async function verifyTurnstile(
-  secret,
-  token,
-  remoteip,
-  expectedHostname
-) {
-  if (!secret) {
-    return {
-      success: false,
-      errorCodes: ["missing-secret"]
-    };
+async function streamToDataURI(stream, mimeType) {
+  const arrayBuffer = await new Response(stream).arrayBuffer();
+  const bytes = new Uint8Array(arrayBuffer);
+  const base64 = uint8ToBase64(bytes);
+  return `data:${mimeType};base64,${base64}`;
+}
+
+function uint8ToBase64(bytes) {
+  let binary = '';
+  const chunkSize = 0x8000;
+
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize);
+    binary += String.fromCharCode(...chunk);
   }
 
-  if (!expectedHostname) {
-    return {
-      success: false,
-      errorCodes: ["missing-expected-hostname"]
-    };
+  return btoa(binary);
+}
+
+async function verifyTurnstile(secret, token, remoteip, expectedHostname) {
+  if (!secret || !expectedHostname) {
+    return { success: false };
   }
 
   const params = new URLSearchParams();
-
   params.set("secret", secret);
   params.set("response", token);
-
-  if (remoteip) {
-    params.set("remoteip", remoteip);
-  }
+  if (remoteip) params.set("remoteip", remoteip);
 
   try {
     const response = await fetch(
@@ -471,42 +587,17 @@ async function verifyTurnstile(
     );
 
     if (!response.ok) {
-      return {
-        success: false,
-        errorCodes: ["siteverify-http-error"]
-      };
+      return { success: false };
     }
 
     const data = await response.json();
 
-    if (!data.success) {
-      return {
-        success: false,
-        errorCodes: data["error-codes"] || ["siteverify-failed"],
-        hostname: data.hostname || null
-      };
-    }
-
-    if (data.hostname !== expectedHostname) {
-      return {
-        success: false,
-        errorCodes: ["hostname-mismatch"],
-        hostname: data.hostname
-      };
-    }
-
     return {
-      success: true,
-      hostname: data.hostname
+      success: data.success === true && data.hostname === expectedHostname
     };
-
   } catch (error) {
-    console.error("Siteverify request failed:", error);
-
-    return {
-      success: false,
-      errorCodes: ["siteverify-request-error"]
-    };
+    console.error("Turnstile verify error:", error);
+    return { success: false };
   }
 }
 
