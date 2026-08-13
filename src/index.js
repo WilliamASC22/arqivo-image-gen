@@ -355,49 +355,53 @@ async function handleGenerate(request, env) {
   const modelId = env.MODEL_ID || "@cf/lykon/dreamshaper-8-lcm";
 
   const finalPrompt = `
-	Photorealistic professional photography.
-
-	COMPOSITION REQUIREMENTS:
-	The entire main subject must be fully visible inside the image.
-	Keep the complete subject centered in the frame.
-	Leave clear empty margin around the subject on every side.
-	Camera pulled back far enough to show the entire subject.
-	Do not crop any part of the main subject.
-	Do not place the subject against the edge of the frame.
-	Balanced professional composition.
-	Natural camera perspective.
-	Realistic proportions.
-	Realistic lighting.
-	Natural textures.
-	High detail.
-	Sharp photographic focus.
-
-	USER REQUEST:
+	SUBJECT:
 	${prompt}
+
+	Create a realistic photograph of exactly the subject described above.
+
+	Composition:
+	- the entire primary subject is clearly visible
+	- subject centered in frame
+	- no part of the subject is cropped
+	- camera pulled back enough to show the complete subject
+	- natural realistic proportions
+	- clear separation between subject and background
+
+	Visual quality:
+	- true-to-life photography
+	- realistic materials and textures
+	- physically believable lighting
+	- realistic reflections and shadows
+	- natural color
+	- high detail
+	- sharp focus
+	- professional commercial photography
+	- no illustration or CGI appearance
 	`;
 
 	const negativePrompt = `
-	cropped,
+	cartoon,
+	anime,
+	illustration,
+	digital art,
+	3d render,
+	cgi,
+	painting,
+	drawing,
+	camera equipment,
+	photography equipment,
+	wrong subject,
+	cropped subject,
 	cut off,
 	partially outside frame,
-	subject outside frame,
-	close-up crop,
-	extreme close-up,
-	missing parts,
-	edge of frame,
-	poor composition,
-	tiny subject,
 	deformed,
 	distorted,
-	bad proportions,
 	blurry,
-	low quality,
+	low resolution,
 	watermark,
 	logo,
-	text,
-	cartoon,
-	painting,
-	illustration
+	text
 	`;
 
   try {
