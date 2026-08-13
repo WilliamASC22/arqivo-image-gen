@@ -27,7 +27,11 @@ const HTML = (siteKey) => `<!doctype html>
         required
       ></textarea>
 
-      <div class="cf-turnstile" data-sitekey="${siteKey}"></div>
+		<div
+			class="cf-turnstile"
+			data-sitekey="${siteKey}"
+			data-error-callback="onTurnstileError"
+		></div>
 
       <button id="submit-btn" type="submit">Generate image</button>
     </form>
@@ -160,6 +164,15 @@ const resultCard = document.getElementById('result-card');
 const resultImage = document.getElementById('result-image');
 
 let currentObjectUrl = null;
+
+window.onTurnstileError = function(errorCode) {
+  setStatus(
+    'Turnstile error: ' + errorCode,
+    true
+  );
+
+  console.error('Turnstile error code:', errorCode);
+};
 
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
