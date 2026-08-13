@@ -354,14 +354,51 @@ async function handleGenerate(request, env) {
 
   const modelId = env.MODEL_ID || "@cf/lykon/dreamshaper-8-lcm";
 
-  const finalPrompt =
-    "Photorealistic, ultra-detailed, realistic lighting, natural textures, " +
-    "sharp focus, high realism, professional photography. " +
-    prompt;
+  const finalPrompt = `
+Photorealistic professional photography.
 
-  const negativePrompt =
-    "blurry, low quality, deformed, bad anatomy, extra fingers, extra limbs, " +
-    "duplicate subjects, cropped, watermark, logo, text, cartoon, painting, illustration";
+COMPOSITION REQUIREMENTS:
+The entire main subject must be fully visible inside the image.
+Keep the complete subject centered in the frame.
+Leave clear empty margin around the subject on every side.
+Camera pulled back far enough to show the entire subject.
+Do not crop any part of the main subject.
+Do not place the subject against the edge of the frame.
+Balanced professional composition.
+Natural camera perspective.
+Realistic proportions.
+Realistic lighting.
+Natural textures.
+High detail.
+Sharp photographic focus.
+
+USER REQUEST:
+${prompt}
+`;
+
+const negativePrompt = `
+cropped,
+cut off,
+partially outside frame,
+subject outside frame,
+close-up crop,
+extreme close-up,
+missing parts,
+edge of frame,
+poor composition,
+tiny subject,
+deformed,
+distorted,
+bad proportions,
+blurry,
+low quality,
+watermark,
+logo,
+text,
+cartoon,
+painting,
+illustration
+`;
 
   try {
     const imageStream = await env.AI.run(modelId, {
