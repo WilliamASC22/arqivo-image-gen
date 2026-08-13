@@ -16,13 +16,13 @@ const MODELS = [
     guidance: 7.5
   },
   {
-    label: "DreamShaper",
-    id: "@cf/lykon/dreamshaper-8-lcm",
-    width: 1024,
-    height: 1024,
-    num_steps: 20,
-    guidance: 7.5
-  },
+	label: "Lucid Origin",
+	id: "@cf/leonardo/lucid-origin",
+	width: 1024,
+	height: 1024,
+	num_steps: 28,
+	guidance: 5.5
+	},
   {
     label: "Phoenix",
     id: "@cf/leonardo/phoenix-1.0",
