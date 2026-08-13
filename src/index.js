@@ -332,15 +332,25 @@ async function handleGenerate(request, env) {
   }
 
   const remoteip = request.headers.get("CF-Connecting-IP") || "";
-  const verified = await verifyTurnstile(
-    env.TURNSTILE_SECRET_KEY,
-    turnstileToken,
-    remoteip
-  );
+  const verification = await verifyTurnstile(
+	env.TURNSTILE_SECRET_KEY,
+	turnstileToken,
+	remoteip,
+	env.EXPECTED_HOSTNAME
+	);
 
-  if (!verified) {
-    return json({ error: "Verification failed." }, 403);
-  }
+	if (!verification.success) {
+	console.error("Turnstile verification failed:", {
+		errorCodes: verification.errorCodes,
+		hostname: verification.hostname,
+		expectedHostname: env.EXPECTED_HOSTNAME
+	});
+
+	return json({
+		error: "Verification failed.",
+		code: verification.errorCodes?.join(", ") || "unknown"
+	}, 403);
+	}
 
   const modelId = env.MODEL_ID || "@cf/lykon/dreamshaper-8-lcm";
 
@@ -378,29 +388,85 @@ async function handleGenerate(request, env) {
   }
 }
 
-async function verifyTurnstile(secret, token, remoteip) {
-  if (!secret) return false;
+async function verifyTurnstile(
+  secret,
+  token,
+  remoteip,
+  expectedHostname
+) {
+  if (!secret) {
+    return {
+      success: false,
+      errorCodes: ["missing-secret"]
+    };
+  }
+
+  if (!expectedHostname) {
+    return {
+      success: false,
+      errorCodes: ["missing-expected-hostname"]
+    };
+  }
 
   const params = new URLSearchParams();
+
   params.set("secret", secret);
   params.set("response", token);
-  if (remoteip) params.set("remoteip", remoteip);
 
-  const response = await fetch(
-    "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: params.toString()
+  if (remoteip) {
+    params.set("remoteip", remoteip);
+  }
+
+  try {
+    const response = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: params.toString()
+      }
+    );
+
+    if (!response.ok) {
+      return {
+        success: false,
+        errorCodes: ["siteverify-http-error"]
+      };
     }
-  );
 
-  if (!response.ok) return false;
+    const data = await response.json();
 
-  const data = await response.json();
-  return data.success === true;
+    if (!data.success) {
+      return {
+        success: false,
+        errorCodes: data["error-codes"] || ["siteverify-failed"],
+        hostname: data.hostname || null
+      };
+    }
+
+    if (data.hostname !== expectedHostname) {
+      return {
+        success: false,
+        errorCodes: ["hostname-mismatch"],
+        hostname: data.hostname
+      };
+    }
+
+    return {
+      success: true,
+      hostname: data.hostname
+    };
+
+  } catch (error) {
+    console.error("Siteverify request failed:", error);
+
+    return {
+      success: false,
+      errorCodes: ["siteverify-request-error"]
+    };
+  }
 }
 
 function json(data, status = 200) {
