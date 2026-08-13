@@ -517,7 +517,7 @@ text
 
 async function generateImageForModel(env, model, prompt, negativePrompt) {
   try {
-    const stream = await env.AI.run(model.id, {
+    const output = await env.AI.run(model.id, {
       prompt,
       negative_prompt: negativePrompt,
       width: model.width,
@@ -527,13 +527,28 @@ async function generateImageForModel(env, model, prompt, negativePrompt) {
       seed: Math.floor(Math.random() * 1000000)
     });
 
-    const dataURI = await streamToDataURI(stream, "image/png");
+    let dataURI;
+
+    // Some Workers AI image models return Base64 JSON.
+    if (
+      output &&
+      typeof output === "object" &&
+      typeof output.image === "string"
+    ) {
+      dataURI = `data:image/jpeg;base64,${output.image}`;
+    }
+
+    // Others return a ReadableStream.
+    else {
+      dataURI = await streamToDataURI(output, "image/png");
+    }
 
     return {
       label: model.label,
       model: model.id,
       dataURI
     };
+
   } catch (error) {
     console.error("Model failed:", model.label, error);
 
