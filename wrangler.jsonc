@@ -8,6 +8,7 @@
   },
   "vars": {
     "MODEL_ID": "@cf/lykon/dreamshaper-8-lcm",
-    "TURNSTILE_SITE_KEY": "0x4AAAAAAENm46AFkm2kLQ6-"
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAENm46AFkm2kLQ6-",
+	"EXPECTED_HOSTNAME":"arqivo-image-gen.williab.workers.dev"
   }
 }
