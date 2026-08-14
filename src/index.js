@@ -1,77 +1,97 @@
 const MODELS = [
   {
+    key: "sdxl-lightning",
     label: "SDXL Lightning",
     id: "@cf/bytedance/stable-diffusion-xl-lightning",
     standardSteps: 10,
     bestSteps: 20,
-    guidance: 7.5,
-    supportsNegativePrompt: true
+    guidance: 7.5
   },
   {
+    key: "sdxl-base",
     label: "SDXL Base",
     id: "@cf/stabilityai/stable-diffusion-xl-base-1.0",
     standardSteps: 12,
     bestSteps: 20,
-    guidance: 7.5,
-    supportsNegativePrompt: true
+    guidance: 7.5
   },
   {
+    key: "lucid-origin",
     label: "Lucid Origin",
     id: "@cf/leonardo/lucid-origin",
     standardSteps: 20,
     bestSteps: 32,
-    guidance: 5.5,
-    supportsNegativePrompt: false
+    guidance: 5.5
   },
   {
+    key: "phoenix",
     label: "Phoenix",
     id: "@cf/leonardo/phoenix-1.0",
     standardSteps: 20,
     bestSteps: 35,
-    guidance: 6.0,
-    supportsNegativePrompt: true
+    guidance: 7.5
   }
 ];
 
+const MODELS_BY_KEY = Object.fromEntries(
+  MODELS.map((model) => [model.key, model])
+);
+
 const SIZES = {
-  square512: {
-    label: "Square — 512 × 512",
+  "small-square": {
+    label: "Small Square",
     width: 512,
     height: 512
   },
-  square768: {
-    label: "Square — 768 × 768",
+
+  "medium-square": {
+    label: "Medium Square",
     width: 768,
     height: 768
   },
+
   square: {
-    label: "Square — 1024 × 1024",
+    label: "Square",
     width: 1024,
     height: 1024
   },
+
   landscape: {
-    label: "Landscape — 1024 × 768",
+    label: "Landscape",
     width: 1024,
     height: 768
   },
+
   portrait: {
-    label: "Portrait — 768 × 1024",
+    label: "Portrait",
     width: 768,
     height: 1024
   },
+
   widescreen: {
-    label: "Widescreen — 1024 × 576",
+    label: "Widescreen",
     width: 1024,
     height: 576
   },
+
   tall: {
-    label: "Tall — 576 × 1024",
+    label: "Tall",
     width: 576,
     height: 1024
+  },
+
+  "large-landscape": {
+    label: "Large Landscape",
+    width: 1536,
+    height: 1024
+  },
+
+  "large-portrait": {
+    label: "Large Portrait",
+    width: 1024,
+    height: 1536
   }
 };
-
-const MAX_SEED = 2147483647;
 
 const HTML = (siteKey) => `<!doctype html>
 <html lang="en">
@@ -81,11 +101,6 @@ const HTML = (siteKey) => `<!doctype html>
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
-  />
-
-  <meta
-    name="description"
-    content="Private-by-default multi-model AI image generation."
   />
 
   <title>Arqivo Image Gen</title>
@@ -122,10 +137,9 @@ const HTML = (siteKey) => `<!doctype html>
     <form
       id="gen-form"
       novalidate
-      autocomplete="off"
     >
-      <div class="prompt-section">
 
+      <div class="prompt-block">
         <label for="prompt">
           Describe the image you want
         </label>
@@ -135,11 +149,109 @@ const HTML = (siteKey) => `<!doctype html>
           name="prompt"
           rows="6"
           maxlength="500"
-          placeholder="Example: an all-black exotic sports car, fully visible, parked on a wet city street at night, photorealistic"
+          placeholder="Example: a photorealistic black sports car parked on a city street at night"
           required
         ></textarea>
-
       </div>
+
+
+      <fieldset class="model-picker">
+
+        <div class="section-heading">
+          <div>
+            <legend>
+              Models
+            </legend>
+
+            <p class="helper">
+              Choose one model, several models, or compare all four.
+            </p>
+          </div>
+
+          <div class="model-actions">
+            <button
+              type="button"
+              id="select-all-models"
+              class="small-button"
+            >
+              Select all
+            </button>
+
+            <button
+              type="button"
+              id="clear-models"
+              class="small-button secondary"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+
+
+        <div class="model-grid">
+
+          <label class="model-option">
+            <input
+              type="checkbox"
+              name="models"
+              value="sdxl-lightning"
+              checked
+            />
+
+            <span class="model-option-content">
+              <strong>SDXL Lightning</strong>
+              <small>Fast SDXL generation</small>
+            </span>
+          </label>
+
+
+          <label class="model-option">
+            <input
+              type="checkbox"
+              name="models"
+              value="sdxl-base"
+              checked
+            />
+
+            <span class="model-option-content">
+              <strong>SDXL Base</strong>
+              <small>Classic SDXL model</small>
+            </span>
+          </label>
+
+
+          <label class="model-option">
+            <input
+              type="checkbox"
+              name="models"
+              value="lucid-origin"
+              checked
+            />
+
+            <span class="model-option-content">
+              <strong>Lucid Origin</strong>
+              <small>High prompt responsiveness</small>
+            </span>
+          </label>
+
+
+          <label class="model-option">
+            <input
+              type="checkbox"
+              name="models"
+              value="phoenix"
+              checked
+            />
+
+            <span class="model-option-content">
+              <strong>Phoenix</strong>
+              <small>Strong prompt adherence</small>
+            </span>
+          </label>
+
+        </div>
+      </fieldset>
+
 
       <div class="controls">
 
@@ -153,12 +265,13 @@ const HTML = (siteKey) => `<!doctype html>
             id="size"
             name="size"
           >
-            <option value="square512">
-              Square — 512 × 512
+
+            <option value="small-square">
+              Small Square — 512 × 512
             </option>
 
-            <option value="square768">
-              Square — 768 × 768
+            <option value="medium-square">
+              Medium Square — 768 × 768
             </option>
 
             <option
@@ -183,13 +296,23 @@ const HTML = (siteKey) => `<!doctype html>
             <option value="tall">
               Tall — 576 × 1024
             </option>
+
+            <option value="large-landscape">
+              Large Landscape — 1536 × 1024
+            </option>
+
+            <option value="large-portrait">
+              Large Portrait — 1024 × 1536
+            </option>
+
+            <option value="custom">
+              Custom resolution
+            </option>
+
           </select>
 
-          <span class="control-help">
-            Larger images use more of the daily AI allowance.
-          </span>
-
         </div>
+
 
         <div class="control">
 
@@ -201,6 +324,7 @@ const HTML = (siteKey) => `<!doctype html>
             id="quality"
             name="quality"
           >
+
             <option
               value="best"
               selected
@@ -211,20 +335,18 @@ const HTML = (siteKey) => `<!doctype html>
             <option value="standard">
               Standard
             </option>
+
           </select>
 
-          <span class="control-help">
-            Best uses more generation steps.
-          </span>
-
         </div>
+
 
         <div class="control">
 
           <label for="seed">
             Seed
             <span class="optional">
-              optional
+              (optional)
             </span>
           </label>
 
@@ -233,21 +355,79 @@ const HTML = (siteKey) => `<!doctype html>
             name="seed"
             type="number"
             min="0"
-            max="${MAX_SEED}"
+            max="2147483647"
             step="1"
-            inputmode="numeric"
             placeholder="Random"
           />
-
-          <span class="control-help">
-            Reuse a seed to compare similar generations.
-          </span>
 
         </div>
 
       </div>
 
-      <div class="verification-row">
+
+      <div
+        id="custom-size-controls"
+        class="custom-size-controls hidden"
+      >
+
+        <div class="control">
+
+          <label for="custom-width">
+            Width
+          </label>
+
+          <input
+            id="custom-width"
+            type="number"
+            min="256"
+            max="2048"
+            step="64"
+            value="1024"
+          />
+
+          <small class="field-help">
+            256–2048 px
+          </small>
+
+        </div>
+
+
+        <div class="size-separator">
+          ×
+        </div>
+
+
+        <div class="control">
+
+          <label for="custom-height">
+            Height
+          </label>
+
+          <input
+            id="custom-height"
+            type="number"
+            min="256"
+            max="2048"
+            step="64"
+            value="1024"
+          />
+
+          <small class="field-help">
+            256–2048 px
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <p class="quota-note">
+        Larger resolutions and using several models consume more
+        of the daily AI allowance.
+      </p>
+
+
+      <div class="verification-area">
 
         <div
           class="cf-turnstile"
@@ -257,17 +437,16 @@ const HTML = (siteKey) => `<!doctype html>
 
       </div>
 
-      <div class="submit-row">
 
-        <button
-          id="submit-btn"
-          type="submit"
-        >
-          Generate 4 images
-        </button>
+      <button
+        id="submit-btn"
+        type="submit"
+      >
+        Generate 4 images
+      </button>
 
-      </div>
     </form>
+
 
     <p
       id="status"
@@ -275,70 +454,53 @@ const HTML = (siteKey) => `<!doctype html>
       aria-live="polite"
     ></p>
 
+
     <section
       id="results"
       class="results hidden"
-      aria-live="polite"
     ></section>
 
   </main>
 </body>
 </html>`;
 
+
 const CSS = `
 :root {
   --bg: #0b1020;
-  --bg-2: #111833;
-
   --panel: #151b2f;
   --panel-2: #1c2540;
-  --panel-3: #10172a;
+  --panel-3: #222c4b;
 
   --text: #f2f5ff;
   --muted: #b8c1e0;
-  --muted-2: #8994ba;
 
   --border: #2c365f;
-  --border-strong: #3a4778;
+  --border-hover: #49608f;
 
   --accent: #6ea8fe;
-  --accent-hover: #8ab8ff;
+  --accent-hover: #8abbff;
 
   --danger: #ff8d8d;
-  --success: #9be5ad;
-
-  --radius: 18px;
-  --radius-small: 12px;
+  --success: #8be3af;
 }
+
 
 * {
   box-sizing: border-box;
 }
 
-html {
-  color-scheme: dark;
-}
 
 html,
 body {
   margin: 0;
   padding: 0;
-  min-height: 100%;
-}
-
-body {
-  min-height: 100vh;
 
   background:
-    radial-gradient(
-      circle at top center,
-      #172143 0%,
-      transparent 35%
-    ),
     linear-gradient(
       180deg,
-      var(--bg) 0%,
-      var(--bg-2) 100%
+      #0b1020 0%,
+      #121933 100%
     );
 
   color: var(--text);
@@ -351,73 +513,67 @@ body {
     sans-serif;
 }
 
-button,
-textarea,
-select,
-input {
-  font-family: inherit;
+
+body {
+  min-height: 100vh;
 }
 
+
 .container {
-  width: min(
-    1240px,
-    calc(100% - 2rem)
-  );
+  width:
+    min(
+      1200px,
+      calc(100% - 2rem)
+    );
 
   margin: 0 auto;
 
   padding:
-    2.5rem
+    2rem
     0
-    5rem;
+    4rem;
 }
+
 
 .hero {
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.5rem;
 }
 
+
 h1 {
+  font-size:
+    clamp(
+      2rem,
+      4vw,
+      4rem
+    );
+
   margin:
     0
     0
-    0.55rem;
-
-  font-size:
-    clamp(
-      2.25rem,
-      5vw,
-      4.25rem
-    );
-
-  letter-spacing: -0.04em;
+    0.5rem;
 }
+
 
 .lead {
-  max-width: 850px;
-
-  margin: 0;
-
   color: var(--muted);
 
-  line-height: 1.6;
+  margin:
+    0
+    0
+    1.5rem;
 
-  font-size:
-    clamp(
-      1rem,
-      2vw,
-      1.15rem
-    );
+  line-height: 1.6;
 }
 
-form {
-  padding: 1.25rem;
 
+form {
   background:
     rgba(
       21,
       27,
       47,
-      0.94
+      0.92
     );
 
   border:
@@ -425,45 +581,41 @@ form {
     solid
     var(--border);
 
-  border-radius:
-    var(--radius);
+  border-radius: 18px;
+
+  padding: 1rem;
 
   backdrop-filter:
     blur(12px);
 }
 
-.prompt-section {
-  margin-bottom: 1rem;
-}
 
-label {
-  display: block;
-
-  margin-bottom: 0.55rem;
-
+label,
+legend {
   font-weight: 700;
 
-  font-size: 1rem;
+  font-size: 1.05rem;
 }
+
+
+.prompt-block > label {
+  display: block;
+
+  margin-bottom: 0.5rem;
+}
+
 
 textarea {
   width: 100%;
 
-  min-height: 185px;
-
   resize: vertical;
 
-  padding:
-    0.95rem
-    1rem;
+  min-height: 180px;
 
   border:
     1px
     solid
     var(--border);
-
-  border-radius:
-    var(--radius-small);
 
   background:
     var(--panel-2);
@@ -471,16 +623,211 @@ textarea {
   color:
     var(--text);
 
-  font-size: 1rem;
+  border-radius: 12px;
 
-  line-height: 1.55;
+  padding:
+    0.9rem
+    1rem;
+
+  font: inherit;
+
+  line-height: 1.5;
+
+  margin-bottom: 1.25rem;
 }
+
 
 textarea::placeholder,
 input::placeholder {
   color:
-    var(--muted-2);
+    rgba(
+      184,
+      193,
+      224,
+      0.7
+    );
 }
+
+
+textarea:focus,
+select:focus,
+input[type="number"]:focus {
+  outline:
+    2px
+    solid
+    var(--accent);
+
+  outline-offset: 1px;
+}
+
+
+.model-picker {
+  border:
+    1px
+    solid
+    var(--border);
+
+  border-radius: 14px;
+
+  padding: 1rem;
+
+  margin:
+    0
+    0
+    1rem;
+}
+
+
+.model-picker legend {
+  padding: 0;
+}
+
+
+.section-heading {
+  display: flex;
+
+  align-items: flex-start;
+
+  justify-content:
+    space-between;
+
+  gap: 1rem;
+
+  margin-bottom: 0.8rem;
+}
+
+
+.helper {
+  margin:
+    0.25rem
+    0
+    0;
+
+  color:
+    var(--muted);
+
+  font-size: 0.9rem;
+}
+
+
+.model-actions {
+  display: flex;
+
+  gap: 0.5rem;
+
+  flex-shrink: 0;
+}
+
+
+.small-button {
+  margin: 0;
+
+  padding:
+    0.5rem
+    0.8rem;
+
+  font-size: 0.85rem;
+}
+
+
+.small-button.secondary {
+  background:
+    transparent;
+
+  color:
+    var(--text);
+
+  border:
+    1px
+    solid
+    var(--border);
+}
+
+
+.model-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 0.75rem;
+}
+
+
+.model-option {
+  display: flex;
+
+  align-items: center;
+
+  gap: 0.75rem;
+
+  cursor: pointer;
+
+  background:
+    var(--panel-2);
+
+  border:
+    1px
+    solid
+    var(--border);
+
+  border-radius: 12px;
+
+  padding: 0.9rem;
+
+  transition:
+    border-color 120ms ease,
+    background 120ms ease;
+}
+
+
+.model-option:hover {
+  border-color:
+    var(--border-hover);
+
+  background:
+    var(--panel-3);
+}
+
+
+.model-option input {
+  width: 18px;
+  height: 18px;
+
+  flex:
+    0
+    0
+    auto;
+
+  accent-color:
+    var(--accent);
+}
+
+
+.model-option-content {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 0.2rem;
+}
+
+
+.model-option-content strong {
+  font-size: 0.95rem;
+}
+
+
+.model-option-content small {
+  color:
+    var(--muted);
+
+  font-weight: 400;
+}
+
 
 .controls {
   display: grid;
@@ -496,50 +843,39 @@ input::placeholder {
   margin:
     0
     0
-    1.25rem;
+    1rem;
 }
+
 
 .control {
   display: flex;
 
   flex-direction: column;
 
-  min-width: 0;
+  gap: 0.45rem;
 }
+
 
 .control label {
-  margin-bottom: 0.45rem;
+  margin: 0;
 
-  color: var(--muted);
+  font-size: 0.9rem;
 
-  font-size: 0.92rem;
+  color:
+    var(--muted);
 }
+
 
 .optional {
-  margin-left: 0.25rem;
-
   font-weight: 400;
 
-  opacity: 0.75;
+  opacity: 0.7;
 }
+
 
 select,
 input[type="number"] {
   width: 100%;
-
-  min-height: 48px;
-
-  padding:
-    0.75rem
-    0.85rem;
-
-  border:
-    1px
-    solid
-    var(--border);
-
-  border-radius:
-    10px;
 
   background:
     var(--panel-2);
@@ -547,60 +883,98 @@ input[type="number"] {
   color:
     var(--text);
 
-  font-size: 0.95rem;
-}
-
-.control-help {
-  display: block;
-
-  margin-top: 0.42rem;
-
-  color:
-    var(--muted-2);
-
-  font-size: 0.78rem;
-
-  line-height: 1.35;
-}
-
-textarea:focus,
-select:focus,
-input[type="number"]:focus {
-  outline:
-    2px
+  border:
+    1px
     solid
-    var(--accent);
+    var(--border);
 
-  outline-offset: 1px;
+  border-radius: 10px;
 
-  border-color:
-    transparent;
+  padding: 0.75rem;
+
+  font: inherit;
 }
 
-.verification-row {
-  min-height: 70px;
 
-  display: flex;
+.custom-size-controls {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto
+    minmax(0, 1fr);
 
   align-items: center;
 
-  margin-top: 0.25rem;
+  gap: 1rem;
+
+  max-width: 650px;
+
+  margin-bottom: 1rem;
+
+  padding: 1rem;
+
+  background:
+    rgba(
+      11,
+      16,
+      32,
+      0.45
+    );
+
+  border:
+    1px
+    solid
+    var(--border);
+
+  border-radius: 12px;
 }
 
-.submit-row {
-  margin-top: 0.25rem;
+
+.size-separator {
+  align-self: center;
+
+  padding-top: 1.4rem;
+
+  font-size: 1.4rem;
+
+  color:
+    var(--muted);
 }
+
+
+.field-help {
+  color:
+    var(--muted);
+
+  font-size: 0.8rem;
+}
+
+
+.quota-note {
+  color:
+    var(--muted);
+
+  font-size: 0.85rem;
+
+  line-height: 1.5;
+
+  margin:
+    0
+    0
+    1rem;
+}
+
+
+.verification-area {
+  margin-top: 0.5rem;
+}
+
 
 button {
   appearance: none;
 
   border: none;
-
-  border-radius: 999px;
-
-  padding:
-    0.95rem
-    1.35rem;
 
   background:
     var(--accent);
@@ -608,39 +982,37 @@ button {
   color:
     #08101f;
 
-  font-size: 1rem;
-
   font-weight: 800;
+
+  border-radius: 999px;
+
+  padding:
+    0.95rem
+    1.3rem;
 
   cursor: pointer;
 
-  transition:
-    transform 120ms ease,
-    background 120ms ease,
-    opacity 120ms ease;
+  margin-top: 1rem;
+
+  font-size: 1rem;
 }
+
 
 button:hover:not(:disabled) {
   background:
     var(--accent-hover);
-
-  transform:
-    translateY(-1px);
 }
 
-button:active:not(:disabled) {
-  transform:
-    translateY(0);
-}
 
 button:disabled {
-  opacity: 0.6;
+  opacity: 0.65;
 
   cursor: not-allowed;
 }
 
+
 .status {
-  min-height: 1.6rem;
+  min-height: 1.5rem;
 
   margin:
     1rem
@@ -649,8 +1021,9 @@ button:disabled {
   color:
     var(--muted);
 
-  font-size: 1rem;
+  font-size: 1.05rem;
 }
+
 
 .results {
   display: grid;
@@ -666,17 +1039,16 @@ button:disabled {
   margin-top: 1rem;
 }
 
+
 .result-card {
   min-width: 0;
-
-  padding: 1rem;
 
   background:
     rgba(
       21,
       27,
       47,
-      0.95
+      0.92
     );
 
   border:
@@ -684,61 +1056,55 @@ button:disabled {
     solid
     var(--border);
 
-  border-radius:
-    var(--radius);
+  border-radius: 18px;
+
+  padding: 1rem;
 }
+
 
 .result-card h3 {
   margin:
     0
     0
-    0.35rem;
+    0.4rem;
 
   font-size: 1.05rem;
 }
 
+
 .result-meta {
+  color:
+    var(--muted);
+
+  font-size: 0.82rem;
+
   margin:
     0
     0
     0.8rem;
-
-  color:
-    var(--muted-2);
-
-  font-size: 0.78rem;
 
   line-height: 1.4;
 
   overflow-wrap: anywhere;
 }
 
-.image-shell {
+
+.image-frame {
+  width: 100%;
+
   display: flex;
 
   align-items: center;
 
   justify-content: center;
 
-  width: 100%;
-
   overflow: hidden;
 
+  background: #070a12;
+
   border-radius: 14px;
-
-  background:
-    #070a12;
-
-  border:
-    1px
-    solid
-    rgba(
-      255,
-      255,
-      255,
-      0.04
-    );
 }
+
 
 .result-card img {
   display: block;
@@ -748,30 +1114,29 @@ button:disabled {
   height: auto;
 
   object-fit: contain;
+
+  border-radius: 14px;
 }
+
 
 .result-actions {
   display: flex;
 
+  flex-wrap: wrap;
+
   gap: 0.5rem;
 
-  margin-top: 0.8rem;
-
-  flex-wrap: wrap;
+  margin-top: 0.75rem;
 }
 
+
 .result-actions a {
-  display: inline-flex;
+  display: inline-block;
 
-  align-items: center;
+  text-decoration: none;
 
-  justify-content: center;
-
-  min-height: 40px;
-
-  padding:
-    0.5rem
-    0.9rem;
+  color:
+    var(--text);
 
   border:
     1px
@@ -780,36 +1145,37 @@ button:disabled {
 
   border-radius: 999px;
 
-  color:
-    var(--text);
+  padding:
+    0.55rem
+    0.9rem;
 
-  text-decoration: none;
-
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
+
 
 .result-actions a:hover {
   border-color:
-    var(--border-strong);
+    var(--border-hover);
 }
+
 
 .error-card {
-  border-color:
-    #6a2d2d;
+  border-color: #6a2d2d;
 }
 
-.error-card p {
-  margin: 0;
 
+.error-card p {
   color:
     var(--danger);
 
-  line-height: 1.5;
+  margin: 0;
 }
 
+
 .hidden {
-  display: none;
+  display: none !important;
 }
+
 
 @media (max-width: 900px) {
 
@@ -819,28 +1185,36 @@ button:disabled {
 
 }
 
-@media (max-width: 760px) {
+
+@media (max-width: 700px) {
 
   .controls {
     grid-template-columns: 1fr;
   }
 
-  .container {
-    width:
-      min(
-        100% - 1rem,
-        1240px
-      );
 
-    padding-top: 1.25rem;
+  .model-grid {
+    grid-template-columns: 1fr;
   }
 
-  form {
-    padding: 0.85rem;
+
+  .section-heading {
+    flex-direction: column;
+  }
+
+
+  .custom-size-controls {
+    grid-template-columns: 1fr;
+  }
+
+
+  .size-separator {
+    display: none;
   }
 
 }
 `;
+
 
 const JS = `
 const form =
@@ -867,11 +1241,109 @@ const qualityEl =
 const seedEl =
   document.getElementById('seed');
 
+const customSizeControls =
+  document.getElementById(
+    'custom-size-controls'
+  );
+
+const customWidthEl =
+  document.getElementById(
+    'custom-width'
+  );
+
+const customHeightEl =
+  document.getElementById(
+    'custom-height'
+  );
+
+const selectAllModelsButton =
+  document.getElementById(
+    'select-all-models'
+  );
+
+const clearModelsButton =
+  document.getElementById(
+    'clear-models'
+  );
+
+
+function getModelCheckboxes() {
+
+  return Array.from(
+    document.querySelectorAll(
+      'input[name="models"]'
+    )
+  );
+
+}
+
+
+function getSelectedModelKeys() {
+
+  return getModelCheckboxes()
+    .filter(function(checkbox) {
+      return checkbox.checked;
+    })
+    .map(function(checkbox) {
+      return checkbox.value;
+    });
+
+}
+
+
+function updateGenerateButton() {
+
+  const count =
+    getSelectedModelKeys().length;
+
+  if (count === 0) {
+
+    button.textContent =
+      'Select a model';
+
+    return;
+  }
+
+  if (count === 1) {
+
+    button.textContent =
+      'Generate 1 image';
+
+    return;
+  }
+
+  button.textContent =
+    'Generate ' +
+    count +
+    ' images';
+
+}
+
+
+function updateCustomSizeVisibility() {
+
+  if (sizeEl.value === 'custom') {
+
+    customSizeControls
+      .classList
+      .remove('hidden');
+
+  } else {
+
+    customSizeControls
+      .classList
+      .add('hidden');
+
+  }
+
+}
+
 
 function setStatus(
   message,
-  isError = false
+  isError
 ) {
+
   statusEl.textContent =
     message;
 
@@ -879,6 +1351,7 @@ function setStatus(
     isError
       ? '#ff8d8d'
       : '#b8c1e0';
+
 }
 
 
@@ -891,60 +1364,77 @@ window.onTurnstileError =
     );
 
     setStatus(
-      'Verification service error: ' +
-        errorCode,
+      'Turnstile error: ' +
+      errorCode,
       true
     );
+
   };
 
 
-function extensionForMime(
-  mimeType
-) {
-  if (
-    mimeType ===
-    'image/jpeg'
-  ) {
-    return 'jpg';
-  }
+selectAllModelsButton
+  .addEventListener(
+    'click',
+    function() {
 
-  if (
-    mimeType ===
-    'image/webp'
-  ) {
-    return 'webp';
-  }
+      getModelCheckboxes()
+        .forEach(
+          function(checkbox) {
 
-  if (
-    mimeType ===
-    'image/gif'
-  ) {
-    return 'gif';
-  }
+            checkbox.checked =
+              true;
 
-  return 'png';
-}
+          }
+        );
+
+      updateGenerateButton();
+
+    }
+  );
 
 
-function safeFileName(
-  value
-) {
-  return value
-    .toLowerCase()
-    .replace(
-      /[^a-z0-9]+/g,
-      '-'
-    )
-    .replace(
-      /^-+|-+$/g,
-      ''
-    );
-}
+clearModelsButton
+  .addEventListener(
+    'click',
+    function() {
+
+      getModelCheckboxes()
+        .forEach(
+          function(checkbox) {
+
+            checkbox.checked =
+              false;
+
+          }
+        );
+
+      updateGenerateButton();
+
+    }
+  );
 
 
-function createResultCard(
-  item
-) {
+getModelCheckboxes()
+  .forEach(
+    function(checkbox) {
+
+      checkbox.addEventListener(
+        'change',
+        updateGenerateButton
+      );
+
+    }
+  );
+
+
+sizeEl.addEventListener(
+  'change',
+  updateCustomSizeVisibility
+);
+
+
+function createResultCard(item) {
+
   const card =
     document.createElement(
       'article'
@@ -960,7 +1450,8 @@ function createResultCard(
     );
 
   heading.textContent =
-    item.label;
+    item.label ||
+    'Image';
 
   card.appendChild(
     heading
@@ -986,40 +1477,39 @@ function createResultCard(
     );
 
     return card;
+
   }
 
 
-  const metadata =
+  const meta =
     document.createElement(
       'p'
     );
 
-  metadata.className =
+  meta.className =
     'result-meta';
 
-  metadata.textContent =
+  meta.textContent =
     item.width +
     ' × ' +
     item.height +
-    ' • ' +
-    item.qualityLabel +
-    ' • ' +
+    ' px · ' +
     item.steps +
-    ' steps • Seed ' +
+    ' steps · seed ' +
     item.seed;
 
   card.appendChild(
-    metadata
+    meta
   );
 
 
-  const imageShell =
+  const imageFrame =
     document.createElement(
       'div'
     );
 
-  imageShell.className =
-    'image-shell';
+  imageFrame.className =
+    'image-frame';
 
 
   const image =
@@ -1037,15 +1527,12 @@ function createResultCard(
   image.loading =
     'eager';
 
-  image.decoding =
-    'async';
-
-  imageShell.appendChild(
+  imageFrame.appendChild(
     image
   );
 
   card.appendChild(
-    imageShell
+    imageFrame
   );
 
 
@@ -1063,26 +1550,28 @@ function createResultCard(
       'a'
     );
 
-  const extension =
-    extensionForMime(
-      item.mimeType
-    );
+  const safeName =
+    String(item.label)
+      .toLowerCase()
+      .replace(
+        /[^a-z0-9]+/g,
+        '-'
+      )
+      .replace(
+        /^-|-$/g,
+        ''
+      );
 
   download.href =
     item.dataURI;
 
   download.download =
-    safeFileName(
-      item.label
-    ) +
+    safeName +
     '-' +
     item.width +
     'x' +
     item.height +
-    '-seed-' +
-    item.seed +
-    '.' +
-    extension;
+    '.png';
 
   download.textContent =
     'Download';
@@ -1095,51 +1584,62 @@ function createResultCard(
     actions
   );
 
-
   return card;
+
 }
 
 
-function renderResults(
-  results
-) {
-  resultsEl.replaceChildren();
+function renderResults(results) {
 
-  for (
-    const item
-    of results
-  ) {
-    resultsEl.appendChild(
-      createResultCard(
-        item
-      )
-    );
-  }
+  resultsEl.innerHTML =
+    '';
 
-  resultsEl.classList.remove(
-    'hidden'
+  results.forEach(
+    function(item) {
+
+      resultsEl.appendChild(
+        createResultCard(item)
+      );
+
+    }
   );
+
+  resultsEl
+    .classList
+    .remove('hidden');
+
 }
 
 
 form.addEventListener(
   'submit',
-  async (event) => {
+  async function(event) {
 
     event.preventDefault();
 
 
     const prompt =
-      promptEl.value.trim();
+      promptEl
+        .value
+        .trim();
+
+
+    const selectedModels =
+      getSelectedModelKeys();
+
 
     const size =
       sizeEl.value;
 
+
     const quality =
       qualityEl.value;
 
+
     const seedValue =
-      seedEl.value.trim();
+      seedEl
+        .value
+        .trim();
 
 
     const seed =
@@ -1151,9 +1651,25 @@ form.addEventListener(
           );
 
 
+    const customWidth =
+      Number.parseInt(
+        customWidthEl.value,
+        10
+      );
+
+
+    const customHeight =
+      Number.parseInt(
+        customHeightEl.value,
+        10
+      );
+
+
     const turnstileToken =
-      globalThis.turnstile
-        ?.getResponse?.();
+      globalThis
+        .turnstile
+        ?.getResponse
+        ?.();
 
 
     if (!prompt) {
@@ -1164,26 +1680,43 @@ form.addEventListener(
       );
 
       return;
+
     }
 
 
     if (
-      seed !== null &&
-      (
-        !Number.isSafeInteger(
-          seed
-        ) ||
-        seed < 0 ||
-        seed > ${MAX_SEED}
-      )
+      selectedModels.length === 0
     ) {
 
       setStatus(
-        'Seed must be between 0 and ${MAX_SEED}.',
+        'Please select at least one model.',
         true
       );
 
       return;
+
+    }
+
+
+    if (
+      size === 'custom' &&
+      (
+        !Number.isInteger(
+          customWidth
+        ) ||
+        !Number.isInteger(
+          customHeight
+        )
+      )
+    ) {
+
+      setStatus(
+        'Please enter a valid custom width and height.',
+        true
+      );
+
+      return;
+
     }
 
 
@@ -1195,6 +1728,7 @@ form.addEventListener(
       );
 
       return;
+
     }
 
 
@@ -1205,15 +1739,39 @@ form.addEventListener(
       'Generating...';
 
 
-    resultsEl.classList.add(
-      'hidden'
-    );
+    resultsEl
+      .classList
+      .add('hidden');
 
-    resultsEl.replaceChildren();
+    resultsEl.innerHTML =
+      '';
+
+
+    let sizeDescription =
+      size;
+
+
+    if (size === 'custom') {
+
+      sizeDescription =
+        customWidth +
+        ' × ' +
+        customHeight;
+
+    }
 
 
     setStatus(
-      'Generating with all 4 models. This may take a little while.'
+      'Generating ' +
+      selectedModels.length +
+      (
+        selectedModels.length === 1
+          ? ' image'
+          : ' images'
+      ) +
+      ' at ' +
+      sizeDescription +
+      '...'
     );
 
 
@@ -1223,7 +1781,8 @@ form.addEventListener(
         await fetch(
           '/api/generate',
           {
-            method: 'POST',
+            method:
+              'POST',
 
             headers: {
               'Content-Type':
@@ -1231,30 +1790,39 @@ form.addEventListener(
             },
 
             body:
-              JSON.stringify({
-                prompt,
-                size,
-                quality,
-                seed,
-                turnstileToken
-              })
+              JSON.stringify(
+                {
+                  prompt:
+                    prompt,
+
+                  models:
+                    selectedModels,
+
+                  size:
+                    size,
+
+                  customWidth:
+                    customWidth,
+
+                  customHeight:
+                    customHeight,
+
+                  quality:
+                    quality,
+
+                  seed:
+                    seed,
+
+                  turnstileToken:
+                    turnstileToken
+                }
+              )
           }
         );
 
 
-      let data;
-
-      try {
-
-        data =
-          await response.json();
-
-      } catch {
-
-        throw new Error(
-          'The server returned an invalid response.'
-        );
-      }
+      const data =
+        await response.json();
 
 
       if (!response.ok) {
@@ -1263,54 +1831,18 @@ form.addEventListener(
           data?.error ||
           'Generation failed.'
         );
+
       }
-
-
-      const results =
-        Array.isArray(
-          data.results
-        )
-          ? data.results
-          : [];
 
 
       renderResults(
-        results
+        data.results || []
       );
 
 
-      const successCount =
-        results.filter(
-          (item) =>
-            !item.error
-        ).length;
-
-
-      if (
-        successCount === 4
-      ) {
-
-        setStatus(
-          'Done — all 4 models generated successfully.'
-        );
-
-      } else if (
-        successCount > 0
-      ) {
-
-        setStatus(
-          'Done — ' +
-          successCount +
-          ' of 4 models generated successfully.'
-        );
-
-      } else {
-
-        setStatus(
-          'All 4 models failed to generate an image.',
-          true
-        );
-      }
+      setStatus(
+        'Done.'
+      );
 
     } catch (error) {
 
@@ -1319,27 +1851,38 @@ form.addEventListener(
       );
 
       setStatus(
-        error?.message ||
+        error.message ||
         'Something went wrong.',
         true
       );
 
     } finally {
 
-      globalThis.turnstile
-        ?.reset?.();
+      globalThis
+        .turnstile
+        ?.reset
+        ?.();
+
 
       button.disabled =
         false;
 
-      button.textContent =
-        'Generate 4 images';
+
+      updateGenerateButton();
+
     }
+
   }
 );
+
+
+updateCustomSizeVisibility();
+updateGenerateButton();
 `;
 
+
 const COMMON_HEADERS = {
+
   "Cache-Control":
     "no-store, no-cache, must-revalidate, max-age=0",
 
@@ -1372,6 +1915,7 @@ const COMMON_HEADERS = {
     "base-uri 'self'; " +
     "form-action 'self'; " +
     "frame-ancestors 'none'"
+
 };
 
 
@@ -1407,6 +1951,7 @@ export default {
           }
         }
       );
+
     }
 
 
@@ -1426,6 +1971,7 @@ export default {
           }
         }
       );
+
     }
 
 
@@ -1445,6 +1991,7 @@ export default {
           }
         }
       );
+
     }
 
 
@@ -1457,17 +2004,20 @@ export default {
         request,
         env
       );
+
     }
 
 
     return json(
       {
         error:
-          "Not found."
+          "Not found"
       },
       404
     );
+
   }
+
 };
 
 
@@ -1481,6 +2031,7 @@ async function handleGenerate(
       "Origin"
     );
 
+
   const siteOrigin =
     new URL(
       request.url
@@ -1489,8 +2040,7 @@ async function handleGenerate(
 
   if (
     requestOrigin &&
-    requestOrigin !==
-      siteOrigin
+    requestOrigin !== siteOrigin
   ) {
 
     return json(
@@ -1500,38 +2050,14 @@ async function handleGenerate(
       },
       403
     );
-  }
 
-
-  const contentLength =
-    Number(
-      request.headers.get(
-        "Content-Length"
-      ) ||
-      0
-    );
-
-
-  if (
-    contentLength >
-    10000
-  ) {
-
-    return json(
-      {
-        error:
-          "Request is too large."
-      },
-      413
-    );
   }
 
 
   const contentType =
     request.headers.get(
       "content-type"
-    ) ||
-    "";
+    ) || "";
 
 
   if (
@@ -1547,6 +2073,7 @@ async function handleGenerate(
       },
       415
     );
+
   }
 
 
@@ -1567,6 +2094,7 @@ async function handleGenerate(
       },
       400
     );
+
   }
 
 
@@ -1575,45 +2103,6 @@ async function handleGenerate(
       body?.prompt ||
       ""
     ).trim();
-
-
-  const turnstileToken =
-    String(
-      body?.turnstileToken ||
-      ""
-    ).trim();
-
-
-  const sizeKey =
-    String(
-      body?.size ||
-      "square"
-    );
-
-
-  const quality =
-    body?.quality ===
-      "standard"
-      ? "standard"
-      : "best";
-
-
-  const size =
-    SIZES[
-      sizeKey
-    ];
-
-
-  if (!size) {
-
-    return json(
-      {
-        error:
-          "Invalid image size."
-      },
-      400
-    );
-  }
 
 
   if (
@@ -1628,6 +2117,172 @@ async function handleGenerate(
       },
       400
     );
+
+  }
+
+
+  const turnstileToken =
+    String(
+      body?.turnstileToken ||
+      ""
+    ).trim();
+
+
+  if (
+    !turnstileToken
+  ) {
+
+    return json(
+      {
+        error:
+          "Missing verification token."
+      },
+      400
+    );
+
+  }
+
+
+  const requestedModelKeys =
+    Array.isArray(
+      body?.models
+    )
+      ? body.models
+          .map(
+            function(value) {
+
+              return String(
+                value
+              );
+
+            }
+          )
+      : [];
+
+
+  const uniqueModelKeys =
+    Array.from(
+      new Set(
+        requestedModelKeys
+      )
+    ).slice(
+      0,
+      MODELS.length
+    );
+
+
+  const selectedModels =
+    uniqueModelKeys
+      .map(
+        function(key) {
+
+          return MODELS_BY_KEY[
+            key
+          ];
+
+        }
+      )
+      .filter(Boolean);
+
+
+  if (
+    selectedModels.length === 0
+  ) {
+
+    return json(
+      {
+        error:
+          "Please select at least one valid model."
+      },
+      400
+    );
+
+  }
+
+
+  const quality =
+    body?.quality ===
+    "standard"
+      ? "standard"
+      : "best";
+
+
+  const sizeKey =
+    String(
+      body?.size ||
+      "square"
+    );
+
+
+  let width;
+  let height;
+
+
+  if (
+    sizeKey === "custom"
+  ) {
+
+    width =
+      Number.parseInt(
+        body?.customWidth,
+        10
+      );
+
+
+    height =
+      Number.parseInt(
+        body?.customHeight,
+        10
+      );
+
+
+    if (
+      !isValidDimension(
+        width
+      ) ||
+      !isValidDimension(
+        height
+      )
+    ) {
+
+      return json(
+        {
+          error:
+            "Custom dimensions must be between 256 and 2048 pixels and use increments of 64."
+        },
+        400
+      );
+
+    }
+
+  } else {
+
+    const preset =
+      SIZES[
+        sizeKey
+      ];
+
+
+    if (!preset) {
+
+      return json(
+        {
+          error:
+            "Invalid image size."
+        },
+        400
+      );
+
+    }
+
+
+    width =
+      preset.width;
+
+
+    height =
+      preset.height;
+
   }
 
 
@@ -1643,7 +2298,7 @@ async function handleGenerate(
     seed =
       Math.floor(
         Math.random() *
-        MAX_SEED
+        2147483647
       );
 
   } else {
@@ -1660,37 +2315,26 @@ async function handleGenerate(
         seed
       ) ||
       seed < 0 ||
-      seed > MAX_SEED
+      seed > 2147483647
     ) {
 
       return json(
         {
           error:
-            "Invalid seed."
+            "Seed must be a whole number between 0 and 2147483647."
         },
         400
       );
+
     }
-  }
 
-
-  if (!turnstileToken) {
-
-    return json(
-      {
-        error:
-          "Missing verification token."
-      },
-      400
-    );
   }
 
 
   const remoteip =
     request.headers.get(
       "CF-Connecting-IP"
-    ) ||
-    "";
+    ) || "";
 
 
   const verification =
@@ -1719,13 +2363,13 @@ async function handleGenerate(
       },
       403
     );
+
   }
 
 
   const finalPrompt =
     buildPrompt(
-      prompt,
-      size
+      prompt
     );
 
 
@@ -1735,91 +2379,102 @@ async function handleGenerate(
 
   const results =
     await Promise.all(
+      selectedModels.map(
+        function(model) {
 
-      MODELS.map(
-        (model) =>
-          generateImageForModel(
+          return generateImageForModel(
             env,
             model,
             finalPrompt,
             negativePrompt,
-            size,
+            width,
+            height,
             quality,
             seed
-          )
+          );
+
+        }
       )
     );
 
 
   return json(
     {
-      results
+      results:
+        results
     }
   );
+
+}
+
+
+function isValidDimension(
+  value
+) {
+
+  return (
+    Number.isInteger(
+      value
+    ) &&
+    value >= 256 &&
+    value <= 2048 &&
+    value % 64 === 0
+  );
+
 }
 
 
 function buildPrompt(
-  userPrompt,
-  size
+  userPrompt
 ) {
 
   return `
 USER REQUEST:
 ${userPrompt}
 
-Create exactly what the user requested above.
+Follow the user's request exactly.
 
-IMAGE REQUIREMENTS:
-- Photorealistic and believable
-- Preserve the exact primary subject requested by the user
-- Do not replace the requested subject with a different object
-- True-to-life materials and textures
-- Physically believable lighting
-- Natural shadows and reflections
-- Realistic proportions and geometry
-- High detail
-- Sharp focus on the primary subject
-- Natural photographic depth and perspective
-- No unnecessary objects added to the scene
-- Keep the main subject fully visible inside the frame unless the user explicitly asks for a close-up
-- Do not cut off important parts of the main subject
-- Compose naturally for a ${size.width} by ${size.height} image
-- Use the requested aspect ratio naturally
+IMAGE QUALITY:
+Photorealistic unless the user explicitly requests another visual style.
+High detail.
+Natural realistic lighting.
+Realistic materials.
+Realistic textures.
+Physically believable shadows and reflections.
+Sharp subject detail.
+Professional image quality.
+
+COMPOSITION:
+Respect any framing or camera-angle instructions supplied by the user.
+Do not replace the requested subject with photography equipment or an unrelated object.
+If the user does not specify framing, keep the main subject clearly visible and comfortably inside the frame.
+Avoid accidentally cropping important parts of the primary subject.
 `;
+
 }
 
 
 function buildNegativePrompt() {
 
   return `
-cartoon,
-anime,
-illustration,
-painting,
-drawing,
-comic,
-3d render,
-cgi appearance,
-plastic-looking materials,
-unrealistic geometry,
-distorted proportions,
-duplicate main subject,
-unwanted extra objects,
-cropped main subject,
-main subject cut off,
-main subject outside frame,
-blurry,
-out of focus,
-low detail,
+wrong subject,
+unrelated primary subject,
+accidental crop,
+important subject outside frame,
+unintended extreme close-up,
+bad anatomy,
+deformed,
+distorted,
+duplicate body parts,
+low quality,
 low resolution,
-overprocessed,
-oversharpened,
+blurry,
+compression artifacts,
 watermark,
-logo,
-random text,
-gibberish text
+unrequested text,
+unrequested logo
 `;
+
 }
 
 
@@ -1828,59 +2483,70 @@ async function generateImageForModel(
   model,
   prompt,
   negativePrompt,
-  size,
+  width,
+  height,
   quality,
   seed
 ) {
 
+  const steps =
+    quality === "best"
+      ? model.bestSteps
+      : model.standardSteps;
+
+
   try {
-
-    const steps =
-      quality ===
-        "best"
-        ? model.bestSteps
-        : model.standardSteps;
-
-
-    const input = {
-      prompt,
-
-      width:
-        size.width,
-
-      height:
-        size.height,
-
-      num_steps:
-        steps,
-
-      guidance:
-        model.guidance,
-
-      seed
-    };
-
-
-    if (
-      model.supportsNegativePrompt
-    ) {
-
-      input.negative_prompt =
-        negativePrompt;
-    }
-
 
     const output =
       await env.AI.run(
         model.id,
-        input
+        {
+          prompt:
+            prompt,
+
+          negative_prompt:
+            negativePrompt,
+
+          width:
+            width,
+
+          height:
+            height,
+
+          num_steps:
+            steps,
+
+          guidance:
+            model.guidance,
+
+          seed:
+            seed
+        }
       );
 
 
-    const image =
-      await normalizeImageOutput(
-        output
-      );
+    let dataURI;
+
+
+    if (
+      output &&
+      typeof output === "object" &&
+      typeof output.image === "string"
+    ) {
+
+      dataURI =
+        base64ImageToDataURI(
+          output.image
+        );
+
+    } else {
+
+      dataURI =
+        await streamToDataURI(
+          output
+        );
+
+    }
 
 
     return {
@@ -1891,27 +2557,21 @@ async function generateImageForModel(
         model.id,
 
       width:
-        size.width,
+        width,
 
       height:
-        size.height,
+        height,
 
-      qualityLabel:
-        quality ===
-          "best"
-          ? "Best quality"
-          : "Standard",
+      steps:
+        steps,
 
-      steps,
-
-      seed,
-
-      mimeType:
-        image.mimeType,
+      seed:
+        seed,
 
       dataURI:
-        image.dataURI
+        dataURI
     };
+
 
   } catch (error) {
 
@@ -1932,73 +2592,76 @@ async function generateImageForModel(
       error:
         "This model failed to generate an image."
     };
+
   }
+
 }
 
 
-async function normalizeImageOutput(
-  output
+function base64ImageToDataURI(
+  base64
 ) {
 
+  const cleaned =
+    String(
+      base64
+    ).replace(
+      /^data:[^;]+;base64,/,
+      ""
+    );
+
+
+  let mimeType =
+    "image/jpeg";
+
+
   if (
-    output &&
-    typeof output ===
-      "object" &&
-    typeof output.image ===
-      "string"
+    cleaned.startsWith(
+      "iVBORw0KGgo"
+    )
   ) {
 
-    const imageString =
-      output.image;
+    mimeType =
+      "image/png";
 
+  } else if (
+    cleaned.startsWith(
+      "UklGR"
+    )
+  ) {
 
-    if (
-      imageString.startsWith(
-        "data:image/"
-      )
-    ) {
+    mimeType =
+      "image/webp";
 
-      const mimeEnd =
-        imageString.indexOf(
-          ";"
-        );
+  } else if (
+    cleaned.startsWith(
+      "/9j/"
+    )
+  ) {
 
+    mimeType =
+      "image/jpeg";
 
-      const mimeType =
-        mimeEnd > 5
-          ? imageString.slice(
-              5,
-              mimeEnd
-            )
-          : "image/jpeg";
-
-
-      return {
-        mimeType,
-        dataURI:
-          imageString
-      };
-    }
-
-
-    const mimeType =
-      detectMimeFromBase64(
-        imageString
-      );
-
-
-    return {
-      mimeType,
-
-      dataURI:
-        `data:${mimeType};base64,${imageString}`
-    };
   }
 
 
+  return (
+    "data:" +
+    mimeType +
+    ";base64," +
+    cleaned
+  );
+
+}
+
+
+async function streamToDataURI(
+  stream
+) {
+
   const arrayBuffer =
     await new Response(
-      output
+      stream
     ).arrayBuffer();
 
 
@@ -2009,7 +2672,7 @@ async function normalizeImageOutput(
 
 
   const mimeType =
-    detectImageMime(
+    detectImageMimeType(
       bytes
     );
 
@@ -2020,52 +2683,17 @@ async function normalizeImageOutput(
     );
 
 
-  return {
-    mimeType,
+  return (
+    "data:" +
+    mimeType +
+    ";base64," +
+    base64
+  );
 
-    dataURI:
-      `data:${mimeType};base64,${base64}`
-  };
 }
 
 
-function detectMimeFromBase64(
-  base64
-) {
-
-  try {
-
-    const sample =
-      atob(
-        base64.slice(
-          0,
-          32
-        )
-      );
-
-
-    const bytes =
-      Uint8Array.from(
-        sample,
-        (character) =>
-          character.charCodeAt(
-            0
-          )
-      );
-
-
-    return detectImageMime(
-      bytes
-    );
-
-  } catch {
-
-    return "image/jpeg";
-  }
-}
-
-
-function detectImageMime(
+function detectImageMimeType(
   bytes
 ) {
 
@@ -2078,6 +2706,7 @@ function detectImageMime(
   ) {
 
     return "image/png";
+
   }
 
 
@@ -2089,6 +2718,7 @@ function detectImageMime(
   ) {
 
     return "image/jpeg";
+
   }
 
 
@@ -2105,21 +2735,12 @@ function detectImageMime(
   ) {
 
     return "image/webp";
-  }
 
-
-  if (
-    bytes.length >= 6 &&
-    bytes[0] === 0x47 &&
-    bytes[1] === 0x49 &&
-    bytes[2] === 0x46
-  ) {
-
-    return "image/gif";
   }
 
 
   return "image/png";
+
 }
 
 
@@ -2152,12 +2773,14 @@ function uint8ToBase64(
       String.fromCharCode(
         ...chunk
       );
+
   }
 
 
   return btoa(
     binary
   );
+
 }
 
 
@@ -2174,10 +2797,10 @@ async function verifyTurnstile(
   ) {
 
     return {
-      success: false,
-      reason:
-        "missing-configuration"
+      success:
+        false
     };
+
   }
 
 
@@ -2197,12 +2820,15 @@ async function verifyTurnstile(
   );
 
 
-  if (remoteip) {
+  if (
+    remoteip
+  ) {
 
     params.set(
       "remoteip",
       remoteip
     );
+
   }
 
 
@@ -2231,10 +2857,10 @@ async function verifyTurnstile(
     ) {
 
       return {
-        success: false,
-        reason:
-          "siteverify-http-error"
+        success:
+          false
       };
+
     }
 
 
@@ -2242,39 +2868,12 @@ async function verifyTurnstile(
       await response.json();
 
 
-    if (
-      data.success !== true
-    ) {
-
-      return {
-        success: false,
-        reason:
-          "siteverify-rejected",
-        errorCodes:
-          data["error-codes"] ||
-          []
-      };
-    }
-
-
-    if (
-      data.hostname !==
-      expectedHostname
-    ) {
-
-      return {
-        success: false,
-        reason:
-          "hostname-mismatch",
-        hostname:
-          data.hostname
-      };
-    }
-
-
     return {
-      success: true
+      success:
+        data.success === true &&
+        data.hostname === expectedHostname
     };
+
 
   } catch (error) {
 
@@ -2285,11 +2884,12 @@ async function verifyTurnstile(
 
 
     return {
-      success: false,
-      reason:
-        "siteverify-request-error"
+      success:
+        false
     };
+
   }
+
 }
 
 
@@ -2303,7 +2903,8 @@ function json(
       data
     ),
     {
-      status,
+      status:
+        status,
 
       headers: {
         ...COMMON_HEADERS,
@@ -2313,4 +2914,5 @@ function json(
       }
     }
   );
+
 }
