@@ -1,35 +1,47 @@
+const MAX_IMAGES_PER_REQUEST = 8;
+const MAX_TOTAL_PIXELS = 12 * 1024 * 1024;
+const MAX_SEED = 2147483647;
+
 const MODELS = [
   {
     key: "sdxl-lightning",
     label: "SDXL Lightning",
+    description: "Fast SDXL generation",
     id: "@cf/bytedance/stable-diffusion-xl-lightning",
     standardSteps: 10,
     bestSteps: 20,
-    guidance: 7.5
+    guidance: 7.5,
+    defaultSelected: true
   },
   {
     key: "sdxl-base",
     label: "SDXL Base",
+    description: "Classic SDXL model",
     id: "@cf/stabilityai/stable-diffusion-xl-base-1.0",
     standardSteps: 12,
     bestSteps: 20,
-    guidance: 7.5
+    guidance: 7.5,
+    defaultSelected: true
   },
   {
     key: "lucid-origin",
     label: "Lucid Origin",
+    description: "High prompt responsiveness",
     id: "@cf/leonardo/lucid-origin",
     standardSteps: 20,
     bestSteps: 32,
-    guidance: 5.5
+    guidance: 5.5,
+    defaultSelected: true
   },
   {
     key: "phoenix",
     label: "Phoenix",
+    description: "Strong prompt adherence",
     id: "@cf/leonardo/phoenix-1.0",
     standardSteps: 20,
     bestSteps: 35,
-    guidance: 7.5
+    guidance: 7.5,
+    defaultSelected: true
   }
 ];
 
@@ -38,63 +50,250 @@ const MODELS_BY_KEY = Object.fromEntries(
 );
 
 const SIZES = {
-  "small-square": {
-    label: "Small Square",
+  "square-512": {
+    label: "512 × 512",
     width: 512,
     height: 512
   },
 
-  "medium-square": {
-    label: "Medium Square",
+  "square-768": {
+    label: "768 × 768",
     width: 768,
     height: 768
   },
 
-  square: {
-    label: "Square",
+  "square-1024": {
+    label: "1024 × 1024",
     width: 1024,
     height: 1024
   },
 
-  landscape: {
-    label: "Landscape",
+  "square-1280": {
+    label: "1280 × 1280",
+    width: 1280,
+    height: 1280
+  },
+
+  "square-1536": {
+    label: "1536 × 1536",
+    width: 1536,
+    height: 1536
+  },
+
+  "square-2048": {
+    label: "2048 × 2048",
+    width: 2048,
+    height: 2048
+  },
+
+  "landscape-1024x768": {
+    label: "1024 × 768 · 4:3",
     width: 1024,
     height: 768
   },
 
-  portrait: {
-    label: "Portrait",
-    width: 768,
-    height: 1024
+  "landscape-1152x768": {
+    label: "1152 × 768 · 3:2",
+    width: 1152,
+    height: 768
   },
 
-  widescreen: {
-    label: "Widescreen",
+  "landscape-1024x576": {
+    label: "1024 × 576 · 16:9",
     width: 1024,
     height: 576
   },
 
-  tall: {
-    label: "Tall",
-    width: 576,
-    height: 1024
+  "landscape-1344x768": {
+    label: "1344 × 768 · 7:4",
+    width: 1344,
+    height: 768
   },
 
-  "large-landscape": {
-    label: "Large Landscape",
+  "landscape-1536x1024": {
+    label: "1536 × 1024 · 3:2",
     width: 1536,
     height: 1024
   },
 
-  "large-portrait": {
-    label: "Large Portrait",
+  "landscape-1536x640": {
+    label: "1536 × 640 · cinematic",
+    width: 1536,
+    height: 640
+  },
+
+  "landscape-1792x1024": {
+    label: "1792 × 1024 · wide",
+    width: 1792,
+    height: 1024
+  },
+
+  "landscape-2048x1152": {
+    label: "2048 × 1152 · 16:9",
+    width: 2048,
+    height: 1152
+  },
+
+  "portrait-768x1024": {
+    label: "768 × 1024 · 3:4",
+    width: 768,
+    height: 1024
+  },
+
+  "portrait-768x1152": {
+    label: "768 × 1152 · 2:3",
+    width: 768,
+    height: 1152
+  },
+
+  "portrait-576x1024": {
+    label: "576 × 1024 · 9:16",
+    width: 576,
+    height: 1024
+  },
+
+  "portrait-768x1344": {
+    label: "768 × 1344 · 4:7",
+    width: 768,
+    height: 1344
+  },
+
+  "portrait-1024x1280": {
+    label: "1024 × 1280 · 4:5",
+    width: 1024,
+    height: 1280
+  },
+
+  "portrait-1024x1536": {
+    label: "1024 × 1536 · 2:3",
     width: 1024,
     height: 1536
+  },
+
+  "portrait-1024x1792": {
+    label: "1024 × 1792 · 4:7",
+    width: 1024,
+    height: 1792
+  },
+
+  "portrait-1152x2048": {
+    label: "1152 × 2048 · 9:16",
+    width: 1152,
+    height: 2048
   }
 };
 
+const SIZE_GROUPS = [
+  {
+    label: "Square",
+    keys: [
+      "square-512",
+      "square-768",
+      "square-1024",
+      "square-1280",
+      "square-1536",
+      "square-2048"
+    ]
+  },
+
+  {
+    label: "Landscape",
+    keys: [
+      "landscape-1024x768",
+      "landscape-1152x768",
+      "landscape-1024x576",
+      "landscape-1344x768",
+      "landscape-1536x1024",
+      "landscape-1536x640",
+      "landscape-1792x1024",
+      "landscape-2048x1152"
+    ]
+  },
+
+  {
+    label: "Portrait",
+    keys: [
+      "portrait-768x1024",
+      "portrait-768x1152",
+      "portrait-576x1024",
+      "portrait-768x1344",
+      "portrait-1024x1280",
+      "portrait-1024x1536",
+      "portrait-1024x1792",
+      "portrait-1152x2048"
+    ]
+  }
+];
+
+function buildModelOptions() {
+  return MODELS.map((model) => {
+    const checked =
+      model.defaultSelected
+        ? " checked"
+        : "";
+
+    return `
+      <label class="model-option">
+        <input
+          type="checkbox"
+          name="models"
+          value="${model.key}"
+          ${checked}
+        />
+
+        <span class="model-option-content">
+          <strong>${model.label}</strong>
+          <small>${model.description}</small>
+        </span>
+      </label>
+    `;
+  }).join("");
+}
+
+function buildSizeOptions() {
+  const groups =
+    SIZE_GROUPS.map((group) => {
+      const options =
+        group.keys.map((key) => {
+          const size =
+            SIZES[key];
+
+          const selected =
+            key === "square-1024"
+              ? " selected"
+              : "";
+
+          return `
+            <option
+              value="${key}"
+              data-width="${size.width}"
+              data-height="${size.height}"
+              ${selected}
+            >
+              ${size.label}
+            </option>
+          `;
+        }).join("");
+
+      return `
+        <optgroup label="${group.label}">
+          ${options}
+        </optgroup>
+      `;
+    }).join("");
+
+  return groups + `
+    <optgroup label="Other">
+      <option value="custom">
+        Custom resolution
+      </option>
+    </optgroup>
+  `;
+}
+
 const HTML = (siteKey) => `<!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
 
@@ -123,16 +322,22 @@ const HTML = (siteKey) => `<!doctype html>
 </head>
 
 <body>
+
   <main class="container">
 
     <header class="hero">
-      <h1>Arqivo Image Gen</h1>
+
+      <h1>
+        Arqivo Image Gen
+      </h1>
 
       <p class="lead">
         Private-by-default text-to-image generation.
         No accounts. No prompt history. No database.
       </p>
+
     </header>
+
 
     <form
       id="gen-form"
@@ -140,6 +345,7 @@ const HTML = (siteKey) => `<!doctype html>
     >
 
       <div class="prompt-block">
+
         <label for="prompt">
           Describe the image you want
         </label>
@@ -152,23 +358,30 @@ const HTML = (siteKey) => `<!doctype html>
           placeholder="Example: a photorealistic black sports car parked on a city street at night"
           required
         ></textarea>
+
       </div>
 
 
       <fieldset class="model-picker">
 
         <div class="section-heading">
+
           <div>
+
             <legend>
               Models
             </legend>
 
             <p class="helper">
-              Choose one model, several models, or compare all four.
+              Choose one model, several models,
+              or compare all four.
             </p>
+
           </div>
 
+
           <div class="model-actions">
+
             <button
               type="button"
               id="select-all-models"
@@ -184,72 +397,18 @@ const HTML = (siteKey) => `<!doctype html>
             >
               Clear
             </button>
+
           </div>
+
         </div>
 
 
         <div class="model-grid">
 
-          <label class="model-option">
-            <input
-              type="checkbox"
-              name="models"
-              value="sdxl-lightning"
-              checked
-            />
-
-            <span class="model-option-content">
-              <strong>SDXL Lightning</strong>
-              <small>Fast SDXL generation</small>
-            </span>
-          </label>
-
-
-          <label class="model-option">
-            <input
-              type="checkbox"
-              name="models"
-              value="sdxl-base"
-              checked
-            />
-
-            <span class="model-option-content">
-              <strong>SDXL Base</strong>
-              <small>Classic SDXL model</small>
-            </span>
-          </label>
-
-
-          <label class="model-option">
-            <input
-              type="checkbox"
-              name="models"
-              value="lucid-origin"
-              checked
-            />
-
-            <span class="model-option-content">
-              <strong>Lucid Origin</strong>
-              <small>High prompt responsiveness</small>
-            </span>
-          </label>
-
-
-          <label class="model-option">
-            <input
-              type="checkbox"
-              name="models"
-              value="phoenix"
-              checked
-            />
-
-            <span class="model-option-content">
-              <strong>Phoenix</strong>
-              <small>Strong prompt adherence</small>
-            </span>
-          </label>
+          ${buildModelOptions()}
 
         </div>
+
       </fieldset>
 
 
@@ -265,50 +424,7 @@ const HTML = (siteKey) => `<!doctype html>
             id="size"
             name="size"
           >
-
-            <option value="small-square">
-              Small Square — 512 × 512
-            </option>
-
-            <option value="medium-square">
-              Medium Square — 768 × 768
-            </option>
-
-            <option
-              value="square"
-              selected
-            >
-              Square — 1024 × 1024
-            </option>
-
-            <option value="landscape">
-              Landscape — 1024 × 768
-            </option>
-
-            <option value="portrait">
-              Portrait — 768 × 1024
-            </option>
-
-            <option value="widescreen">
-              Widescreen — 1024 × 576
-            </option>
-
-            <option value="tall">
-              Tall — 576 × 1024
-            </option>
-
-            <option value="large-landscape">
-              Large Landscape — 1536 × 1024
-            </option>
-
-            <option value="large-portrait">
-              Large Portrait — 1024 × 1536
-            </option>
-
-            <option value="custom">
-              Custom resolution
-            </option>
-
+            ${buildSizeOptions()}
           </select>
 
         </div>
@@ -343,11 +459,45 @@ const HTML = (siteKey) => `<!doctype html>
 
         <div class="control">
 
+          <label for="images-per-model">
+            Images per model
+          </label>
+
+          <select
+            id="images-per-model"
+            name="images-per-model"
+          >
+
+            <option
+              value="1"
+              selected
+            >
+              1 image
+            </option>
+
+            <option value="2">
+              2 variations
+            </option>
+
+            <option value="4">
+              4 variations
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="control">
+
           <label for="seed">
+
             Seed
+
             <span class="optional">
               (optional)
             </span>
+
           </label>
 
           <input
@@ -386,7 +536,7 @@ const HTML = (siteKey) => `<!doctype html>
           />
 
           <small class="field-help">
-            256–2048 px
+            256–2048 px, multiples of 64
           </small>
 
         </div>
@@ -413,7 +563,7 @@ const HTML = (siteKey) => `<!doctype html>
           />
 
           <small class="field-help">
-            256–2048 px
+            256–2048 px, multiples of 64
           </small>
 
         </div>
@@ -422,8 +572,13 @@ const HTML = (siteKey) => `<!doctype html>
 
 
       <p class="quota-note">
-        Larger resolutions and using several models consume more
-        of the daily AI allowance.
+
+        Larger resolutions, more models, and more
+        variations use more AI capacity.
+
+        A single request is limited to
+        8 generated images.
+
       </p>
 
 
@@ -461,7 +616,9 @@ const HTML = (siteKey) => `<!doctype html>
     ></section>
 
   </main>
+
 </body>
+
 </html>`;
 
 
@@ -482,7 +639,6 @@ const CSS = `
   --accent-hover: #8abbff;
 
   --danger: #ff8d8d;
-  --success: #8be3af;
 }
 
 
@@ -493,6 +649,7 @@ const CSS = `
 
 html,
 body {
+
   margin: 0;
   padding: 0;
 
@@ -503,7 +660,8 @@ body {
       #121933 100%
     );
 
-  color: var(--text);
+  color:
+    var(--text);
 
   font-family:
     system-ui,
@@ -520,13 +678,15 @@ body {
 
 
 .container {
+
   width:
     min(
       1200px,
       calc(100% - 2rem)
     );
 
-  margin: 0 auto;
+  margin:
+    0 auto;
 
   padding:
     2rem
@@ -541,6 +701,7 @@ body {
 
 
 h1 {
+
   font-size:
     clamp(
       2rem,
@@ -556,18 +717,22 @@ h1 {
 
 
 .lead {
-  color: var(--muted);
+
+  color:
+    var(--muted);
 
   margin:
     0
     0
     1.5rem;
 
-  line-height: 1.6;
+  line-height:
+    1.6;
 }
 
 
 form {
+
   background:
     rgba(
       21,
@@ -581,9 +746,11 @@ form {
     solid
     var(--border);
 
-  border-radius: 18px;
+  border-radius:
+    18px;
 
-  padding: 1rem;
+  padding:
+    1rem;
 
   backdrop-filter:
     blur(12px);
@@ -592,25 +759,35 @@ form {
 
 label,
 legend {
-  font-weight: 700;
 
-  font-size: 1.05rem;
+  font-weight:
+    700;
+
+  font-size:
+    1.05rem;
 }
 
 
 .prompt-block > label {
-  display: block;
 
-  margin-bottom: 0.5rem;
+  display:
+    block;
+
+  margin-bottom:
+    0.5rem;
 }
 
 
 textarea {
-  width: 100%;
 
-  resize: vertical;
+  width:
+    100%;
 
-  min-height: 180px;
+  resize:
+    vertical;
+
+  min-height:
+    180px;
 
   border:
     1px
@@ -623,22 +800,27 @@ textarea {
   color:
     var(--text);
 
-  border-radius: 12px;
+  border-radius:
+    12px;
 
   padding:
     0.9rem
     1rem;
 
-  font: inherit;
+  font:
+    inherit;
 
-  line-height: 1.5;
+  line-height:
+    1.5;
 
-  margin-bottom: 1.25rem;
+  margin-bottom:
+    1.25rem;
 }
 
 
 textarea::placeholder,
 input::placeholder {
+
   color:
     rgba(
       184,
@@ -652,24 +834,29 @@ input::placeholder {
 textarea:focus,
 select:focus,
 input[type="number"]:focus {
+
   outline:
     2px
     solid
     var(--accent);
 
-  outline-offset: 1px;
+  outline-offset:
+    1px;
 }
 
 
 .model-picker {
+
   border:
     1px
     solid
     var(--border);
 
-  border-radius: 14px;
+  border-radius:
+    14px;
 
-  padding: 1rem;
+  padding:
+    1rem;
 
   margin:
     0
@@ -684,20 +871,26 @@ input[type="number"]:focus {
 
 
 .section-heading {
-  display: flex;
 
-  align-items: flex-start;
+  display:
+    flex;
+
+  align-items:
+    flex-start;
 
   justify-content:
     space-between;
 
-  gap: 1rem;
+  gap:
+    1rem;
 
-  margin-bottom: 0.8rem;
+  margin-bottom:
+    0.8rem;
 }
 
 
 .helper {
+
   margin:
     0.25rem
     0
@@ -706,31 +899,92 @@ input[type="number"]:focus {
   color:
     var(--muted);
 
-  font-size: 0.9rem;
+  font-size:
+    0.9rem;
 }
 
 
 .model-actions {
-  display: flex;
 
-  gap: 0.5rem;
+  display:
+    flex;
 
-  flex-shrink: 0;
+  gap:
+    0.5rem;
+
+  flex-shrink:
+    0;
+}
+
+
+button {
+
+  appearance:
+    none;
+
+  border:
+    none;
+
+  background:
+    var(--accent);
+
+  color:
+    #08101f;
+
+  font-weight:
+    800;
+
+  border-radius:
+    999px;
+
+  padding:
+    0.95rem
+    1.3rem;
+
+  cursor:
+    pointer;
+
+  margin-top:
+    1rem;
+
+  font-size:
+    1rem;
+}
+
+
+button:hover:not(:disabled) {
+
+  background:
+    var(--accent-hover);
+}
+
+
+button:disabled {
+
+  opacity:
+    0.55;
+
+  cursor:
+    not-allowed;
 }
 
 
 .small-button {
-  margin: 0;
+
+  margin:
+    0;
 
   padding:
     0.5rem
     0.8rem;
 
-  font-size: 0.85rem;
+  font-size:
+    0.85rem;
 }
 
 
 .small-button.secondary {
+
   background:
     transparent;
 
@@ -745,7 +999,9 @@ input[type="number"]:focus {
 
 
 .model-grid {
-  display: grid;
+
+  display:
+    grid;
 
   grid-template-columns:
     repeat(
@@ -753,18 +1009,24 @@ input[type="number"]:focus {
       minmax(0, 1fr)
     );
 
-  gap: 0.75rem;
+  gap:
+    0.75rem;
 }
 
 
 .model-option {
-  display: flex;
 
-  align-items: center;
+  display:
+    flex;
 
-  gap: 0.75rem;
+  align-items:
+    center;
 
-  cursor: pointer;
+  gap:
+    0.75rem;
+
+  cursor:
+    pointer;
 
   background:
     var(--panel-2);
@@ -774,9 +1036,11 @@ input[type="number"]:focus {
     solid
     var(--border);
 
-  border-radius: 12px;
+  border-radius:
+    12px;
 
-  padding: 0.9rem;
+  padding:
+    0.9rem;
 
   transition:
     border-color 120ms ease,
@@ -785,6 +1049,7 @@ input[type="number"]:focus {
 
 
 .model-option:hover {
+
   border-color:
     var(--border-hover);
 
@@ -793,9 +1058,20 @@ input[type="number"]:focus {
 }
 
 
+.model-option:has(input:checked) {
+
+  border-color:
+    var(--accent);
+}
+
+
 .model-option input {
-  width: 18px;
-  height: 18px;
+
+  width:
+    18px;
+
+  height:
+    18px;
 
   flex:
     0
@@ -808,37 +1084,48 @@ input[type="number"]:focus {
 
 
 .model-option-content {
-  display: flex;
 
-  flex-direction: column;
+  display:
+    flex;
 
-  gap: 0.2rem;
+  flex-direction:
+    column;
+
+  gap:
+    0.2rem;
 }
 
 
 .model-option-content strong {
-  font-size: 0.95rem;
+
+  font-size:
+    0.95rem;
 }
 
 
 .model-option-content small {
+
   color:
     var(--muted);
 
-  font-weight: 400;
+  font-weight:
+    400;
 }
 
 
 .controls {
-  display: grid;
+
+  display:
+    grid;
 
   grid-template-columns:
     repeat(
-      3,
+      4,
       minmax(0, 1fr)
     );
 
-  gap: 1rem;
+  gap:
+    1rem;
 
   margin:
     0
@@ -848,18 +1135,25 @@ input[type="number"]:focus {
 
 
 .control {
-  display: flex;
 
-  flex-direction: column;
+  display:
+    flex;
 
-  gap: 0.45rem;
+  flex-direction:
+    column;
+
+  gap:
+    0.45rem;
 }
 
 
 .control label {
-  margin: 0;
 
-  font-size: 0.9rem;
+  margin:
+    0;
+
+  font-size:
+    0.9rem;
 
   color:
     var(--muted);
@@ -867,15 +1161,20 @@ input[type="number"]:focus {
 
 
 .optional {
-  font-weight: 400;
 
-  opacity: 0.7;
+  font-weight:
+    400;
+
+  opacity:
+    0.7;
 }
 
 
 select,
 input[type="number"] {
-  width: 100%;
+
+  width:
+    100%;
 
   background:
     var(--panel-2);
@@ -888,31 +1187,41 @@ input[type="number"] {
     solid
     var(--border);
 
-  border-radius: 10px;
+  border-radius:
+    10px;
 
-  padding: 0.75rem;
+  padding:
+    0.75rem;
 
-  font: inherit;
+  font:
+    inherit;
 }
 
 
 .custom-size-controls {
-  display: grid;
+
+  display:
+    grid;
 
   grid-template-columns:
     minmax(0, 1fr)
     auto
     minmax(0, 1fr);
 
-  align-items: center;
+  align-items:
+    center;
 
-  gap: 1rem;
+  gap:
+    1rem;
 
-  max-width: 650px;
+  max-width:
+    650px;
 
-  margin-bottom: 1rem;
+  margin-bottom:
+    1rem;
 
-  padding: 1rem;
+  padding:
+    1rem;
 
   background:
     rgba(
@@ -927,37 +1236,42 @@ input[type="number"] {
     solid
     var(--border);
 
-  border-radius: 12px;
+  border-radius:
+    12px;
 }
 
 
 .size-separator {
-  align-self: center;
 
-  padding-top: 1.4rem;
+  align-self:
+    center;
 
-  font-size: 1.4rem;
+  padding-top:
+    1.4rem;
+
+  font-size:
+    1.4rem;
 
   color:
     var(--muted);
 }
 
 
-.field-help {
+.field-help,
+.quota-note {
+
   color:
     var(--muted);
 
-  font-size: 0.8rem;
+  font-size:
+    0.82rem;
+
+  line-height:
+    1.5;
 }
 
 
 .quota-note {
-  color:
-    var(--muted);
-
-  font-size: 0.85rem;
-
-  line-height: 1.5;
 
   margin:
     0
@@ -967,52 +1281,16 @@ input[type="number"] {
 
 
 .verification-area {
-  margin-top: 0.5rem;
-}
 
-
-button {
-  appearance: none;
-
-  border: none;
-
-  background:
-    var(--accent);
-
-  color:
-    #08101f;
-
-  font-weight: 800;
-
-  border-radius: 999px;
-
-  padding:
-    0.95rem
-    1.3rem;
-
-  cursor: pointer;
-
-  margin-top: 1rem;
-
-  font-size: 1rem;
-}
-
-
-button:hover:not(:disabled) {
-  background:
-    var(--accent-hover);
-}
-
-
-button:disabled {
-  opacity: 0.65;
-
-  cursor: not-allowed;
+  margin-top:
+    0.5rem;
 }
 
 
 .status {
-  min-height: 1.5rem;
+
+  min-height:
+    1.5rem;
 
   margin:
     1rem
@@ -1021,12 +1299,15 @@ button:disabled {
   color:
     var(--muted);
 
-  font-size: 1.05rem;
+  font-size:
+    1.05rem;
 }
 
 
 .results {
-  display: grid;
+
+  display:
+    grid;
 
   grid-template-columns:
     repeat(
@@ -1034,14 +1315,18 @@ button:disabled {
       minmax(0, 1fr)
     );
 
-  gap: 1rem;
+  gap:
+    1rem;
 
-  margin-top: 1rem;
+  margin-top:
+    1rem;
 }
 
 
 .result-card {
-  min-width: 0;
+
+  min-width:
+    0;
 
   background:
     rgba(
@@ -1056,84 +1341,114 @@ button:disabled {
     solid
     var(--border);
 
-  border-radius: 18px;
+  border-radius:
+    18px;
 
-  padding: 1rem;
+  padding:
+    1rem;
 }
 
 
 .result-card h3 {
+
   margin:
     0
     0
     0.4rem;
 
-  font-size: 1.05rem;
+  font-size:
+    1.05rem;
 }
 
 
 .result-meta {
+
   color:
     var(--muted);
 
-  font-size: 0.82rem;
+  font-size:
+    0.82rem;
 
   margin:
     0
     0
     0.8rem;
 
-  line-height: 1.4;
+  line-height:
+    1.4;
 
-  overflow-wrap: anywhere;
+  overflow-wrap:
+    anywhere;
 }
 
 
 .image-frame {
-  width: 100%;
 
-  display: flex;
+  width:
+    100%;
 
-  align-items: center;
+  display:
+    flex;
 
-  justify-content: center;
+  align-items:
+    center;
 
-  overflow: hidden;
+  justify-content:
+    center;
 
-  background: #070a12;
+  overflow:
+    hidden;
 
-  border-radius: 14px;
+  background:
+    #070a12;
+
+  border-radius:
+    14px;
 }
 
 
 .result-card img {
-  display: block;
 
-  width: 100%;
+  display:
+    block;
 
-  height: auto;
+  width:
+    100%;
 
-  object-fit: contain;
+  height:
+    auto;
 
-  border-radius: 14px;
+  object-fit:
+    contain;
+
+  border-radius:
+    14px;
 }
 
 
 .result-actions {
-  display: flex;
 
-  flex-wrap: wrap;
+  display:
+    flex;
 
-  gap: 0.5rem;
+  flex-wrap:
+    wrap;
 
-  margin-top: 0.75rem;
+  gap:
+    0.5rem;
+
+  margin-top:
+    0.75rem;
 }
 
 
 .result-actions a {
-  display: inline-block;
 
-  text-decoration: none;
+  display:
+    inline-block;
+
+  text-decoration:
+    none;
 
   color:
     var(--text);
@@ -1143,44 +1458,69 @@ button:disabled {
     solid
     var(--border);
 
-  border-radius: 999px;
+  border-radius:
+    999px;
 
   padding:
     0.55rem
     0.9rem;
 
-  font-size: 0.95rem;
+  font-size:
+    0.95rem;
 }
 
 
 .result-actions a:hover {
+
   border-color:
     var(--border-hover);
 }
 
 
 .error-card {
-  border-color: #6a2d2d;
+
+  border-color:
+    #6a2d2d;
 }
 
 
 .error-card p {
+
   color:
     var(--danger);
 
-  margin: 0;
+  margin:
+    0;
 }
 
 
 .hidden {
-  display: none !important;
+
+  display:
+    none !important;
+}
+
+
+@media (max-width: 950px) {
+
+  .controls {
+
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
 }
 
 
 @media (max-width: 900px) {
 
   .results {
-    grid-template-columns: 1fr;
+
+    grid-template-columns:
+      1fr;
   }
 
 }
@@ -1188,28 +1528,26 @@ button:disabled {
 
 @media (max-width: 700px) {
 
-  .controls {
-    grid-template-columns: 1fr;
-  }
+  .controls,
+  .model-grid,
+  .custom-size-controls {
 
-
-  .model-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns:
+      1fr;
   }
 
 
   .section-heading {
-    flex-direction: column;
-  }
 
-
-  .custom-size-controls {
-    grid-template-columns: 1fr;
+    flex-direction:
+      column;
   }
 
 
   .size-separator {
-    display: none;
+
+    display:
+      none;
   }
 
 }
@@ -1217,6 +1555,9 @@ button:disabled {
 
 
 const JS = `
+const MAX_IMAGES_PER_REQUEST = 8;
+const MAX_TOTAL_PIXELS = 12582912;
+
 const form =
   document.getElementById('gen-form');
 
@@ -1237,6 +1578,11 @@ const sizeEl =
 
 const qualityEl =
   document.getElementById('quality');
+
+const imagesPerModelEl =
+  document.getElementById(
+    'images-per-model'
+  );
 
 const seedEl =
   document.getElementById('seed');
@@ -1281,48 +1627,231 @@ function getModelCheckboxes() {
 function getSelectedModelKeys() {
 
   return getModelCheckboxes()
-    .filter(function(checkbox) {
-      return checkbox.checked;
-    })
-    .map(function(checkbox) {
-      return checkbox.value;
-    });
+    .filter(
+      function(checkbox) {
+
+        return checkbox.checked;
+
+      }
+    )
+    .map(
+      function(checkbox) {
+
+        return checkbox.value;
+
+      }
+    );
+
+}
+
+
+function getImagesPerModel() {
+
+  const value =
+    Number.parseInt(
+      imagesPerModelEl.value,
+      10
+    );
+
+  return [1, 2, 4].includes(value)
+    ? value
+    : 1;
+
+}
+
+
+function isValidCustomDimension(
+  value
+) {
+
+  return (
+    Number.isInteger(value) &&
+    value >= 256 &&
+    value <= 2048 &&
+    value % 64 === 0
+  );
+
+}
+
+
+function getChosenDimensions() {
+
+  if (
+    sizeEl.value === 'custom'
+  ) {
+
+    return {
+
+      width:
+        Number.parseInt(
+          customWidthEl.value,
+          10
+        ),
+
+      height:
+        Number.parseInt(
+          customHeightEl.value,
+          10
+        )
+
+    };
+
+  }
+
+
+  const option =
+    sizeEl.options[
+      sizeEl.selectedIndex
+    ];
+
+
+  return {
+
+    width:
+      Number.parseInt(
+        option.dataset.width,
+        10
+      ),
+
+    height:
+      Number.parseInt(
+        option.dataset.height,
+        10
+      )
+
+  };
+
+}
+
+
+function getRequestSummary() {
+
+  const modelCount =
+    getSelectedModelKeys()
+      .length;
+
+
+  const imagesPerModel =
+    getImagesPerModel();
+
+
+  const totalImages =
+    modelCount *
+    imagesPerModel;
+
+
+  const dimensions =
+    getChosenDimensions();
+
+
+  const totalPixels =
+    dimensions.width *
+    dimensions.height *
+    totalImages;
+
+
+  return {
+
+    modelCount:
+      modelCount,
+
+    imagesPerModel:
+      imagesPerModel,
+
+    totalImages:
+      totalImages,
+
+    width:
+      dimensions.width,
+
+    height:
+      dimensions.height,
+
+    totalPixels:
+      totalPixels
+
+  };
 
 }
 
 
 function updateGenerateButton() {
 
-  const count =
-    getSelectedModelKeys().length;
+  const summary =
+    getRequestSummary();
 
-  if (count === 0) {
+
+  if (
+    summary.modelCount === 0
+  ) {
+
+    button.disabled =
+      true;
 
     button.textContent =
       'Select a model';
 
     return;
+
   }
 
-  if (count === 1) {
+
+  if (
+    summary.totalImages >
+    MAX_IMAGES_PER_REQUEST
+  ) {
+
+    button.disabled =
+      true;
 
     button.textContent =
-      'Generate 1 image';
+      'Maximum 8 images';
 
     return;
+
   }
+
+
+  if (
+    Number.isFinite(
+      summary.totalPixels
+    ) &&
+    summary.totalPixels >
+    MAX_TOTAL_PIXELS
+  ) {
+
+    button.disabled =
+      true;
+
+    button.textContent =
+      'Reduce size or image count';
+
+    return;
+
+  }
+
+
+  button.disabled =
+    false;
+
 
   button.textContent =
     'Generate ' +
-    count +
-    ' images';
+    summary.totalImages +
+    (
+      summary.totalImages === 1
+        ? ' image'
+        : ' images'
+    );
 
 }
 
 
 function updateCustomSizeVisibility() {
 
-  if (sizeEl.value === 'custom') {
+  if (
+    sizeEl.value === 'custom'
+  ) {
 
     customSizeControls
       .classList
@@ -1336,6 +1865,9 @@ function updateCustomSizeVisibility() {
 
   }
 
+
+  updateGenerateButton();
+
 }
 
 
@@ -1346,6 +1878,7 @@ function setStatus(
 
   statusEl.textContent =
     message;
+
 
   statusEl.style.color =
     isError
@@ -1362,6 +1895,7 @@ window.onTurnstileError =
       'Turnstile error:',
       errorCode
     );
+
 
     setStatus(
       'Turnstile error: ' +
@@ -1387,6 +1921,7 @@ selectAllModelsButton
           }
         );
 
+
       updateGenerateButton();
 
     }
@@ -1408,6 +1943,7 @@ clearModelsButton
           }
         );
 
+
       updateGenerateButton();
 
     }
@@ -1427,18 +1963,76 @@ getModelCheckboxes()
   );
 
 
-sizeEl.addEventListener(
-  'change',
-  updateCustomSizeVisibility
-);
+sizeEl
+  .addEventListener(
+    'change',
+    updateCustomSizeVisibility
+  );
 
 
-function createResultCard(item) {
+imagesPerModelEl
+  .addEventListener(
+    'change',
+    updateGenerateButton
+  );
+
+
+customWidthEl
+  .addEventListener(
+    'input',
+    updateGenerateButton
+  );
+
+
+customHeightEl
+  .addEventListener(
+    'input',
+    updateGenerateButton
+  );
+
+
+function extensionForDataURI(
+  dataURI
+) {
+
+  if (
+    String(dataURI)
+      .startsWith(
+        'data:image/jpeg'
+      )
+  ) {
+
+    return 'jpg';
+
+  }
+
+
+  if (
+    String(dataURI)
+      .startsWith(
+        'data:image/webp'
+      )
+  ) {
+
+    return 'webp';
+
+  }
+
+
+  return 'png';
+
+}
+
+
+function createResultCard(
+  item
+) {
 
   const card =
     document.createElement(
       'article'
     );
+
 
   card.className =
     'result-card';
@@ -1449,32 +2043,48 @@ function createResultCard(item) {
       'h3'
     );
 
+
   heading.textContent =
-    item.label ||
-    'Image';
+    (
+      item.label ||
+      'Image'
+    ) +
+    (
+      item.totalVariations > 1
+        ? ' · Variation ' +
+          item.variation
+        : ''
+    );
+
 
   card.appendChild(
     heading
   );
 
 
-  if (item.error) {
+  if (
+    item.error
+  ) {
 
     card.classList.add(
       'error-card'
     );
+
 
     const errorText =
       document.createElement(
         'p'
       );
 
+
     errorText.textContent =
       item.error;
+
 
     card.appendChild(
       errorText
     );
+
 
     return card;
 
@@ -1486,8 +2096,10 @@ function createResultCard(item) {
       'p'
     );
 
+
   meta.className =
     'result-meta';
+
 
   meta.textContent =
     item.width +
@@ -1497,6 +2109,7 @@ function createResultCard(item) {
     item.steps +
     ' steps · seed ' +
     item.seed;
+
 
   card.appendChild(
     meta
@@ -1508,6 +2121,7 @@ function createResultCard(item) {
       'div'
     );
 
+
   imageFrame.className =
     'image-frame';
 
@@ -1517,19 +2131,27 @@ function createResultCard(item) {
       'img'
     );
 
+
   image.src =
     item.dataURI;
 
+
   image.alt =
-    item.label +
+    (
+      item.label ||
+      'AI'
+    ) +
     ' generated image';
+
 
   image.loading =
     'eager';
 
+
   imageFrame.appendChild(
     image
   );
+
 
   card.appendChild(
     imageFrame
@@ -1541,6 +2163,7 @@ function createResultCard(item) {
       'div'
     );
 
+
   actions.className =
     'result-actions';
 
@@ -1550,8 +2173,12 @@ function createResultCard(item) {
       'a'
     );
 
+
   const safeName =
-    String(item.label)
+    String(
+      item.label ||
+      'image'
+    )
       .toLowerCase()
       .replace(
         /[^a-z0-9]+/g,
@@ -1562,47 +2189,68 @@ function createResultCard(item) {
         ''
       );
 
+
+  const extension =
+    extensionForDataURI(
+      item.dataURI
+    );
+
+
   download.href =
     item.dataURI;
 
+
   download.download =
     safeName +
+    '-v' +
+    item.variation +
     '-' +
     item.width +
     'x' +
     item.height +
-    '.png';
+    '.' +
+    extension;
+
 
   download.textContent =
     'Download';
+
 
   actions.appendChild(
     download
   );
 
+
   card.appendChild(
     actions
   );
+
 
   return card;
 
 }
 
 
-function renderResults(results) {
+function renderResults(
+  results
+) {
 
   resultsEl.innerHTML =
     '';
+
 
   results.forEach(
     function(item) {
 
       resultsEl.appendChild(
-        createResultCard(item)
+        createResultCard(
+          item
+        )
       );
 
     }
   );
+
 
   resultsEl
     .classList
@@ -1636,6 +2284,10 @@ form.addEventListener(
       qualityEl.value;
 
 
+    const imagesPerModel =
+      getImagesPerModel();
+
+
     const seedValue =
       seedEl
         .value
@@ -1665,6 +2317,10 @@ form.addEventListener(
       );
 
 
+    const summary =
+      getRequestSummary();
+
+
     const turnstileToken =
       globalThis
         .turnstile
@@ -1672,7 +2328,9 @@ form.addEventListener(
         ?.();
 
 
-    if (!prompt) {
+    if (
+      !prompt
+    ) {
 
       setStatus(
         'Please enter a prompt.',
@@ -1699,19 +2357,12 @@ form.addEventListener(
 
 
     if (
-      size === 'custom' &&
-      (
-        !Number.isInteger(
-          customWidth
-        ) ||
-        !Number.isInteger(
-          customHeight
-        )
-      )
+      summary.totalImages >
+      MAX_IMAGES_PER_REQUEST
     ) {
 
       setStatus(
-        'Please enter a valid custom width and height.',
+        'Choose fewer models or fewer variations. Maximum: 8 images per request.',
         true
       );
 
@@ -1720,7 +2371,46 @@ form.addEventListener(
     }
 
 
-    if (!turnstileToken) {
+    if (
+      size === 'custom' &&
+      (
+        !isValidCustomDimension(
+          customWidth
+        ) ||
+        !isValidCustomDimension(
+          customHeight
+        )
+      )
+    ) {
+
+      setStatus(
+        'Custom width and height must be 256–2048 and multiples of 64.',
+        true
+      );
+
+      return;
+
+    }
+
+
+    if (
+      summary.totalPixels >
+      MAX_TOTAL_PIXELS
+    ) {
+
+      setStatus(
+        'That combination is too large. Reduce the resolution, model count, or variations.',
+        true
+      );
+
+      return;
+
+    }
+
+
+    if (
+      !turnstileToken
+    ) {
 
       setStatus(
         'Please complete the verification first.',
@@ -1735,6 +2425,7 @@ form.addEventListener(
     button.disabled =
       true;
 
+
     button.textContent =
       'Generating...';
 
@@ -1743,34 +2434,23 @@ form.addEventListener(
       .classList
       .add('hidden');
 
+
     resultsEl.innerHTML =
       '';
 
 
-    let sizeDescription =
-      size;
-
-
-    if (size === 'custom') {
-
-      sizeDescription =
-        customWidth +
-        ' × ' +
-        customHeight;
-
-    }
-
-
     setStatus(
       'Generating ' +
-      selectedModels.length +
+      summary.totalImages +
       (
-        selectedModels.length === 1
+        summary.totalImages === 1
           ? ' image'
           : ' images'
       ) +
       ' at ' +
-      sizeDescription +
+      summary.width +
+      ' × ' +
+      summary.height +
       '...'
     );
 
@@ -1781,17 +2461,21 @@ form.addEventListener(
         await fetch(
           '/api/generate',
           {
+
             method:
               'POST',
 
             headers: {
+
               'Content-Type':
                 'application/json'
+
             },
 
             body:
               JSON.stringify(
                 {
+
                   prompt:
                     prompt,
 
@@ -1810,13 +2494,18 @@ form.addEventListener(
                   quality:
                     quality,
 
+                  imagesPerModel:
+                    imagesPerModel,
+
                   seed:
                     seed,
 
                   turnstileToken:
                     turnstileToken
+
                 }
               )
+
           }
         );
 
@@ -1825,7 +2514,9 @@ form.addEventListener(
         await response.json();
 
 
-      if (!response.ok) {
+      if (
+        !response.ok
+      ) {
 
         throw new Error(
           data?.error ||
@@ -1836,7 +2527,8 @@ form.addEventListener(
 
 
       renderResults(
-        data.results || []
+        data.results ||
+        []
       );
 
 
@@ -1844,11 +2536,14 @@ form.addEventListener(
         'Done.'
       );
 
-    } catch (error) {
+    } catch (
+      error
+    ) {
 
       console.error(
         error
       );
+
 
       setStatus(
         error.message ||
@@ -1862,10 +2557,6 @@ form.addEventListener(
         .turnstile
         ?.reset
         ?.();
-
-
-      button.disabled =
-        false;
 
 
       updateGenerateButton();
@@ -1903,6 +2594,12 @@ const COMMON_HEADERS = {
 
   "Permissions-Policy":
     "camera=(), microphone=(), geolocation=()",
+
+  "Cross-Origin-Opener-Policy":
+    "same-origin",
+
+  "Cross-Origin-Resource-Policy":
+    "same-origin",
 
   "Content-Security-Policy":
     "default-src 'self'; " +
@@ -1943,12 +2640,16 @@ export default {
           ""
         ),
         {
+
           headers: {
+
             ...COMMON_HEADERS,
 
             "Content-Type":
               "text/html; charset=UTF-8"
+
           }
+
         }
       );
 
@@ -1963,12 +2664,16 @@ export default {
       return new Response(
         CSS,
         {
+
           headers: {
+
             ...COMMON_HEADERS,
 
             "Content-Type":
               "text/css; charset=UTF-8"
+
           }
+
         }
       );
 
@@ -1983,12 +2688,16 @@ export default {
       return new Response(
         JS,
         {
+
           headers: {
+
             ...COMMON_HEADERS,
 
             "Content-Type":
               "application/javascript; charset=UTF-8"
+
           }
+
         }
       );
 
@@ -2147,16 +2856,10 @@ async function handleGenerate(
     Array.isArray(
       body?.models
     )
-      ? body.models
-          .map(
-            function(value) {
-
-              return String(
-                value
-              );
-
-            }
-          )
+      ? body.models.map(
+          (value) =>
+            String(value)
+        )
       : [];
 
 
@@ -2174,15 +2877,12 @@ async function handleGenerate(
   const selectedModels =
     uniqueModelKeys
       .map(
-        function(key) {
-
-          return MODELS_BY_KEY[
-            key
-          ];
-
-        }
+        (key) =>
+          MODELS_BY_KEY[key]
       )
-      .filter(Boolean);
+      .filter(
+        Boolean
+      );
 
 
   if (
@@ -2207,10 +2907,46 @@ async function handleGenerate(
       : "best";
 
 
+  const requestedImagesPerModel =
+    Number.parseInt(
+      body?.imagesPerModel,
+      10
+    );
+
+
+  const imagesPerModel =
+    [1, 2, 4].includes(
+      requestedImagesPerModel
+    )
+      ? requestedImagesPerModel
+      : 1;
+
+
+  const totalImages =
+    selectedModels.length *
+    imagesPerModel;
+
+
+  if (
+    totalImages >
+    MAX_IMAGES_PER_REQUEST
+  ) {
+
+    return json(
+      {
+        error:
+          "A request can generate at most 8 images."
+      },
+      400
+    );
+
+  }
+
+
   const sizeKey =
     String(
       body?.size ||
-      "square"
+      "square-1024"
     );
 
 
@@ -2219,7 +2955,8 @@ async function handleGenerate(
 
 
   if (
-    sizeKey === "custom"
+    sizeKey ===
+    "custom"
   ) {
 
     width =
@@ -2263,7 +3000,9 @@ async function handleGenerate(
       ];
 
 
-    if (!preset) {
+    if (
+      !preset
+    ) {
 
       return json(
         {
@@ -2286,7 +3025,29 @@ async function handleGenerate(
   }
 
 
-  let seed;
+  const totalPixels =
+    width *
+    height *
+    totalImages;
+
+
+  if (
+    totalPixels >
+    MAX_TOTAL_PIXELS
+  ) {
+
+    return json(
+      {
+        error:
+          "That request is too large. Reduce the resolution, number of models, or variations."
+      },
+      400
+    );
+
+  }
+
+
+  let baseSeed;
 
 
   if (
@@ -2295,15 +3056,18 @@ async function handleGenerate(
     body?.seed === ""
   ) {
 
-    seed =
+    baseSeed =
       Math.floor(
         Math.random() *
-        2147483647
+        (
+          MAX_SEED +
+          1
+        )
       );
 
   } else {
 
-    seed =
+    baseSeed =
       Number.parseInt(
         body.seed,
         10
@@ -2312,10 +3076,11 @@ async function handleGenerate(
 
     if (
       !Number.isSafeInteger(
-        seed
+        baseSeed
       ) ||
-      seed < 0 ||
-      seed > 2147483647
+      baseSeed < 0 ||
+      baseSeed >
+        MAX_SEED
     ) {
 
       return json(
@@ -2377,12 +3142,35 @@ async function handleGenerate(
     buildNegativePrompt();
 
 
-  const results =
-    await Promise.all(
-      selectedModels.map(
-        function(model) {
+  const taskFactories =
+    [];
 
-          return generateImageForModel(
+
+  for (
+    const model
+    of selectedModels
+  ) {
+
+    for (
+      let variationIndex = 0;
+      variationIndex < imagesPerModel;
+      variationIndex += 1
+    ) {
+
+      const variationSeed =
+        (
+          baseSeed +
+          variationIndex
+        ) %
+        (
+          MAX_SEED +
+          1
+        );
+
+
+      taskFactories.push(
+        () =>
+          generateImageForModel(
             env,
             model,
             finalPrompt,
@@ -2390,11 +3178,21 @@ async function handleGenerate(
             width,
             height,
             quality,
-            seed
-          );
+            variationSeed,
+            variationIndex + 1,
+            imagesPerModel
+          )
+      );
 
-        }
-      )
+    }
+
+  }
+
+
+  const results =
+    await runWithConcurrency(
+      taskFactories,
+      2
     );
 
 
@@ -2438,14 +3236,13 @@ IMAGE QUALITY:
 Photorealistic unless the user explicitly requests another visual style.
 High detail.
 Natural realistic lighting.
-Realistic materials.
-Realistic textures.
+Realistic materials and textures.
 Physically believable shadows and reflections.
 Sharp subject detail.
 Professional image quality.
 
 COMPOSITION:
-Respect any framing or camera-angle instructions supplied by the user.
+Respect framing, camera angle, lens, distance, and aspect-ratio intent in the user's request.
 Do not replace the requested subject with photography equipment or an unrelated object.
 If the user does not specify framing, keep the main subject clearly visible and comfortably inside the frame.
 Avoid accidentally cropping important parts of the primary subject.
@@ -2478,6 +3275,79 @@ unrequested logo
 }
 
 
+async function runWithConcurrency(
+  taskFactories,
+  limit
+) {
+
+  const results =
+    new Array(
+      taskFactories.length
+    );
+
+
+  let nextIndex =
+    0;
+
+
+  async function worker() {
+
+    while (
+      true
+    ) {
+
+      const index =
+        nextIndex;
+
+
+      nextIndex +=
+        1;
+
+
+      if (
+        index >=
+        taskFactories.length
+      ) {
+
+        return;
+
+      }
+
+
+      results[index] =
+        await taskFactories[
+          index
+        ]();
+
+    }
+
+  }
+
+
+  const workers =
+    Array.from(
+      {
+        length:
+          Math.min(
+            limit,
+            taskFactories.length
+          )
+      },
+      () =>
+        worker()
+    );
+
+
+  await Promise.all(
+    workers
+  );
+
+
+  return results;
+
+}
+
+
 async function generateImageForModel(
   env,
   model,
@@ -2486,7 +3356,9 @@ async function generateImageForModel(
   width,
   height,
   quality,
-  seed
+  seed,
+  variation,
+  totalVariations
 ) {
 
   const steps =
@@ -2501,6 +3373,7 @@ async function generateImageForModel(
       await env.AI.run(
         model.id,
         {
+
           prompt:
             prompt,
 
@@ -2521,35 +3394,19 @@ async function generateImageForModel(
 
           seed:
             seed
+
         }
       );
 
 
-    let dataURI;
-
-
-    if (
-      output &&
-      typeof output === "object" &&
-      typeof output.image === "string"
-    ) {
-
-      dataURI =
-        base64ImageToDataURI(
-          output.image
-        );
-
-    } else {
-
-      dataURI =
-        await streamToDataURI(
-          output
-        );
-
-    }
+    const dataURI =
+      await outputToDataURI(
+        output
+      );
 
 
     return {
+
       label:
         model.label,
 
@@ -2568,12 +3425,20 @@ async function generateImageForModel(
       seed:
         seed,
 
+      variation:
+        variation,
+
+      totalVariations:
+        totalVariations,
+
       dataURI:
         dataURI
+
     };
 
-
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     console.error(
       "Model failed:",
@@ -2583,17 +3448,83 @@ async function generateImageForModel(
 
 
     return {
+
       label:
         model.label,
 
       model:
         model.id,
 
+      variation:
+        variation,
+
+      totalVariations:
+        totalVariations,
+
       error:
         "This model failed to generate an image."
+
     };
 
   }
+
+}
+
+
+async function outputToDataURI(
+  output
+) {
+
+  if (
+    output &&
+    typeof output === "object" &&
+    typeof output.image === "string"
+  ) {
+
+    return base64ImageToDataURI(
+      output.image
+    );
+
+  }
+
+
+  if (
+    output instanceof Response
+  ) {
+
+    const contentType =
+      output.headers.get(
+        "content-type"
+      ) || "";
+
+
+    const arrayBuffer =
+      await output.arrayBuffer();
+
+
+    return arrayBufferToDataURI(
+      arrayBuffer,
+      contentType
+    );
+
+  }
+
+
+  if (
+    output instanceof ArrayBuffer
+  ) {
+
+    return arrayBufferToDataURI(
+      output,
+      ""
+    );
+
+  }
+
+
+  return streamToDataURI(
+    output
+  );
 
 }
 
@@ -2665,6 +3596,19 @@ async function streamToDataURI(
     ).arrayBuffer();
 
 
+  return arrayBufferToDataURI(
+    arrayBuffer,
+    ""
+  );
+
+}
+
+
+function arrayBufferToDataURI(
+  arrayBuffer,
+  contentType
+) {
+
   const bytes =
     new Uint8Array(
       arrayBuffer
@@ -2672,9 +3616,16 @@ async function streamToDataURI(
 
 
   const mimeType =
-    detectImageMimeType(
-      bytes
-    );
+    contentType &&
+    contentType.startsWith(
+      "image/"
+    )
+      ? contentType.split(
+          ";"
+        )[0]
+      : detectImageMimeType(
+          bytes
+        );
 
 
   const base64 =
@@ -2838,16 +3789,20 @@ async function verifyTurnstile(
       await fetch(
         "https://challenges.cloudflare.com/turnstile/v0/siteverify",
         {
+
           method:
             "POST",
 
           headers: {
+
             "Content-Type":
               "application/x-www-form-urlencoded"
+
           },
 
           body:
             params.toString()
+
         }
       );
 
@@ -2869,13 +3824,16 @@ async function verifyTurnstile(
 
 
     return {
+
       success:
         data.success === true &&
         data.hostname === expectedHostname
+
     };
 
-
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     console.error(
       "Turnstile verify error:",
@@ -2903,15 +3861,19 @@ function json(
       data
     ),
     {
+
       status:
         status,
 
       headers: {
+
         ...COMMON_HEADERS,
 
         "Content-Type":
           "application/json; charset=UTF-8"
+
       }
+
     }
   );
 
