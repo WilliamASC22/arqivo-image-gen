@@ -1,6 +1,8 @@
 const MAX_IMAGES_PER_REQUEST = 8;
 const MAX_TOTAL_PIXELS = 12 * 1024 * 1024;
 const MAX_SEED = 2147483647;
+const MODEL_CONCURRENCY = 2;
+
 
 const MODELS = [
   {
@@ -13,6 +15,7 @@ const MODELS = [
     guidance: 7.5,
     defaultSelected: true
   },
+
   {
     key: "sdxl-base",
     label: "SDXL Base",
@@ -23,6 +26,7 @@ const MODELS = [
     guidance: 7.5,
     defaultSelected: true
   },
+
   {
     key: "lucid-origin",
     label: "Lucid Origin",
@@ -33,6 +37,7 @@ const MODELS = [
     guidance: 5.5,
     defaultSelected: true
   },
+
   {
     key: "phoenix",
     label: "Phoenix",
@@ -45,11 +50,20 @@ const MODELS = [
   }
 ];
 
-const MODELS_BY_KEY = Object.fromEntries(
-  MODELS.map((model) => [model.key, model])
-);
+
+const MODELS_BY_KEY =
+  Object.fromEntries(
+    MODELS.map(
+      (model) => [
+        model.key,
+        model
+      ]
+    )
+  );
+
 
 const SIZES = {
+
   "square-512": {
     label: "512 × 512",
     width: 512,
@@ -181,11 +195,15 @@ const SIZES = {
     width: 1152,
     height: 2048
   }
+
 };
 
+
 const SIZE_GROUPS = [
+
   {
     label: "Square",
+
     keys: [
       "square-512",
       "square-768",
@@ -198,6 +216,7 @@ const SIZE_GROUPS = [
 
   {
     label: "Landscape",
+
     keys: [
       "landscape-1024x768",
       "landscape-1152x768",
@@ -212,6 +231,7 @@ const SIZE_GROUPS = [
 
   {
     label: "Portrait",
+
     keys: [
       "portrait-768x1024",
       "portrait-768x1152",
@@ -223,6 +243,7 @@ const SIZE_GROUPS = [
       "portrait-1152x2048"
     ]
   }
+
 ];
 
 
@@ -266,6 +287,11 @@ class ProviderResponseError extends Error {
 }
 
 
+/* ----------------------------------
+   HTML BUILDERS
+---------------------------------- */
+
+
 function buildModelOptions() {
 
   return MODELS.map(
@@ -276,21 +302,38 @@ function buildModelOptions() {
           ? " checked"
           : "";
 
+
       return `
-        <label class="model-option">
+        <label
+          class="model-option"
+          data-model-option="${model.key}"
+        >
 
           <input
             type="checkbox"
             name="models"
             value="${model.key}"
+            data-model-label="${model.label}"
             ${checked}
           />
 
           <span class="model-option-content">
 
-            <strong>
-              ${model.label}
-            </strong>
+            <span class="model-option-heading">
+
+              <strong>
+                ${model.label}
+              </strong>
+
+              <span
+                class="model-inline-status"
+                data-model-status-for="${model.key}"
+                data-tone="ready"
+              >
+                Ready
+              </span>
+
+            </span>
 
             <small>
               ${model.description}
@@ -320,10 +363,12 @@ function buildSizeOptions() {
               const size =
                 SIZES[key];
 
+
               const selected =
                 key === "square-1024"
                   ? " selected"
                   : "";
+
 
               return `
                 <option
@@ -339,6 +384,7 @@ function buildSizeOptions() {
             }
           ).join("");
 
+
         return `
           <optgroup label="${group.label}">
             ${options}
@@ -347,6 +393,7 @@ function buildSizeOptions() {
 
       }
     ).join("");
+
 
   return groups + `
     <optgroup label="Other">
@@ -425,6 +472,11 @@ function buildFooter() {
   `;
 
 }
+
+
+/* ----------------------------------
+   GENERATE PAGE
+---------------------------------- */
 
 
 const HTML = (siteKey) => `<!doctype html>
@@ -785,6 +837,43 @@ const HTML = (siteKey) => `<!doctype html>
 
 
       <section
+        id="model-status-panel"
+        class="model-status-panel hidden"
+        aria-live="polite"
+      >
+
+        <div class="model-status-header">
+
+          <div>
+
+            <h2>
+              Model status
+            </h2>
+
+            <p>
+              If one model fails, successful models
+              will still finish and remain available.
+            </p>
+
+          </div>
+
+          <span
+            id="model-status-summary"
+            class="model-status-summary"
+          ></span>
+
+        </div>
+
+
+        <div
+          id="model-status-list"
+          class="model-status-list"
+        ></div>
+
+      </section>
+
+
+      <section
         id="results"
         class="results hidden"
       ></section>
@@ -799,6 +888,11 @@ const HTML = (siteKey) => `<!doctype html>
 </body>
 
 </html>`;
+
+
+/* ----------------------------------
+   PRIVACY PAGE
+---------------------------------- */
 
 
 const PRIVACY_HTML = `<!doctype html>
@@ -870,7 +964,7 @@ const PRIVACY_HTML = `<!doctype html>
         </p>
 
         <p class="last-updated">
-          Last updated: August 16, 2026
+          Last updated: August 17, 2026
         </p>
 
       </header>
@@ -1057,13 +1151,6 @@ const PRIVACY_HTML = `<!doctype html>
             </li>
 
           </ul>
-
-          <p>
-            Some models are operated directly through
-            Cloudflare-hosted Workers AI infrastructure,
-            while some may involve partner model
-            technology.
-          </p>
 
           <p>
             The selected model receives the information
@@ -1453,6 +1540,11 @@ const PRIVACY_HTML = `<!doctype html>
 </body>
 
 </html>`;
+
+
+/* ----------------------------------
+   CSS
+---------------------------------- */
 
 
 const CSS = `
@@ -1998,7 +2090,22 @@ button:disabled {
 
   flex-direction: column;
 
-  gap: 0.2rem;
+  gap: 0.25rem;
+
+  flex: 1;
+
+  min-width: 0;
+}
+
+
+.model-option-heading {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 0.6rem;
 }
 
 
@@ -2011,6 +2118,119 @@ button:disabled {
   color: var(--muted);
 
   font-weight: 400;
+}
+
+
+.model-inline-status {
+  flex-shrink: 0;
+
+  padding:
+    0.22rem
+    0.48rem;
+
+  border-radius: 999px;
+
+  border:
+    1px
+    solid
+    var(--border);
+
+  color: var(--muted);
+
+  font-size: 0.68rem;
+
+  font-weight: 850;
+
+  line-height: 1;
+}
+
+
+.model-inline-status[data-tone="ready"] {
+  color: var(--muted);
+}
+
+
+.model-inline-status[data-tone="processing"] {
+  color: var(--accent);
+
+  border-color:
+    rgba(
+      110,
+      168,
+      254,
+      0.4
+    );
+
+  background:
+    rgba(
+      110,
+      168,
+      254,
+      0.08
+    );
+}
+
+
+.model-inline-status[data-tone="success"] {
+  color: var(--success);
+
+  border-color:
+    rgba(
+      139,
+      227,
+      175,
+      0.35
+    );
+
+  background:
+    rgba(
+      139,
+      227,
+      175,
+      0.07
+    );
+}
+
+
+.model-inline-status[data-tone="warning"] {
+  color: var(--warning);
+
+  border-color:
+    rgba(
+      255,
+      212,
+      121,
+      0.35
+    );
+
+  background:
+    rgba(
+      255,
+      212,
+      121,
+      0.07
+    );
+}
+
+
+.model-inline-status[data-tone="error"] {
+  color: var(--danger);
+
+  border-color:
+    rgba(
+      255,
+      141,
+      141,
+      0.35
+    );
+
+  background:
+    rgba(
+      255,
+      141,
+      141,
+      0.07
+    );
 }
 
 
@@ -2175,6 +2395,290 @@ input[type="number"] {
 }
 
 
+/* ----------------------------------
+   MODEL STATUS PANEL
+---------------------------------- */
+
+
+.model-status-panel {
+  margin:
+    1rem
+    0;
+
+  padding: 1rem;
+
+  background:
+    rgba(
+      21,
+      27,
+      47,
+      0.88
+    );
+
+  border:
+    1px
+    solid
+    var(--border);
+
+  border-radius: 16px;
+}
+
+
+.model-status-header {
+  display: flex;
+
+  align-items: flex-start;
+
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  margin-bottom: 0.85rem;
+}
+
+
+.model-status-header h2 {
+  margin:
+    0
+    0
+    0.25rem;
+
+  font-size: 1rem;
+}
+
+
+.model-status-header p {
+  margin: 0;
+
+  color: var(--muted);
+
+  font-size: 0.82rem;
+
+  line-height: 1.45;
+}
+
+
+.model-status-summary {
+  flex-shrink: 0;
+
+  color: var(--muted);
+
+  font-size: 0.78rem;
+
+  font-weight: 750;
+}
+
+
+.model-status-list {
+  display: grid;
+
+  gap: 0.6rem;
+}
+
+
+.model-status-row {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  padding:
+    0.75rem
+    0.8rem;
+
+  background:
+    rgba(
+      11,
+      16,
+      32,
+      0.45
+    );
+
+  border:
+    1px
+    solid
+    var(--border);
+
+  border-radius: 11px;
+}
+
+
+.model-status-row[data-tone="success"] {
+  border-color:
+    rgba(
+      139,
+      227,
+      175,
+      0.28
+    );
+}
+
+
+.model-status-row[data-tone="warning"] {
+  border-color:
+    rgba(
+      255,
+      212,
+      121,
+      0.3
+    );
+}
+
+
+.model-status-row[data-tone="error"] {
+  border-color:
+    rgba(
+      255,
+      141,
+      141,
+      0.3
+    );
+}
+
+
+.model-status-left {
+  min-width: 0;
+}
+
+
+.model-status-name {
+  display: block;
+
+  color: var(--text);
+
+  font-size: 0.9rem;
+
+  font-weight: 800;
+}
+
+
+.model-status-detail {
+  display: block;
+
+  margin-top: 0.2rem;
+
+  color: var(--muted);
+
+  font-size: 0.78rem;
+
+  line-height: 1.4;
+}
+
+
+.model-status-badge {
+  flex-shrink: 0;
+
+  border:
+    1px
+    solid
+    var(--border);
+
+  border-radius: 999px;
+
+  padding:
+    0.3rem
+    0.55rem;
+
+  color: var(--muted);
+
+  font-size: 0.7rem;
+
+  font-weight: 850;
+}
+
+
+.model-status-badge[data-tone="processing"] {
+  color: var(--accent);
+
+  border-color:
+    rgba(
+      110,
+      168,
+      254,
+      0.35
+    );
+
+  background:
+    rgba(
+      110,
+      168,
+      254,
+      0.07
+    );
+}
+
+
+.model-status-badge[data-tone="success"] {
+  color: var(--success);
+
+  border-color:
+    rgba(
+      139,
+      227,
+      175,
+      0.35
+    );
+
+  background:
+    rgba(
+      139,
+      227,
+      175,
+      0.07
+    );
+}
+
+
+.model-status-badge[data-tone="warning"] {
+  color: var(--warning);
+
+  border-color:
+    rgba(
+      255,
+      212,
+      121,
+      0.35
+    );
+
+  background:
+    rgba(
+      255,
+      212,
+      121,
+      0.07
+    );
+}
+
+
+.model-status-badge[data-tone="error"] {
+  color: var(--danger);
+
+  border-color:
+    rgba(
+      255,
+      141,
+      141,
+      0.35
+    );
+
+  background:
+    rgba(
+      255,
+      141,
+      141,
+      0.07
+    );
+}
+
+
+/* ----------------------------------
+   RESULTS
+---------------------------------- */
+
+
 .results {
   display: grid;
 
@@ -2212,13 +2716,68 @@ input[type="number"] {
 }
 
 
+.result-heading-row {
+  display: flex;
+
+  align-items: flex-start;
+
+  justify-content: space-between;
+
+  gap: 0.75rem;
+
+  margin-bottom: 0.4rem;
+}
+
+
 .result-card h3 {
-  margin:
-    0
-    0
-    0.4rem;
+  margin: 0;
 
   font-size: 1.05rem;
+}
+
+
+.result-state {
+  flex-shrink: 0;
+
+  border-radius: 999px;
+
+  padding:
+    0.28rem
+    0.5rem;
+
+  font-size: 0.68rem;
+
+  font-weight: 850;
+}
+
+
+.result-state.success {
+  color: var(--success);
+
+  border:
+    1px
+    solid
+    rgba(
+      139,
+      227,
+      175,
+      0.3
+    );
+}
+
+
+.result-state.error {
+  color: var(--danger);
+
+  border:
+    1px
+    solid
+    rgba(
+      255,
+      141,
+      141,
+      0.3
+    );
 }
 
 
@@ -2307,7 +2866,7 @@ input[type="number"] {
 
 
 /* ----------------------------------
-   BETTER MODEL ERROR CARDS
+   MODEL ERROR CARDS
 ---------------------------------- */
 
 
@@ -2469,7 +3028,7 @@ input[type="number"] {
 
 
 /* ----------------------------------
-   PRIVACY PAGE
+   PRIVACY
 ---------------------------------- */
 
 
@@ -2899,6 +3458,11 @@ input[type="number"] {
 }
 
 
+/* ----------------------------------
+   RESPONSIVE
+---------------------------------- */
+
+
 @media (max-width: 950px) {
 
   .controls {
@@ -2935,7 +3499,8 @@ input[type="number"] {
   }
 
 
-  .section-heading {
+  .section-heading,
+  .model-status-header {
     flex-direction: column;
   }
 
@@ -2963,8 +3528,25 @@ input[type="number"] {
       1rem;
   }
 
+
+  .model-status-row {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+
+  .model-option-heading {
+    align-items: flex-start;
+  }
+
 }
 `;
+
+
+/* ----------------------------------
+   BROWSER JAVASCRIPT
+---------------------------------- */
 
 
 const JS = `
@@ -2990,6 +3572,24 @@ const statusEl =
 
 const resultsEl =
   document.getElementById('results');
+
+
+const modelStatusPanel =
+  document.getElementById(
+    'model-status-panel'
+  );
+
+
+const modelStatusList =
+  document.getElementById(
+    'model-status-list'
+  );
+
+
+const modelStatusSummary =
+  document.getElementById(
+    'model-status-summary'
+  );
 
 
 const sizeEl =
@@ -3068,6 +3668,36 @@ function getSelectedModelKeys() {
 
       }
     );
+
+}
+
+
+function modelLabelForKey(
+  key
+) {
+
+  const checkbox =
+    getModelCheckboxes()
+      .find(
+        function(item) {
+
+          return item.value === key;
+
+        }
+      );
+
+
+  if (
+    checkbox &&
+    checkbox.dataset.modelLabel
+  ) {
+
+    return checkbox.dataset.modelLabel;
+
+  }
+
+
+  return key;
 
 }
 
@@ -3315,6 +3945,726 @@ function setStatus(
 }
 
 
+/* ----------------------------------
+   INLINE MODEL STATUS
+---------------------------------- */
+
+
+function findInlineStatus(
+  modelKey
+) {
+
+  const statuses =
+    Array.from(
+      document.querySelectorAll(
+        '[data-model-status-for]'
+      )
+    );
+
+
+  return statuses.find(
+    function(element) {
+
+      return (
+        element.dataset.modelStatusFor ===
+        modelKey
+      );
+
+    }
+  );
+
+}
+
+
+function setInlineModelStatus(
+  modelKey,
+  text,
+  tone
+) {
+
+  const element =
+    findInlineStatus(
+      modelKey
+    );
+
+
+  if (
+    !element
+  ) {
+
+    return;
+
+  }
+
+
+  element.textContent =
+    text;
+
+
+  element.dataset.tone =
+    tone ||
+    'ready';
+
+}
+
+
+/* ----------------------------------
+   MODEL STATUS PANEL
+---------------------------------- */
+
+
+function clearModelStatusPanel() {
+
+  modelStatusList.innerHTML =
+    '';
+
+
+  modelStatusSummary.textContent =
+    '';
+
+}
+
+
+function createModelStatusRow(
+  modelKey,
+  label,
+  expectedImages
+) {
+
+  const row =
+    document.createElement(
+      'div'
+    );
+
+
+  row.className =
+    'model-status-row';
+
+
+  row.dataset.modelStatusKey =
+    modelKey;
+
+
+  row.dataset.tone =
+    'processing';
+
+
+  const left =
+    document.createElement(
+      'div'
+    );
+
+
+  left.className =
+    'model-status-left';
+
+
+  const name =
+    document.createElement(
+      'span'
+    );
+
+
+  name.className =
+    'model-status-name';
+
+
+  name.textContent =
+    label;
+
+
+  const detail =
+    document.createElement(
+      'span'
+    );
+
+
+  detail.className =
+    'model-status-detail';
+
+
+  detail.textContent =
+    expectedImages === 1
+      ? '1 image submitted for generation'
+      : expectedImages +
+        ' variations submitted for generation';
+
+
+  left.appendChild(
+    name
+  );
+
+
+  left.appendChild(
+    detail
+  );
+
+
+  const badge =
+    document.createElement(
+      'span'
+    );
+
+
+  badge.className =
+    'model-status-badge';
+
+
+  badge.dataset.tone =
+    'processing';
+
+
+  badge.textContent =
+    'Processing';
+
+
+  row.appendChild(
+    left
+  );
+
+
+  row.appendChild(
+    badge
+  );
+
+
+  return row;
+
+}
+
+
+function findModelStatusRow(
+  modelKey
+) {
+
+  return Array.from(
+    modelStatusList.children
+  ).find(
+    function(row) {
+
+      return (
+        row.dataset.modelStatusKey ===
+        modelKey
+      );
+
+    }
+  );
+
+}
+
+
+function startModelStatuses(
+  modelKeys,
+  imagesPerModel
+) {
+
+  clearModelStatusPanel();
+
+
+  modelKeys.forEach(
+    function(modelKey) {
+
+      const label =
+        modelLabelForKey(
+          modelKey
+        );
+
+
+      modelStatusList.appendChild(
+        createModelStatusRow(
+          modelKey,
+          label,
+          imagesPerModel
+        )
+      );
+
+
+      setInlineModelStatus(
+        modelKey,
+        'Processing',
+        'processing'
+      );
+
+    }
+  );
+
+
+  modelStatusSummary.textContent =
+    modelKeys.length === 1
+      ? '1 model processing'
+      : modelKeys.length +
+        ' models processing';
+
+
+  modelStatusPanel
+    .classList
+    .remove('hidden');
+
+}
+
+
+function updateModelStatusRow(
+  status
+) {
+
+  const row =
+    findModelStatusRow(
+      status.key
+    );
+
+
+  if (
+    !row
+  ) {
+
+    return;
+
+  }
+
+
+  const detail =
+    row.querySelector(
+      '.model-status-detail'
+    );
+
+
+  const badge =
+    row.querySelector(
+      '.model-status-badge'
+    );
+
+
+  let tone =
+    'error';
+
+
+  let badgeText =
+    'Failed';
+
+
+  let detailText =
+    'No images completed.';
+
+
+  if (
+    status.status === 'completed'
+  ) {
+
+    tone =
+      'success';
+
+
+    badgeText =
+      'Completed';
+
+
+    detailText =
+      status.successful +
+      ' of ' +
+      status.expected +
+      (
+        status.expected === 1
+          ? ' image completed'
+          : ' images completed'
+      );
+
+
+    setInlineModelStatus(
+      status.key,
+      'Completed',
+      'success'
+    );
+
+  } else if (
+    status.status === 'partial'
+  ) {
+
+    tone =
+      'warning';
+
+
+    badgeText =
+      'Partial';
+
+
+    detailText =
+      status.successful +
+      ' completed · ' +
+      status.failed +
+      ' failed';
+
+
+    if (
+      status.error &&
+      status.error.title
+    ) {
+
+      detailText +=
+        ' · ' +
+        status.error.title;
+
+    }
+
+
+    setInlineModelStatus(
+      status.key,
+      'Partial',
+      'warning'
+    );
+
+  } else {
+
+    tone =
+      'error';
+
+
+    badgeText =
+      'Failed';
+
+
+    if (
+      status.error &&
+      status.error.title
+    ) {
+
+      detailText =
+        status.error.title;
+
+    }
+
+
+    setInlineModelStatus(
+      status.key,
+      'Failed',
+      'error'
+    );
+
+  }
+
+
+  row.dataset.tone =
+    tone;
+
+
+  if (
+    detail
+  ) {
+
+    detail.textContent =
+      detailText;
+
+  }
+
+
+  if (
+    badge
+  ) {
+
+    badge.dataset.tone =
+      tone;
+
+
+    badge.textContent =
+      badgeText;
+
+  }
+
+}
+
+
+function applyModelStatuses(
+  statuses
+) {
+
+  let completedModels =
+    0;
+
+
+  let partialModels =
+    0;
+
+
+  let failedModels =
+    0;
+
+
+  statuses.forEach(
+    function(status) {
+
+      updateModelStatusRow(
+        status
+      );
+
+
+      if (
+        status.status ===
+        'completed'
+      ) {
+
+        completedModels +=
+          1;
+
+      } else if (
+        status.status ===
+        'partial'
+      ) {
+
+        partialModels +=
+          1;
+
+      } else {
+
+        failedModels +=
+          1;
+
+      }
+
+    }
+  );
+
+
+  const parts =
+    [];
+
+
+  if (
+    completedModels > 0
+  ) {
+
+    parts.push(
+      completedModels +
+      (
+        completedModels === 1
+          ? ' completed'
+          : ' completed'
+      )
+    );
+
+  }
+
+
+  if (
+    partialModels > 0
+  ) {
+
+    parts.push(
+      partialModels +
+      ' partial'
+    );
+
+  }
+
+
+  if (
+    failedModels > 0
+  ) {
+
+    parts.push(
+      failedModels +
+      ' failed'
+    );
+
+  }
+
+
+  modelStatusSummary.textContent =
+    parts.join(
+      ' · '
+    );
+
+}
+
+
+function deriveModelStatuses(
+  results,
+  selectedModelKeys,
+  imagesPerModel
+) {
+
+  return selectedModelKeys.map(
+    function(modelKey) {
+
+      const items =
+        results.filter(
+          function(item) {
+
+            return (
+              item.modelKey ===
+              modelKey
+            );
+
+          }
+        );
+
+
+      const successful =
+        items.filter(
+          function(item) {
+
+            return !item.error;
+
+          }
+        ).length;
+
+
+      const failed =
+        Math.max(
+          0,
+          imagesPerModel -
+          successful
+        );
+
+
+      const firstFailure =
+        items.find(
+          function(item) {
+
+            return Boolean(
+              item.error
+            );
+
+          }
+        );
+
+
+      let status =
+        'failed';
+
+
+      if (
+        successful ===
+        imagesPerModel
+      ) {
+
+        status =
+          'completed';
+
+      } else if (
+        successful > 0
+      ) {
+
+        status =
+          'partial';
+
+      }
+
+
+      return {
+
+        key:
+          modelKey,
+
+        label:
+          items[0]?.label ||
+          modelLabelForKey(
+            modelKey
+          ),
+
+        status:
+          status,
+
+        successful:
+          successful,
+
+        failed:
+          failed,
+
+        expected:
+          imagesPerModel,
+
+        error:
+          firstFailure?.error ||
+          null
+
+      };
+
+    }
+  );
+
+}
+
+
+function stopModelStatuses(
+  modelKeys,
+  message
+) {
+
+  modelKeys.forEach(
+    function(modelKey) {
+
+      const row =
+        findModelStatusRow(
+          modelKey
+        );
+
+
+      if (
+        row
+      ) {
+
+        row.dataset.tone =
+          'error';
+
+
+        const detail =
+          row.querySelector(
+            '.model-status-detail'
+          );
+
+
+        const badge =
+          row.querySelector(
+            '.model-status-badge'
+          );
+
+
+        if (
+          detail
+        ) {
+
+          detail.textContent =
+            message;
+
+        }
+
+
+        if (
+          badge
+        ) {
+
+          badge.dataset.tone =
+            'error';
+
+
+          badge.textContent =
+            'Stopped';
+
+        }
+
+      }
+
+
+      setInlineModelStatus(
+        modelKey,
+        'Stopped',
+        'error'
+      );
+
+    }
+  );
+
+
+  modelStatusSummary.textContent =
+    'Request stopped';
+
+}
+
+
+/* ----------------------------------
+   TURNSTILE
+---------------------------------- */
+
+
 window.onTurnstileError =
   function(errorCode) {
 
@@ -3330,6 +4680,11 @@ window.onTurnstileError =
     );
 
   };
+
+
+/* ----------------------------------
+   FORM CONTROLS
+---------------------------------- */
 
 
 selectAllModelsButton
@@ -3417,12 +4772,19 @@ customHeightEl
   );
 
 
+/* ----------------------------------
+   RESULTS
+---------------------------------- */
+
+
 function extensionForDataURI(
   dataURI
 ) {
 
   const value =
-    String(dataURI);
+    String(
+      dataURI
+    );
 
 
   if (
@@ -3497,6 +4859,16 @@ function createResultCard(
     'result-card';
 
 
+  const headingRow =
+    document.createElement(
+      'div'
+    );
+
+
+  headingRow.className =
+    'result-heading-row';
+
+
   const heading =
     document.createElement(
       'h3'
@@ -3516,8 +4888,36 @@ function createResultCard(
     );
 
 
-  card.appendChild(
+  const state =
+    document.createElement(
+      'span'
+    );
+
+
+  state.className =
+    item.error
+      ? 'result-state error'
+      : 'result-state success';
+
+
+  state.textContent =
+    item.error
+      ? 'Failed'
+      : 'Completed';
+
+
+  headingRow.appendChild(
     heading
+  );
+
+
+  headingRow.appendChild(
+    state
+  );
+
+
+  card.appendChild(
+    headingRow
   );
 
 
@@ -3560,7 +4960,7 @@ function createResultCard(
       card,
       'div',
       'error-kicker',
-      'Generation error'
+      'Model unavailable'
     );
 
 
@@ -3859,6 +5259,11 @@ function requestErrorMessage(
 }
 
 
+/* ----------------------------------
+   SUBMIT
+---------------------------------- */
+
+
 form.addEventListener(
   'submit',
   async function(event) {
@@ -4039,6 +5444,12 @@ form.addEventListener(
       '';
 
 
+    startModelStatuses(
+      selectedModels,
+      imagesPerModel
+    );
+
+
     setStatus(
       'Generating ' +
       summary.totalImages +
@@ -4142,21 +5553,49 @@ form.addEventListener(
       }
 
 
-      const summaryResult =
+      const results =
+        Array.isArray(
+          data.results
+        )
+
+          ? data.results
+
+          : [];
+
+
+      const resultSummary =
         renderResults(
-          data.results ||
-          []
+          results
         );
 
 
+      const serverStatuses =
+        Array.isArray(
+          data.modelStatuses
+        )
+
+          ? data.modelStatuses
+
+          : deriveModelStatuses(
+              results,
+              selectedModels,
+              imagesPerModel
+            );
+
+
+      applyModelStatuses(
+        serverStatuses
+      );
+
+
       if (
-        summaryResult.failed === 0
+        resultSummary.failed === 0
       ) {
 
         setStatus(
-          summaryResult.successful +
+          resultSummary.successful +
           (
-            summaryResult.successful === 1
+            resultSummary.successful === 1
               ? ' image completed.'
               : ' images completed.'
           ),
@@ -4164,21 +5603,21 @@ form.addEventListener(
         );
 
       } else if (
-        summaryResult.successful === 0
+        resultSummary.successful === 0
       ) {
 
         setStatus(
-          'All selected generations failed. See each model card for the reason and what to try next.',
+          'All selected generations failed. See the model status and error cards for details.',
           'error'
         );
 
       } else {
 
         setStatus(
-          summaryResult.successful +
+          resultSummary.successful +
           ' completed, ' +
-          summaryResult.failed +
-          ' failed. See the failed model cards for details.',
+          resultSummary.failed +
+          ' failed. Successful images are still available below.',
           'warning'
         );
 
@@ -4193,14 +5632,23 @@ form.addEventListener(
       );
 
 
-      setStatus(
+      const message =
         error &&
         error.message
 
           ? error.message
 
-          : 'Something went wrong while contacting the generation service.',
+          : 'Something went wrong while contacting the generation service.';
 
+
+      stopModelStatuses(
+        selectedModels,
+        message
+      );
+
+
+      setStatus(
+        message,
         'error'
       );
 
@@ -4223,6 +5671,11 @@ form.addEventListener(
 updateCustomSizeVisibility();
 updateGenerateButton();
 `;
+
+
+/* ----------------------------------
+   SECURITY HEADERS
+---------------------------------- */
 
 
 const COMMON_HEADERS = {
@@ -4267,6 +5720,11 @@ const COMMON_HEADERS = {
     "frame-ancestors 'none'"
 
 };
+
+
+/* ----------------------------------
+   WORKER ROUTER
+---------------------------------- */
 
 
 export default {
@@ -4408,6 +5866,11 @@ export default {
   }
 
 };
+
+
+/* ----------------------------------
+   GENERATION ENDPOINT
+---------------------------------- */
 
 
 async function handleGenerate(
@@ -4827,7 +6290,7 @@ async function handleGenerate(
     buildNegativePrompt();
 
 
-  const taskFactories =
+  const tasks =
     [];
 
 
@@ -4853,20 +6316,43 @@ async function handleGenerate(
         );
 
 
-      taskFactories.push(
-        () =>
-          generateImageForModel(
-            env,
-            model,
-            finalPrompt,
-            negativePrompt,
-            width,
-            height,
-            quality,
-            variationSeed,
-            variationIndex + 1,
-            imagesPerModel
-          )
+      const variation =
+        variationIndex +
+        1;
+
+
+      tasks.push(
+        {
+
+          run:
+            () =>
+              generateImageForModel(
+                env,
+                model,
+                finalPrompt,
+                negativePrompt,
+                width,
+                height,
+                quality,
+                variationSeed,
+                variation,
+                imagesPerModel
+              ),
+
+
+          fallback:
+            () =>
+              createUnexpectedTaskFailure(
+                model,
+                width,
+                height,
+                quality,
+                variationSeed,
+                variation,
+                imagesPerModel
+              )
+
+        }
       );
 
     }
@@ -4876,19 +6362,37 @@ async function handleGenerate(
 
   const results =
     await runWithConcurrency(
-      taskFactories,
-      2
+      tasks,
+      MODEL_CONCURRENCY
+    );
+
+
+  const modelStatuses =
+    summarizeModelStatuses(
+      selectedModels,
+      results,
+      imagesPerModel
     );
 
 
   return json(
     {
+
       results:
-        results
+        results,
+
+      modelStatuses:
+        modelStatuses
+
     }
   );
 
 }
+
+
+/* ----------------------------------
+   VALIDATION
+---------------------------------- */
 
 
 function isValidDimension(
@@ -4905,6 +6409,11 @@ function isValidDimension(
   );
 
 }
+
+
+/* ----------------------------------
+   PROMPT HELPERS
+---------------------------------- */
 
 
 function buildPrompt(
@@ -4960,14 +6469,19 @@ unrequested logo
 }
 
 
+/* ----------------------------------
+   GRACEFUL CONCURRENCY
+---------------------------------- */
+
+
 async function runWithConcurrency(
-  taskFactories,
+  tasks,
   limit
 ) {
 
   const results =
     new Array(
-      taskFactories.length
+      tasks.length
     );
 
 
@@ -4991,7 +6505,7 @@ async function runWithConcurrency(
 
       if (
         index >=
-        taskFactories.length
+        tasks.length
       ) {
 
         return;
@@ -4999,10 +6513,37 @@ async function runWithConcurrency(
       }
 
 
-      results[index] =
-        await taskFactories[
-          index
-        ]();
+      const task =
+        tasks[index];
+
+
+      try {
+
+        results[index] =
+          await task.run();
+
+      } catch {
+
+        /*
+         * This is the final safety net.
+         *
+         * generateImageForModel already catches expected
+         * model/provider failures.
+         *
+         * If some unexpected JavaScript error escapes
+         * anyway, it only affects this one image task.
+         * Other model tasks continue normally.
+         */
+
+        console.error(
+          "Unexpected isolated generation task failure."
+        );
+
+
+        results[index] =
+          task.fallback();
+
+      }
 
     }
 
@@ -5012,12 +6553,15 @@ async function runWithConcurrency(
   const workers =
     Array.from(
       {
+
         length:
           Math.min(
             limit,
-            taskFactories.length
+            tasks.length
           )
+
       },
+
       () =>
         worker()
     );
@@ -5034,7 +6578,140 @@ async function runWithConcurrency(
 
 
 /* ----------------------------------
-   ERROR HELPERS
+   MODEL STATUS SUMMARY
+---------------------------------- */
+
+
+function summarizeModelStatuses(
+  selectedModels,
+  results,
+  imagesPerModel
+) {
+
+  return selectedModels.map(
+    (model) => {
+
+      const modelResults =
+        results.filter(
+          (item) =>
+            item.modelKey ===
+            model.key
+        );
+
+
+      const successful =
+        modelResults.filter(
+          (item) =>
+            !item.error
+        ).length;
+
+
+      const failed =
+        Math.max(
+          0,
+          imagesPerModel -
+          successful
+        );
+
+
+      const firstFailure =
+        modelResults.find(
+          (item) =>
+            Boolean(
+              item.error
+            )
+        );
+
+
+      let status =
+        "failed";
+
+
+      if (
+        successful ===
+        imagesPerModel
+      ) {
+
+        status =
+          "completed";
+
+      } else if (
+        successful > 0
+      ) {
+
+        status =
+          "partial";
+
+      }
+
+
+      let publicError =
+        firstFailure?.error ||
+        null;
+
+
+      if (
+        status !== "completed" &&
+        !publicError
+      ) {
+
+        publicError =
+          {
+
+            code:
+              "MODEL_RESULT_MISSING",
+
+            title:
+              "The model did not return every expected result",
+
+            message:
+              model.label +
+              " did not return every requested image.",
+
+            hint:
+              "Try this model again with fewer variations.",
+
+            retryable:
+              true
+
+          };
+
+      }
+
+
+      return {
+
+        key:
+          model.key,
+
+        label:
+          model.label,
+
+        status:
+          status,
+
+        successful:
+          successful,
+
+        failed:
+          failed,
+
+        expected:
+          imagesPerModel,
+
+        error:
+          publicError
+
+      };
+
+    }
+  );
+
+}
+
+
+/* ----------------------------------
+   ERROR EXTRACTION HELPERS
 ---------------------------------- */
 
 
@@ -5251,7 +6928,7 @@ function classifyModelError(
         "The model finished, but Arqivo could not read the image data it returned.",
 
       hint:
-        "Try this model again. If it keeps happening, use another model while the output format issue is investigated.",
+        "Try this model again. If it keeps happening, use another model while the output issue is investigated.",
 
       retryable:
         true
@@ -5290,10 +6967,6 @@ function classifyModelError(
     );
 
 
-  /*
-   * Daily / account usage exhausted
-   */
-
   if (
     isQuota
   ) {
@@ -5320,10 +6993,6 @@ function classifyModelError(
 
   }
 
-
-  /*
-   * Temporary rate limiting / capacity
-   */
 
   if (
     isRateLimited
@@ -5352,10 +7021,6 @@ function classifyModelError(
   }
 
 
-  /*
-   * Billing requirement
-   */
-
   if (
     /billing|payment|paid plan|subscription|credit balance|insufficient balance|requires.*paid/.test(
       haystack
@@ -5368,14 +7033,14 @@ function classifyModelError(
         "MODEL_REQUIRES_BILLING",
 
       title:
-        "This model is not available on the current account setup",
+        "This model is unavailable on the current account setup",
 
       message:
         context.model.label +
         " appears to require billing or account access that is not currently enabled.",
 
       hint:
-        "Use another model. Do not add billing just to clear this message unless you intentionally want to change the project's cost policy.",
+        "Use another available model.",
 
       retryable:
         false
@@ -5384,10 +7049,6 @@ function classifyModelError(
 
   }
 
-
-  /*
-   * Permissions / authentication
-   */
 
   if (
     info.status === 401 ||
@@ -5410,7 +7071,7 @@ function classifyModelError(
         " rejected the request because the Worker account or AI binding does not have the required access.",
 
       hint:
-        "Use another model and check the Workers AI model availability and account permissions before changing credentials.",
+        "Use another model and verify this model's availability and account permissions.",
 
       retryable:
         false
@@ -5419,10 +7080,6 @@ function classifyModelError(
 
   }
 
-
-  /*
-   * Model ID missing / retired / unavailable
-   */
 
   if (
     info.status === 404 ||
@@ -5453,10 +7110,6 @@ function classifyModelError(
 
   }
 
-
-  /*
-   * Resolution / parameter problems
-   */
 
   if (
     /width|height|dimension|resolution|image size|multiple of|invalid parameter|validation|out of range|must be between|unsupported.*size/.test(
@@ -5491,10 +7144,6 @@ function classifyModelError(
   }
 
 
-  /*
-   * Timeout
-   */
-
   if (
     /timeout|timed out|deadline|execution time/.test(
       haystack
@@ -5523,10 +7172,6 @@ function classifyModelError(
 
   }
 
-
-  /*
-   * Content / moderation rejection
-   */
 
   if (
     /safety|moderation|content policy|policy violation|blocked prompt|unsafe|content blocked/.test(
@@ -5557,12 +7202,11 @@ function classifyModelError(
   }
 
 
-  /*
-   * Provider outage / 5xx
-   */
-
   if (
-    info.status >= 500 ||
+    (
+      info.status !== null &&
+      info.status >= 500
+    ) ||
     /internal server error|service unavailable|bad gateway|gateway timeout|upstream|overloaded|temporary failure/.test(
       haystack
     )
@@ -5591,10 +7235,6 @@ function classifyModelError(
   }
 
 
-  /*
-   * Network / connection problems
-   */
-
   if (
     /network|connection|fetch failed|socket|econn|dns/.test(
       haystack
@@ -5615,7 +7255,7 @@ function classifyModelError(
         ".",
 
       hint:
-        "Try again shortly. If other models work, the issue is probably isolated to this model or provider path.",
+        "Try again shortly. If other models work, the problem is probably isolated to this model or provider path.",
 
       retryable:
         true
@@ -5624,10 +7264,6 @@ function classifyModelError(
 
   }
 
-
-  /*
-   * Unknown fallback
-   */
 
   return {
 
@@ -5642,7 +7278,7 @@ function classifyModelError(
       " encountered an unexpected generation error.",
 
     hint:
-      "Try the same prompt again. If it repeatedly fails, try another model, a smaller resolution, or Standard quality.",
+      "Try the same prompt again. If it repeatedly fails, use another model, a smaller resolution, or Standard quality.",
 
     retryable:
       true
@@ -5652,19 +7288,10 @@ function classifyModelError(
 }
 
 
-/*
- * Privacy-conscious logging.
- *
- * Notice that this intentionally does NOT log:
- *
- * - prompt
- * - negative prompt
- * - image bytes
- * - base64 image
- * - Turnstile token
- * - IP address
- * - full request body
- */
+/* ----------------------------------
+   PRIVACY-CONSCIOUS LOGGING
+---------------------------------- */
+
 
 function logModelFailure(
   model,
@@ -5700,12 +7327,103 @@ function logModelFailure(
 
       errorName:
         info.name ||
-        null
+        null,
+
+      outputCode:
+        error instanceof
+        ModelOutputError
+
+          ? error.outputCode
+
+          : null
 
     }
   );
 
 }
+
+
+/* ----------------------------------
+   UNEXPECTED TASK FALLBACK
+---------------------------------- */
+
+
+function createUnexpectedTaskFailure(
+  model,
+  width,
+  height,
+  quality,
+  seed,
+  variation,
+  totalVariations
+) {
+
+  const steps =
+    quality === "best"
+
+      ? model.bestSteps
+
+      : model.standardSteps;
+
+
+  return {
+
+    modelKey:
+      model.key,
+
+    label:
+      model.label,
+
+    model:
+      model.id,
+
+    width:
+      width,
+
+    height:
+      height,
+
+    steps:
+      steps,
+
+    seed:
+      seed,
+
+    variation:
+      variation,
+
+    totalVariations:
+      totalVariations,
+
+    error:
+      {
+
+        code:
+          "ISOLATED_TASK_FAILURE",
+
+        title:
+          "This generation task stopped unexpectedly",
+
+        message:
+          model.label +
+          " encountered an isolated processing error.",
+
+        hint:
+          "Other selected models were allowed to continue. Try this model again separately.",
+
+        retryable:
+          true
+
+      }
+
+  };
+
+}
+
+
+/* ----------------------------------
+   MODEL GENERATION
+---------------------------------- */
 
 
 async function generateImageForModel(
@@ -5768,6 +7486,9 @@ async function generateImageForModel(
 
 
     return {
+
+      modelKey:
+        model.key,
 
       label:
         model.label,
@@ -5835,6 +7556,9 @@ async function generateImageForModel(
 
     return {
 
+      modelKey:
+        model.key,
+
       label:
         model.label,
 
@@ -5869,13 +7593,14 @@ async function generateImageForModel(
 }
 
 
+/* ----------------------------------
+   MODEL OUTPUT HANDLING
+---------------------------------- */
+
+
 async function outputToDataURI(
   output
 ) {
-
-  /*
-   * Base64 object output
-   */
 
   if (
     output &&
@@ -5889,10 +7614,6 @@ async function outputToDataURI(
 
   }
 
-
-  /*
-   * Response object output
-   */
 
   if (
     output instanceof Response
@@ -5927,7 +7648,7 @@ async function outputToDataURI(
       } catch {
 
         /*
-         * Keep generic error.
+         * Keep generic response message.
          */
 
       }
@@ -5959,10 +7680,6 @@ async function outputToDataURI(
   }
 
 
-  /*
-   * ArrayBuffer output
-   */
-
   if (
     output instanceof ArrayBuffer
   ) {
@@ -5974,10 +7691,6 @@ async function outputToDataURI(
 
   }
 
-
-  /*
-   * Uint8Array or another ArrayBuffer view
-   */
 
   if (
     ArrayBuffer.isView(
@@ -5997,10 +7710,6 @@ async function outputToDataURI(
   }
 
 
-  /*
-   * Empty result
-   */
-
   if (
     !output
   ) {
@@ -6012,10 +7721,6 @@ async function outputToDataURI(
 
   }
 
-
-  /*
-   * ReadableStream output
-   */
 
   return streamToDataURI(
     output
@@ -6212,10 +7917,6 @@ function detectImageMimeType(
   bytes
 ) {
 
-  /*
-   * PNG
-   */
-
   if (
     bytes.length >= 8 &&
     bytes[0] === 0x89 &&
@@ -6229,10 +7930,6 @@ function detectImageMimeType(
   }
 
 
-  /*
-   * JPEG
-   */
-
   if (
     bytes.length >= 3 &&
     bytes[0] === 0xff &&
@@ -6244,10 +7941,6 @@ function detectImageMimeType(
 
   }
 
-
-  /*
-   * WebP
-   */
 
   if (
     bytes.length >= 12 &&
@@ -6309,6 +8002,11 @@ function uint8ToBase64(
   );
 
 }
+
+
+/* ----------------------------------
+   TURNSTILE
+---------------------------------- */
 
 
 async function verifyTurnstile(
@@ -6422,6 +8120,11 @@ async function verifyTurnstile(
   }
 
 }
+
+
+/* ----------------------------------
+   JSON RESPONSE
+---------------------------------- */
 
 
 function json(
