@@ -10,10 +10,13 @@ const AI_HORDE_CLIENT_AGENT =
   "ArqivoImageGen:1.0:https://github.com/arqivo/arqivo-image-gen";
 
 const AI_HORDE_POLL_INTERVAL_MS =
-  8000;
+  20000;
 
 const AI_HORDE_MAX_POLLS =
-  6;
+  8;
+
+const AI_HORDE_ANONYMOUS_KEY =
+  "0000000000";
 
 
 /* ----------------------------------
@@ -86,7 +89,7 @@ const MODELS = [
       10,
 
     bestSteps:
-      20,
+      15,
 
     guidance:
       7.5,
@@ -116,7 +119,7 @@ const MODELS = [
       12,
 
     bestSteps:
-      20,
+      18,
 
     guidance:
       7.5,
@@ -143,10 +146,10 @@ const MODELS = [
       "@cf/leonardo/lucid-origin",
 
     standardSteps:
-      20,
+      12,
 
     bestSteps:
-      32,
+      18,
 
     guidance:
       5.5,
@@ -173,10 +176,10 @@ const MODELS = [
       "@cf/leonardo/phoenix-1.0",
 
     standardSteps:
-      20,
+      12,
 
     bestSteps:
-      35,
+      18,
 
     guidance:
       7.5,
@@ -206,10 +209,10 @@ const MODELS = [
       "AlbedoBase XL 3.1",
 
     standardSteps:
-      20,
+      12,
 
     bestSteps:
-      30,
+      18,
 
     guidance:
       7,
@@ -239,10 +242,10 @@ const MODELS = [
       "AbsoluteReality",
 
     standardSteps:
-      20,
+      12,
 
     bestSteps:
-      28,
+      18,
 
     guidance:
       7,
@@ -272,10 +275,10 @@ const MODELS = [
       "Realistic Vision",
 
     standardSteps:
-      20,
+      12,
 
     bestSteps:
-      28,
+      18,
 
     guidance:
       7,
@@ -305,10 +308,10 @@ const MODELS = [
       "Deliberate 3.0",
 
     standardSteps:
-      20,
+      12,
 
     bestSteps:
-      28,
+      18,
 
     guidance:
       7,
@@ -8188,30 +8191,34 @@ function classifyModelError(
 ) {
 
   if (
-    error instanceof
-    ModelOutputError
-  ) {
+	error instanceof
+	HordeTimeoutError
+	) {
 
-    return {
+	return {
 
-      code:
-        "INVALID_MODEL_OUTPUT",
+		code:
+		"HORDE_QUEUE_TIMEOUT",
 
-      title:
-        "The model returned an unusable image",
+		title:
+		"AI Horde is still queued",
 
-      message:
-        "The model finished, but Arqivo could not read the image data it returned.",
+		message:
+		error.message ||
+		(
+			context.model.label +
+			" is still waiting for a volunteer worker."
+		),
 
-      hint:
-        "Try this model again. If it keeps happening, use another model.",
+		hint:
+		"AI Horde is volunteer-powered and can be much slower than Cloudflare. Try again later, use one Horde model at a time, or use 512 × 512 / 768 × 768 for faster results.",
 
-      retryable:
-        true
+		retryable:
+		true
 
-    };
+	};
 
-  }
+	}
 
 
   if (
@@ -9172,8 +9179,7 @@ async function generateImagesForHordeModel(
 ) {
 
   const steps =
-    quality ===
-      "best"
+    quality === "best"
 
       ? model.bestSteps
 
@@ -9192,11 +9198,6 @@ async function generateImagesForHordeModel(
       model
     );
 
-
-  /*
-   * Horde model names may be overridden from
-   * wrangler variables.
-   */
 
   if (
     !runtimeModel
@@ -9218,7 +9219,7 @@ async function generateImagesForHordeModel(
         hint:
           "Set " +
           model.hordeModelEnv +
-          " in wrangler.jsonc or use the default model in this file.",
+          " or use the default model configured in the Worker.",
 
         retryable:
           false
@@ -9226,278 +9227,109 @@ async function generateImagesForHordeModel(
       };
 
 
-    return Array.from(
-      {
-        length:
-          totalVariations
-      },
-      (
-        _,
-        index
-      ) => ({
-
-        modelKey:
-          model.key,
-
-        provider:
-          model.provider,
-
-        providerLabel:
-          providerLabel,
-
-        label:
-          model.label,
-
-        model:
-          runtimeModel,
-
-        runtimeModel:
-          runtimeModel,
-
-        width:
-          width,
-
-        height:
-          height,
-
-        steps:
-          steps,
-
-        seed:
-          (
-            baseSeed +
-            index
-          ) %
-          (
-            MAX_SEED +
-            1
-          ),
-
-        variation:
-          index +
-          1,
-
-        totalVariations:
-          totalVariations,
-
-        error:
-          configError
-
-      })
+    return createHordeFailureResults(
+      model,
+      runtimeModel,
+      providerLabel,
+      width,
+      height,
+      steps,
+      baseSeed,
+      totalVariations,
+      configError
     );
 
   }
 
 
-  /*
-   * Intentionally do not silently use AI Horde's
-   * anonymous API key.
-   *
-   * Keep the integration behind a Worker secret.
-   */
-
-  const apiKey =
+  const configuredApiKey =
     String(
       env.AI_HORDE_API_KEY ||
       ""
     ).trim();
 
 
-  if (
-    !apiKey
-  ) {
-
-    const configError =
-      {
-
-        code:
-          "HORDE_API_KEY_NOT_CONFIGURED",
-
-        title:
-          "AI Horde is not configured yet",
-
-        message:
-          "Arqivo requires an AI Horde API key before Horde models can be used.",
-
-        hint:
-          "Create a free AI Horde key and store it with: npx wrangler secret put AI_HORDE_API_KEY",
-
-        retryable:
-          false
-
-      };
-
-
-    return Array.from(
-      {
-        length:
-          totalVariations
-      },
-      (
-        _,
-        index
-      ) => ({
-
-        modelKey:
-          model.key,
-
-        provider:
-          model.provider,
-
-        providerLabel:
-          providerLabel,
-
-        label:
-          model.label,
-
-        model:
-          runtimeModel,
-
-        runtimeModel:
-          runtimeModel,
-
-        width:
-          width,
-
-        height:
-          height,
-
-        steps:
-          steps,
-
-        seed:
-          (
-            baseSeed +
-            index
-          ) %
-          (
-            MAX_SEED +
-            1
-          ),
-
-        variation:
-          index +
-          1,
-
-        totalVariations:
-          totalVariations,
-
-        error:
-          configError
-
-      })
-    );
-
-  }
+  const primaryApiKey =
+    configuredApiKey ||
+    AI_HORDE_ANONYMOUS_KEY;
 
 
   try {
 
-    /*
-     * One AI Horde request can ask for several
-     * images with params.n.
-     */
+    let submitData;
 
-    const submitData =
-      await hordeRequest(
-        AI_HORDE_API_BASE +
-        "/generate/async",
-        {
 
-          method:
-            "POST",
+    try {
 
-          headers:
-            hordeHeaders(
-              apiKey
-            ),
+      submitData =
+        await submitHordeGeneration(
+          primaryApiKey,
+          runtimeModel,
+          prompt,
+          negativePrompt,
+          width,
+          height,
+          steps,
+          model.guidance,
+          baseSeed,
+          totalVariations
+        );
 
-          body:
-            JSON.stringify(
-              {
+    } catch (
+      firstError
+    ) {
 
-                prompt:
-                  buildHordePrompt(
-                    prompt,
-                    negativePrompt
-                  ),
+      /*
+       * A public Arqivo installation can eventually
+       * exhaust the priority available on its shared
+       * Horde account.
+       *
+       * If AI Horde rejects the registered key only
+       * because of kudos/upfront-priority rules,
+       * retry using AI Horde's official anonymous key.
+       *
+       * Anonymous requests have lower priority, but
+       * this is preferable to immediately failing.
+       */
 
-                params:
-                  {
+      if (
+        primaryApiKey !==
+          AI_HORDE_ANONYMOUS_KEY &&
+        isHordePriorityError(
+          firstError
+        )
+      ) {
 
-                    width:
-                      width,
+        console.error(
+          "AI Horde priority fallback activated.",
+          {
+            model:
+              model.label
+          }
+        );
 
-                    height:
-                      height,
 
-                    steps:
-                      steps,
+        submitData =
+          await submitHordeGeneration(
+            AI_HORDE_ANONYMOUS_KEY,
+            runtimeModel,
+            prompt,
+            negativePrompt,
+            width,
+            height,
+            steps,
+            model.guidance,
+            baseSeed,
+            totalVariations
+          );
 
-                    cfg_scale:
-                      model.guidance,
+      } else {
 
-                    n:
-                      totalVariations,
+        throw firstError;
 
-                    seed:
-                      String(
-                        baseSeed
-                      )
+      }
 
-                  },
-
-                models:
-                  [
-                    runtimeModel
-                  ],
-
-                /*
-                 * Arqivo currently exposes safe-only
-                 * generation through Horde.
-                 */
-
-                nsfw:
-                  false,
-
-                censor_nsfw:
-                  true,
-
-                replacement_filter:
-                  true,
-
-                /*
-                 * Prefer trusted Horde workers.
-                 */
-
-                trusted_workers:
-                  true,
-
-                slow_workers:
-                  true,
-
-                /*
-                 * Ask Horde not to intentionally share
-                 * this generation.
-                 */
-
-                shared:
-                  false,
-
-                /*
-                 * Ask Horde for a temporary image URL
-                 * when supported. Arqivo downloads it
-                 * server-side and returns a data URI.
-                 */
-
-                r2:
-                  true
-
-              }
-            )
-
-        }
-      );
+    }
 
 
     const requestId =
@@ -9523,18 +9355,34 @@ async function generateImagesForHordeModel(
       false;
 
 
+    let lastCheck =
+      null;
+
+
     for (
       let attempt = 0;
-      attempt < AI_HORDE_MAX_POLLS;
+      attempt <
+        AI_HORDE_MAX_POLLS;
       attempt += 1
     ) {
 
-      await sleep(
-        AI_HORDE_POLL_INTERVAL_MS
-      );
+      /*
+       * Check once immediately.
+       * After that, wait between checks.
+       */
+
+      if (
+        attempt > 0
+      ) {
+
+        await sleep(
+          AI_HORDE_POLL_INTERVAL_MS
+        );
+
+      }
 
 
-      const checkData =
+      lastCheck =
         await hordeRequest(
           AI_HORDE_API_BASE +
           "/generate/check/" +
@@ -9548,7 +9396,7 @@ async function generateImagesForHordeModel(
 
             headers:
               hordeHeaders(
-                apiKey
+                primaryApiKey
               )
 
           }
@@ -9556,7 +9404,7 @@ async function generateImagesForHordeModel(
 
 
       if (
-        checkData?.faulted ===
+        lastCheck?.faulted ===
         true
       ) {
 
@@ -9570,7 +9418,7 @@ async function generateImagesForHordeModel(
 
 
       if (
-        checkData?.done ===
+        lastCheck?.done ===
         true
       ) {
 
@@ -9582,6 +9430,26 @@ async function generateImagesForHordeModel(
 
       }
 
+
+      /*
+       * If Horde says the request has become
+       * impossible, don't spend several minutes
+       * polling something that cannot finish.
+       */
+
+      if (
+        lastCheck?.is_possible ===
+        false
+      ) {
+
+        throw new ProviderResponseError(
+          "No compatible AI Horde workers are currently able to complete this request.",
+          503,
+          "NoValidWorkers"
+        );
+
+      }
+
     }
 
 
@@ -9589,8 +9457,57 @@ async function generateImagesForHordeModel(
       !done
     ) {
 
+      const queuePosition =
+        Number.parseInt(
+          lastCheck?.queue_position,
+          10
+        );
+
+
+      const waitTime =
+        Number.parseInt(
+          lastCheck?.wait_time,
+          10
+        );
+
+
+      let extra =
+        "";
+
+
+      if (
+        Number.isInteger(
+          queuePosition
+        ) &&
+        queuePosition > 0
+      ) {
+
+        extra +=
+          " Queue position: " +
+          queuePosition +
+          ".";
+
+      }
+
+
+      if (
+        Number.isInteger(
+          waitTime
+        ) &&
+        waitTime > 0
+      ) {
+
+        extra +=
+          " Horde estimated wait: about " +
+          waitTime +
+          " seconds.";
+
+      }
+
+
       throw new HordeTimeoutError(
-        "AI Horde generation did not finish before the polling window ended."
+        "AI Horde is still processing this request." +
+        extra
       );
 
     }
@@ -9610,7 +9527,7 @@ async function generateImagesForHordeModel(
 
           headers:
             hordeHeaders(
-              apiKey
+              primaryApiKey
             )
 
         }
@@ -9631,13 +9548,27 @@ async function generateImagesForHordeModel(
         : [];
 
 
+    if (
+      generations.length ===
+      0
+    ) {
+
+      throw new ModelOutputError(
+        "AI Horde completed the request but returned no generations.",
+        "HORDE_NO_GENERATIONS"
+      );
+
+    }
+
+
     const results =
       [];
 
 
     for (
       let index = 0;
-      index < generations.length;
+      index <
+        generations.length;
       index += 1
     ) {
 
@@ -9719,11 +9650,6 @@ async function generateImagesForHordeModel(
     }
 
 
-    /*
-     * If Horde returned fewer images than expected,
-     * fill the missing slots with useful error cards.
-     */
-
     while (
       results.length <
       totalVariations
@@ -9787,14 +9713,14 @@ async function generateImagesForHordeModel(
                 "HORDE_RESULT_MISSING",
 
               title:
-                "AI Horde did not return every requested image",
+                "AI Horde returned fewer images than requested",
 
               message:
                 model.label +
-                " completed with fewer images than Arqivo requested.",
+                " completed without every requested variation.",
 
               hint:
-                "Try fewer variations or run this Horde model again.",
+                "Try this Horde model again with one image per model.",
 
               retryable:
                 true
@@ -9845,70 +9771,21 @@ async function generateImagesForHordeModel(
     );
 
 
-    return Array.from(
-      {
-        length:
-          totalVariations
-      },
-      (
-        _,
-        index
-      ) => ({
-
-        modelKey:
-          model.key,
-
-        provider:
-          model.provider,
-
-        providerLabel:
-          providerLabel,
-
-        label:
-          model.label,
-
-        model:
-          runtimeModel,
-
-        runtimeModel:
-          runtimeModel,
-
-        width:
-          width,
-
-        height:
-          height,
-
-        steps:
-          steps,
-
-        seed:
-          (
-            baseSeed +
-            index
-          ) %
-          (
-            MAX_SEED +
-            1
-          ),
-
-        variation:
-          index +
-          1,
-
-        totalVariations:
-          totalVariations,
-
-        error:
-          publicError
-
-      })
+    return createHordeFailureResults(
+      model,
+      runtimeModel,
+      providerLabel,
+      width,
+      height,
+      steps,
+      baseSeed,
+      totalVariations,
+      publicError
     );
 
   }
 
 }
-
 
 /* ----------------------------------
    AI HORDE REQUEST HELPERS
