@@ -227,10 +227,9 @@ const SIZE_GROUPS = [
 
 function buildModelOptions() {
   return MODELS.map((model) => {
-    const checked =
-      model.defaultSelected
-        ? " checked"
-        : "";
+    const checked = model.defaultSelected
+      ? " checked"
+      : "";
 
     return `
       <label class="model-option">
@@ -251,36 +250,33 @@ function buildModelOptions() {
 }
 
 function buildSizeOptions() {
-  const groups =
-    SIZE_GROUPS.map((group) => {
-      const options =
-        group.keys.map((key) => {
-          const size =
-            SIZES[key];
+  const groups = SIZE_GROUPS.map((group) => {
+    const options = group.keys.map((key) => {
+      const size = SIZES[key];
 
-          const selected =
-            key === "square-1024"
-              ? " selected"
-              : "";
-
-          return `
-            <option
-              value="${key}"
-              data-width="${size.width}"
-              data-height="${size.height}"
-              ${selected}
-            >
-              ${size.label}
-            </option>
-          `;
-        }).join("");
+      const selected =
+        key === "square-1024"
+          ? " selected"
+          : "";
 
       return `
-        <optgroup label="${group.label}">
-          ${options}
-        </optgroup>
+        <option
+          value="${key}"
+          data-width="${size.width}"
+          data-height="${size.height}"
+          ${selected}
+        >
+          ${size.label}
+        </option>
       `;
     }).join("");
+
+    return `
+      <optgroup label="${group.label}">
+        ${options}
+      </optgroup>
+    `;
+  }).join("");
 
   return groups + `
     <optgroup label="Other">
@@ -291,15 +287,69 @@ function buildSizeOptions() {
   `;
 }
 
+function buildNav(activePage) {
+  return `
+    <nav class="site-nav" aria-label="Main navigation">
+
+      <a
+        href="/"
+        class="${activePage === "generate" ? "nav-active" : ""}"
+      >
+        Generate
+      </a>
+
+      <a
+        href="/privacy"
+        class="${activePage === "privacy" ? "nav-active" : ""}"
+      >
+        Privacy
+      </a>
+
+    </nav>
+  `;
+}
+
+function buildFooter() {
+  return `
+    <footer class="site-footer">
+
+      <div class="footer-inner">
+
+        <p>
+          Arqivo Image Gen
+        </p>
+
+        <div class="footer-links">
+          <a href="/">Generate</a>
+          <a href="/privacy">Privacy</a>
+        </div>
+
+      </div>
+
+      <p class="footer-note">
+        Arqivo does not intentionally maintain a database
+        of prompts or generated images.
+      </p>
+
+    </footer>
+  `;
+}
+
 const HTML = (siteKey) => `<!doctype html>
 <html lang="en">
 
 <head>
+
   <meta charset="UTF-8" />
 
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
+  />
+
+  <meta
+    name="description"
+    content="Privacy-focused AI image generation with multiple selectable models."
   />
 
   <title>Arqivo Image Gen</title>
@@ -319,303 +369,979 @@ const HTML = (siteKey) => `<!doctype html>
     src="/app.js"
     defer
   ></script>
+
 </head>
 
 <body>
 
-  <main class="container">
+  <div class="page-shell">
 
-    <header class="hero">
+    <header class="topbar">
 
-      <h1>
-        Arqivo Image Gen
-      </h1>
+      <a
+        href="/"
+        class="brand"
+        aria-label="Arqivo Image Gen home"
+      >
+        Arqivo
+      </a>
 
-      <p class="lead">
-        Private-by-default text-to-image generation.
-        No accounts. No prompt history. No database.
-      </p>
+      ${buildNav("generate")}
 
     </header>
 
 
-    <form
-      id="gen-form"
-      novalidate
-    >
+    <main class="container">
 
-      <div class="prompt-block">
+      <header class="hero">
 
-        <label for="prompt">
-          Describe the image you want
-        </label>
+        <h1>
+          Arqivo Image Gen
+        </h1>
 
-        <textarea
-          id="prompt"
-          name="prompt"
-          rows="6"
-          maxlength="500"
-          placeholder="Example: a photorealistic black sports car parked on a city street at night"
-          required
-        ></textarea>
+        <p class="lead">
+          Private-by-default text-to-image generation.
+          No accounts. No prompt history. No database.
+        </p>
 
-      </div>
+        <p class="privacy-shortcut">
+          Want to know exactly how generation data is handled?
+          <a href="/privacy">
+            Read the privacy page.
+          </a>
+        </p>
 
-
-      <fieldset class="model-picker">
-
-        <div class="section-heading">
-
-          <div>
-
-            <legend>
-              Models
-            </legend>
-
-            <p class="helper">
-              Choose one model, several models,
-              or compare all four.
-            </p>
-
-          </div>
+      </header>
 
 
-          <div class="model-actions">
-
-            <button
-              type="button"
-              id="select-all-models"
-              class="small-button"
-            >
-              Select all
-            </button>
-
-            <button
-              type="button"
-              id="clear-models"
-              class="small-button secondary"
-            >
-              Clear
-            </button>
-
-          </div>
-
-        </div>
-
-
-        <div class="model-grid">
-
-          ${buildModelOptions()}
-
-        </div>
-
-      </fieldset>
-
-
-      <div class="controls">
-
-        <div class="control">
-
-          <label for="size">
-            Image size
-          </label>
-
-          <select
-            id="size"
-            name="size"
-          >
-            ${buildSizeOptions()}
-          </select>
-
-        </div>
-
-
-        <div class="control">
-
-          <label for="quality">
-            Quality
-          </label>
-
-          <select
-            id="quality"
-            name="quality"
-          >
-
-            <option
-              value="best"
-              selected
-            >
-              Best quality
-            </option>
-
-            <option value="standard">
-              Standard
-            </option>
-
-          </select>
-
-        </div>
-
-
-        <div class="control">
-
-          <label for="images-per-model">
-            Images per model
-          </label>
-
-          <select
-            id="images-per-model"
-            name="images-per-model"
-          >
-
-            <option
-              value="1"
-              selected
-            >
-              1 image
-            </option>
-
-            <option value="2">
-              2 variations
-            </option>
-
-            <option value="4">
-              4 variations
-            </option>
-
-          </select>
-
-        </div>
-
-
-        <div class="control">
-
-          <label for="seed">
-
-            Seed
-
-            <span class="optional">
-              (optional)
-            </span>
-
-          </label>
-
-          <input
-            id="seed"
-            name="seed"
-            type="number"
-            min="0"
-            max="2147483647"
-            step="1"
-            placeholder="Random"
-          />
-
-        </div>
-
-      </div>
-
-
-      <div
-        id="custom-size-controls"
-        class="custom-size-controls hidden"
+      <form
+        id="gen-form"
+        novalidate
       >
 
-        <div class="control">
+        <div class="prompt-block">
 
-          <label for="custom-width">
-            Width
+          <label for="prompt">
+            Describe the image you want
           </label>
 
-          <input
-            id="custom-width"
-            type="number"
-            min="256"
-            max="2048"
-            step="64"
-            value="1024"
-          />
-
-          <small class="field-help">
-            256–2048 px, multiples of 64
-          </small>
+          <textarea
+            id="prompt"
+            name="prompt"
+            rows="6"
+            maxlength="500"
+            placeholder="Example: a photorealistic black sports car parked on a city street at night"
+            required
+          ></textarea>
 
         </div>
 
 
-        <div class="size-separator">
-          ×
+        <fieldset class="model-picker">
+
+          <div class="section-heading">
+
+            <div>
+
+              <legend>
+                Models
+              </legend>
+
+              <p class="helper">
+                Choose one model, several models,
+                or compare all four.
+              </p>
+
+            </div>
+
+
+            <div class="model-actions">
+
+              <button
+                type="button"
+                id="select-all-models"
+                class="small-button"
+              >
+                Select all
+              </button>
+
+              <button
+                type="button"
+                id="clear-models"
+                class="small-button secondary"
+              >
+                Clear
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <div class="model-grid">
+
+            ${buildModelOptions()}
+
+          </div>
+
+        </fieldset>
+
+
+        <div class="controls">
+
+          <div class="control">
+
+            <label for="size">
+              Image size
+            </label>
+
+            <select
+              id="size"
+              name="size"
+            >
+              ${buildSizeOptions()}
+            </select>
+
+          </div>
+
+
+          <div class="control">
+
+            <label for="quality">
+              Quality
+            </label>
+
+            <select
+              id="quality"
+              name="quality"
+            >
+
+              <option
+                value="best"
+                selected
+              >
+                Best quality
+              </option>
+
+              <option value="standard">
+                Standard
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div class="control">
+
+            <label for="images-per-model">
+              Images per model
+            </label>
+
+            <select
+              id="images-per-model"
+              name="images-per-model"
+            >
+
+              <option
+                value="1"
+                selected
+              >
+                1 image
+              </option>
+
+              <option value="2">
+                2 variations
+              </option>
+
+              <option value="4">
+                4 variations
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div class="control">
+
+            <label for="seed">
+
+              Seed
+
+              <span class="optional">
+                (optional)
+              </span>
+
+            </label>
+
+            <input
+              id="seed"
+              name="seed"
+              type="number"
+              min="0"
+              max="2147483647"
+              step="1"
+              placeholder="Random"
+            />
+
+          </div>
+
         </div>
 
-
-        <div class="control">
-
-          <label for="custom-height">
-            Height
-          </label>
-
-          <input
-            id="custom-height"
-            type="number"
-            min="256"
-            max="2048"
-            step="64"
-            value="1024"
-          />
-
-          <small class="field-help">
-            256–2048 px, multiples of 64
-          </small>
-
-        </div>
-
-      </div>
-
-
-      <p class="quota-note">
-
-        Larger resolutions, more models, and more
-        variations use more AI capacity.
-
-        A single request is limited to
-        8 generated images.
-
-      </p>
-
-
-      <div class="verification-area">
 
         <div
-          class="cf-turnstile"
-          data-sitekey="${siteKey}"
-          data-error-callback="onTurnstileError"
-        ></div>
+          id="custom-size-controls"
+          class="custom-size-controls hidden"
+        >
 
-      </div>
+          <div class="control">
+
+            <label for="custom-width">
+              Width
+            </label>
+
+            <input
+              id="custom-width"
+              type="number"
+              min="256"
+              max="2048"
+              step="64"
+              value="1024"
+            />
+
+            <small class="field-help">
+              256–2048 px, multiples of 64
+            </small>
+
+          </div>
 
 
-      <button
-        id="submit-btn"
-        type="submit"
+          <div class="size-separator">
+            ×
+          </div>
+
+
+          <div class="control">
+
+            <label for="custom-height">
+              Height
+            </label>
+
+            <input
+              id="custom-height"
+              type="number"
+              min="256"
+              max="2048"
+              step="64"
+              value="1024"
+            />
+
+            <small class="field-help">
+              256–2048 px, multiples of 64
+            </small>
+
+          </div>
+
+        </div>
+
+
+        <p class="quota-note">
+
+          Larger resolutions, more models, and more
+          variations use more AI capacity.
+
+          A single request is limited to
+          8 generated images.
+
+        </p>
+
+
+        <div class="verification-area">
+
+          <div
+            class="cf-turnstile"
+            data-sitekey="${siteKey}"
+            data-error-callback="onTurnstileError"
+          ></div>
+
+        </div>
+
+
+        <button
+          id="submit-btn"
+          type="submit"
+        >
+          Generate 4 images
+        </button>
+
+      </form>
+
+
+      <p
+        id="status"
+        class="status"
+        aria-live="polite"
+      ></p>
+
+
+      <section
+        id="results"
+        class="results hidden"
+      ></section>
+
+    </main>
+
+
+    ${buildFooter()}
+
+  </div>
+
+</body>
+
+</html>`;
+
+
+const PRIVACY_HTML = `<!doctype html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <meta
+    name="description"
+    content="Privacy information for Arqivo Image Gen."
+  />
+
+  <title>Privacy — Arqivo Image Gen</title>
+
+  <link
+    rel="stylesheet"
+    href="/styles.css"
+  />
+
+</head>
+
+<body>
+
+  <div class="page-shell">
+
+    <header class="topbar">
+
+      <a
+        href="/"
+        class="brand"
+        aria-label="Arqivo Image Gen home"
       >
-        Generate 4 images
-      </button>
+        Arqivo
+      </a>
 
-    </form>
+      ${buildNav("privacy")}
 
-
-    <p
-      id="status"
-      class="status"
-      aria-live="polite"
-    ></p>
+    </header>
 
 
-    <section
-      id="results"
-      class="results hidden"
-    ></section>
+    <main class="container privacy-container">
 
-  </main>
+      <header class="privacy-hero">
+
+        <p class="eyebrow">
+          Privacy
+        </p>
+
+        <h1>
+          Your images should not require
+          building a profile about you.
+        </h1>
+
+        <p class="lead privacy-lead">
+          Arqivo Image Gen is designed to minimize
+          the amount of information the application
+          stores about the people who use it.
+        </p>
+
+        <p class="last-updated">
+          Last updated: August 16, 2026
+        </p>
+
+      </header>
+
+
+      <section class="privacy-summary">
+
+        <div class="privacy-summary-card">
+
+          <strong>
+            No accounts
+          </strong>
+
+          <p>
+            Arqivo does not require you to create
+            a user account or profile.
+          </p>
+
+        </div>
+
+
+        <div class="privacy-summary-card">
+
+          <strong>
+            No prompt-history database
+          </strong>
+
+          <p>
+            Arqivo does not intentionally save your
+            prompts in an application database.
+          </p>
+
+        </div>
+
+
+        <div class="privacy-summary-card">
+
+          <strong>
+            No image gallery
+          </strong>
+
+          <p>
+            Generated images are returned to your
+            browser instead of being intentionally
+            saved to an Arqivo image library.
+          </p>
+
+        </div>
+
+      </section>
+
+
+      <article class="privacy-document">
+
+        <section class="privacy-section">
+
+          <h2>
+            1. The short version
+          </h2>
+
+          <p>
+            Arqivo Image Gen is built to generate an
+            image, return that image to your browser,
+            and avoid creating an application-level
+            history of your activity.
+          </p>
+
+          <p>
+            Arqivo does not intentionally maintain a
+            database containing your prompts, generated
+            images, generation history, user profile,
+            or account information.
+          </p>
+
+          <div class="privacy-callout">
+
+            <strong>
+              Important:
+            </strong>
+
+            Arqivo runs on third-party infrastructure.
+            Cloudflare and AI model providers involved
+            in processing a request may handle technical
+            or operational data according to their own
+            systems and policies.
+
+          </div>
+
+        </section>
+
+
+        <section class="privacy-section">
+
+          <h2>
+            2. Prompts
+          </h2>
+
+          <p>
+            When you enter an image prompt and click
+            Generate, the prompt is sent to the Arqivo
+            Cloudflare Worker so the requested AI model
+            can process it.
+          </p>
+
+          <p>
+            The application does not intentionally write
+            that prompt to a database, KV store, R2 bucket,
+            Durable Object, prompt-history system, or other
+            persistent application storage.
+          </p>
+
+          <p>
+            Your prompt must still be transmitted through
+            the infrastructure required to perform the
+            generation. That processing is necessary for
+            the service to work.
+          </p>
+
+        </section>
+
+
+        <section class="privacy-section">
+
+          <h2>
+            3. Generated images
+          </h2>
+
+          <p>
+            AI-generated images are produced by the
+            selected Workers AI model and returned to
+            the browser that requested them.
+          </p>
+
+          <p>
+            Arqivo does not intentionally save those
+            generated images to an application database
+            or permanent image gallery.
+          </p>
+
+          <p>
+            The browser receives the generated image
+            data so that it can display the result and
+            allow you to download it.
+          </p>
+
+          <p>
+            If you refresh or close the page, Arqivo
+            does not provide an application-level image
+            history from which those images can later
+            be restored.
+          </p>
+
+        </section>
+
+
+        <section class="privacy-section">
+
+          <h2>
+            4. AI models
+          </h2>
+
+          <p>
+            Arqivo can currently send generation requests
+            to multiple image models available through
+            Cloudflare Workers AI.
+          </p>
+
+          <ul>
+            <li>
+              SDXL Lightning
+            </li>
+
+            <li>
+              SDXL Base
+            </li>
+
+            <li>
+              Lucid Origin
+            </li>
+
+            <li>
+              Phoenix
+            </li>
+          </ul>
+
+          <p>
+            Some models are operated directly through
+            Cloudflare-hosted Workers AI infrastructure,
+            while some may involve partner model
+            technology.
+          </p>
+
+          <p>
+            The selected model receives the information
+            necessary to perform the image-generation
+            request.
+          </p>
+
+        </section>
+
+
+        <section class="privacy-section">
+
+          <h2>
+            5. IP addresses and network information
+          </h2>
+
+          <p>
+            When you connect to any public website,
+            network information such as an IP address
+            is necessarily involved in delivering the
+            request.
+          </p>
+
+          <p>
+            Arqivo receives the Cloudflare-provided
+            connecting IP address during a generation
+            request and can provide it to Cloudflare
+            Turnstile's server-side verification service
+            as part of abuse prevention.
+          </p>
+
+          <p>
+            Arqivo does not intentionally store that IP
+            address in an application database.
+          </p>
+
+          <p>
+            Cloudflare infrastructure may independently
+            process or retain network and operational
+            information according to Cloudflare's own
+            service, security, and logging practices.
+          </p>
+
+        </section>
+
+
+        <section class="privacy-section">
+
+          <h2>
+            6. Cloudflare Turnstile
+          </h2>
+
+          <p>
+            Arqivo uses Cloudflare Turnstile to reduce
+            automated abuse and protect the limited AI
+            generation capacity available to the site.
+          </p>
+
+          <p>
+            Before an image is generated, the browser
+            obtains a Turnstile verification token.
+            Arqivo sends that token to Cloudflare for
+            server-side verification.
+          </p>
+
+          <p>
+            Turnstile may evaluate browser, network,
+            and security signals as part of determining
+            whether a request is legitimate.
+          </p>
+
+          <p>
+            Arqivo does not use the Turnstile token to
+            create a user account or advertising profile.
+          </p>
+
+        </section>
+
+
+        <section class="privacy-section">
+
+          <h2>
+            7. Browser storage
+          </h2>
+
+          <p>
+            Arqivo does not intentionally use browser
+            localStorage to maintain prompt history,
+            generated-image history, or a user profile.
+          </p>
+
+          <p>
+            Generated image data exists in the browser
+            while the page is displaying the results.
+          </p>
+
+          <p>
+            Your browser, Cloudflare Turnstile, or other
+            browser-level systems may independently use
+            temporary storage, caches, cookies, or similar
+            mechanisms where required for normal browser
+            or security functionality.
+          </p>
+
+        </section>
+
+
+        <section class="privacy-section">
+
+          <h2>
+            8. Caching
+          </h2>
+
+          <p>
+            Arqivo sends no-store and no-cache response
+            headers for its application responses.
+          </p>
+
+          <p>
+            These headers are intended to discourage
+            browsers and intermediaries from retaining
+            dynamic Arqivo responses as normal cached
+            content.
+          </p>
+
+          <p>
+            No web application can guarantee that every
+            device, browser, network tool, screenshot
+            utility, or infrastructure system will never
+            retain a copy of information.
+          </p>
+
+        </section>
+
+
+        <section class="privacy-section">
+
+          <h2>
+            9. Application logs
+          </h2>
+
+          <p>
+            The Arqivo application is designed not to
+            intentionally log prompts, generated image
+            contents, Turnstile tokens, or full request
+            bodies.
+          </p>
+
+          <p>
+            Server-side error messages may be written
+            when a generation or verification operation
+            fails so that technical problems can be
+            diagnosed.
+          </p>
+
+          <p>
+            Infrastructure providers may separately
+            maintain operational or security logs.
+          </p>
+
+        </section>
+
+
+        <section class="privacy-section">
+
+          <h2>
+            10. Data Arqivo does not require
+          </h2>
+
+          <p>
+            Arqivo does not require you to provide:
+          </p>
+
+          <ul>
+            <li>
+              your name
+            </li>
+
+            <li>
+              an email address
+            </li>
+
+            <li>
+              a phone number
+            </li>
+
+            <li>
+              a mailing address
+            </li>
+
+            <li>
+              a password
+            </li>
+
+            <li>
+              payment information
+            </li>
+
+            <li>
+              a social-media account
+            </li>
+          </ul>
+
+        </section>
+
+
+        <section class="privacy-section">
+
+          <h2>
+            11. No advertising profile
+          </h2>
+
+          <p>
+            Arqivo does not intentionally build an
+            advertising profile from your prompts or
+            generated images.
+          </p>
+
+          <p>
+            The application does not include an Arqivo
+            advertising database or user-targeting
+            profile system.
+          </p>
+
+        </section>
+
+
+        <section class="privacy-section">
+
+          <h2>
+            12. Downloads
+          </h2>
+
+          <p>
+            When you choose Download, the generated
+            image is downloaded through your browser.
+          </p>
+
+          <p>
+            After that point, the copy saved on your
+            device is controlled by you and by the
+            software and storage systems on your device.
+          </p>
+
+        </section>
+
+
+        <section class="privacy-section">
+
+          <h2>
+            13. Security
+          </h2>
+
+          <p>
+            Arqivo attempts to minimize its attack
+            surface by avoiding user accounts,
+            application databases, prompt-history
+            storage, and permanent generated-image
+            storage.
+          </p>
+
+          <p>
+            The application also uses measures such as
+            Turnstile verification, same-origin request
+            checks, server-side secrets, request limits,
+            and restrictive browser security headers.
+          </p>
+
+          <p>
+            No public internet service can truthfully
+            guarantee that it is impossible to compromise.
+          </p>
+
+        </section>
+
+
+        <section class="privacy-section">
+
+          <h2>
+            14. Third-party infrastructure
+          </h2>
+
+          <p>
+            Arqivo currently relies on Cloudflare
+            infrastructure to operate the website,
+            execute the Worker, perform Turnstile
+            verification, and provide access to
+            Workers AI models.
+          </p>
+
+          <p>
+            Because these systems are operated outside
+            of Arqivo's application code, their own
+            privacy, security, abuse-prevention, and
+            operational practices may apply.
+          </p>
+
+          <p>
+            This privacy page describes what the Arqivo
+            application itself is intentionally designed
+            to collect and retain. It should not be read
+            as a claim that third-party infrastructure
+            performs zero logging.
+          </p>
+
+        </section>
+
+
+        <section class="privacy-section">
+
+          <h2>
+            15. Changes to this page
+          </h2>
+
+          <p>
+            Arqivo may update this privacy page when the
+            application's models, infrastructure, storage
+            behavior, or features change.
+          </p>
+
+          <p>
+            If a future feature begins storing information
+            that is currently not stored, this page should
+            be updated to describe that change.
+          </p>
+
+        </section>
+
+
+        <section class="privacy-section privacy-final">
+
+          <h2>
+            Privacy by architecture
+          </h2>
+
+          <p>
+            Arqivo's privacy approach is based primarily
+            on avoiding unnecessary data collection in
+            the first place.
+          </p>
+
+          <div class="privacy-flow">
+
+            <span>
+              Your prompt
+            </span>
+
+            <span class="privacy-arrow">
+              →
+            </span>
+
+            <span>
+              AI generation
+            </span>
+
+            <span class="privacy-arrow">
+              →
+            </span>
+
+            <span>
+              Your browser
+            </span>
+
+          </div>
+
+
+          <a
+            class="primary-link-button"
+            href="/"
+          >
+            Back to image generation
+          </a>
+
+        </section>
+
+      </article>
+
+    </main>
+
+
+    ${buildFooter()}
+
+  </div>
 
 </body>
 
@@ -639,6 +1365,8 @@ const CSS = `
   --accent-hover: #8abbff;
 
   --danger: #ff8d8d;
+
+  --max-width: 1200px;
 }
 
 
@@ -647,9 +1375,13 @@ const CSS = `
 }
 
 
+html {
+  color-scheme: dark;
+}
+
+
 html,
 body {
-
   margin: 0;
   padding: 0;
 
@@ -660,8 +1392,7 @@ body {
       #121933 100%
     );
 
-  color:
-    var(--text);
+  color: var(--text);
 
   font-family:
     system-ui,
@@ -677,21 +1408,150 @@ body {
 }
 
 
-.container {
+a {
+  color: var(--accent);
+}
 
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+
+.page-shell {
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+}
+
+
+.topbar {
   width:
     min(
-      1200px,
+      var(--max-width),
       calc(100% - 2rem)
     );
 
-  margin:
-    0 auto;
+  margin: 0 auto;
+
+  padding:
+    1.2rem
+    0;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  border-bottom:
+    1px
+    solid
+    rgba(
+      44,
+      54,
+      95,
+      0.7
+    );
+}
+
+
+.brand {
+  color: var(--text);
+
+  text-decoration: none;
+
+  font-size: 1.1rem;
+
+  font-weight: 900;
+
+  letter-spacing: -0.02em;
+}
+
+
+.brand:hover {
+  color: var(--text);
+}
+
+
+.site-nav {
+  display: flex;
+
+  gap: 0.4rem;
+}
+
+
+.site-nav a {
+  color: var(--muted);
+
+  text-decoration: none;
+
+  border-radius: 999px;
+
+  padding:
+    0.55rem
+    0.9rem;
+
+  font-size: 0.92rem;
+
+  font-weight: 700;
+}
+
+
+.site-nav a:hover {
+  color: var(--text);
+
+  background:
+    rgba(
+      110,
+      168,
+      254,
+      0.08
+    );
+}
+
+
+.site-nav .nav-active {
+  color: var(--text);
+
+  background:
+    rgba(
+      110,
+      168,
+      254,
+      0.14
+    );
+
+  border:
+    1px
+    solid
+    rgba(
+      110,
+      168,
+      254,
+      0.35
+    );
+}
+
+
+.container {
+  width:
+    min(
+      var(--max-width),
+      calc(100% - 2rem)
+    );
+
+  margin: 0 auto;
 
   padding:
     2rem
     0
     4rem;
+
+  flex: 1;
 }
 
 
@@ -701,13 +1561,16 @@ body {
 
 
 h1 {
-
   font-size:
     clamp(
       2rem,
       4vw,
       4rem
     );
+
+  line-height: 1.05;
+
+  letter-spacing: -0.04em;
 
   margin:
     0
@@ -717,22 +1580,37 @@ h1 {
 
 
 .lead {
+  color: var(--muted);
 
-  color:
-    var(--muted);
+  margin:
+    0
+    0
+    0.7rem;
+
+  line-height: 1.6;
+
+  max-width: 760px;
+}
+
+
+.privacy-shortcut {
+  color: var(--muted);
 
   margin:
     0
     0
     1.5rem;
 
-  line-height:
-    1.6;
+  font-size: 0.9rem;
+}
+
+
+.privacy-shortcut a {
+  font-weight: 700;
 }
 
 
 form {
-
   background:
     rgba(
       21,
@@ -746,11 +1624,9 @@ form {
     solid
     var(--border);
 
-  border-radius:
-    18px;
+  border-radius: 18px;
 
-  padding:
-    1rem;
+  padding: 1rem;
 
   backdrop-filter:
     blur(12px);
@@ -759,35 +1635,25 @@ form {
 
 label,
 legend {
+  font-weight: 700;
 
-  font-weight:
-    700;
-
-  font-size:
-    1.05rem;
+  font-size: 1.05rem;
 }
 
 
 .prompt-block > label {
+  display: block;
 
-  display:
-    block;
-
-  margin-bottom:
-    0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 
 textarea {
+  width: 100%;
 
-  width:
-    100%;
+  resize: vertical;
 
-  resize:
-    vertical;
-
-  min-height:
-    180px;
+  min-height: 180px;
 
   border:
     1px
@@ -800,27 +1666,22 @@ textarea {
   color:
     var(--text);
 
-  border-radius:
-    12px;
+  border-radius: 12px;
 
   padding:
     0.9rem
     1rem;
 
-  font:
-    inherit;
+  font: inherit;
 
-  line-height:
-    1.5;
+  line-height: 1.5;
 
-  margin-bottom:
-    1.25rem;
+  margin-bottom: 1.25rem;
 }
 
 
 textarea::placeholder,
 input::placeholder {
-
   color:
     rgba(
       184,
@@ -834,29 +1695,24 @@ input::placeholder {
 textarea:focus,
 select:focus,
 input[type="number"]:focus {
-
   outline:
     2px
     solid
     var(--accent);
 
-  outline-offset:
-    1px;
+  outline-offset: 1px;
 }
 
 
 .model-picker {
-
   border:
     1px
     solid
     var(--border);
 
-  border-radius:
-    14px;
+  border-radius: 14px;
 
-  padding:
-    1rem;
+  padding: 1rem;
 
   margin:
     0
@@ -871,26 +1727,19 @@ input[type="number"]:focus {
 
 
 .section-heading {
+  display: flex;
 
-  display:
-    flex;
+  align-items: flex-start;
 
-  align-items:
-    flex-start;
+  justify-content: space-between;
 
-  justify-content:
-    space-between;
+  gap: 1rem;
 
-  gap:
-    1rem;
-
-  margin-bottom:
-    0.8rem;
+  margin-bottom: 0.8rem;
 }
 
 
 .helper {
-
   margin:
     0.25rem
     0
@@ -899,97 +1748,71 @@ input[type="number"]:focus {
   color:
     var(--muted);
 
-  font-size:
-    0.9rem;
+  font-size: 0.9rem;
 }
 
 
 .model-actions {
+  display: flex;
 
-  display:
-    flex;
+  gap: 0.5rem;
 
-  gap:
-    0.5rem;
-
-  flex-shrink:
-    0;
+  flex-shrink: 0;
 }
 
 
 button {
+  appearance: none;
 
-  appearance:
-    none;
+  border: none;
 
-  border:
-    none;
+  background: var(--accent);
 
-  background:
-    var(--accent);
+  color: #08101f;
 
-  color:
-    #08101f;
+  font-weight: 800;
 
-  font-weight:
-    800;
-
-  border-radius:
-    999px;
+  border-radius: 999px;
 
   padding:
     0.95rem
     1.3rem;
 
-  cursor:
-    pointer;
+  cursor: pointer;
 
-  margin-top:
-    1rem;
+  margin-top: 1rem;
 
-  font-size:
-    1rem;
+  font-size: 1rem;
 }
 
 
 button:hover:not(:disabled) {
-
-  background:
-    var(--accent-hover);
+  background: var(--accent-hover);
 }
 
 
 button:disabled {
+  opacity: 0.55;
 
-  opacity:
-    0.55;
-
-  cursor:
-    not-allowed;
+  cursor: not-allowed;
 }
 
 
 .small-button {
-
-  margin:
-    0;
+  margin: 0;
 
   padding:
     0.5rem
     0.8rem;
 
-  font-size:
-    0.85rem;
+  font-size: 0.85rem;
 }
 
 
 .small-button.secondary {
+  background: transparent;
 
-  background:
-    transparent;
-
-  color:
-    var(--text);
+  color: var(--text);
 
   border:
     1px
@@ -999,9 +1822,7 @@ button:disabled {
 
 
 .model-grid {
-
-  display:
-    grid;
+  display: grid;
 
   grid-template-columns:
     repeat(
@@ -1009,38 +1830,29 @@ button:disabled {
       minmax(0, 1fr)
     );
 
-  gap:
-    0.75rem;
+  gap: 0.75rem;
 }
 
 
 .model-option {
+  display: flex;
 
-  display:
-    flex;
+  align-items: center;
 
-  align-items:
-    center;
+  gap: 0.75rem;
 
-  gap:
-    0.75rem;
+  cursor: pointer;
 
-  cursor:
-    pointer;
-
-  background:
-    var(--panel-2);
+  background: var(--panel-2);
 
   border:
     1px
     solid
     var(--border);
 
-  border-radius:
-    12px;
+  border-radius: 12px;
 
-  padding:
-    0.9rem;
+  padding: 0.9rem;
 
   transition:
     border-color 120ms ease,
@@ -1049,74 +1861,53 @@ button:disabled {
 
 
 .model-option:hover {
+  border-color: var(--border-hover);
 
-  border-color:
-    var(--border-hover);
-
-  background:
-    var(--panel-3);
+  background: var(--panel-3);
 }
 
 
 .model-option:has(input:checked) {
-
-  border-color:
-    var(--accent);
+  border-color: var(--accent);
 }
 
 
 .model-option input {
-
-  width:
-    18px;
-
-  height:
-    18px;
+  width: 18px;
+  height: 18px;
 
   flex:
     0
     0
     auto;
 
-  accent-color:
-    var(--accent);
+  accent-color: var(--accent);
 }
 
 
 .model-option-content {
+  display: flex;
 
-  display:
-    flex;
+  flex-direction: column;
 
-  flex-direction:
-    column;
-
-  gap:
-    0.2rem;
+  gap: 0.2rem;
 }
 
 
 .model-option-content strong {
-
-  font-size:
-    0.95rem;
+  font-size: 0.95rem;
 }
 
 
 .model-option-content small {
+  color: var(--muted);
 
-  color:
-    var(--muted);
-
-  font-weight:
-    400;
+  font-weight: 400;
 }
 
 
 .controls {
-
-  display:
-    grid;
+  display: grid;
 
   grid-template-columns:
     repeat(
@@ -1124,8 +1915,7 @@ button:disabled {
       minmax(0, 1fr)
     );
 
-  gap:
-    1rem;
+  gap: 1rem;
 
   margin:
     0
@@ -1135,93 +1925,68 @@ button:disabled {
 
 
 .control {
+  display: flex;
 
-  display:
-    flex;
+  flex-direction: column;
 
-  flex-direction:
-    column;
-
-  gap:
-    0.45rem;
+  gap: 0.45rem;
 }
 
 
 .control label {
+  margin: 0;
 
-  margin:
-    0;
+  font-size: 0.9rem;
 
-  font-size:
-    0.9rem;
-
-  color:
-    var(--muted);
+  color: var(--muted);
 }
 
 
 .optional {
+  font-weight: 400;
 
-  font-weight:
-    400;
-
-  opacity:
-    0.7;
+  opacity: 0.7;
 }
 
 
 select,
 input[type="number"] {
+  width: 100%;
 
-  width:
-    100%;
+  background: var(--panel-2);
 
-  background:
-    var(--panel-2);
-
-  color:
-    var(--text);
+  color: var(--text);
 
   border:
     1px
     solid
     var(--border);
 
-  border-radius:
-    10px;
+  border-radius: 10px;
 
-  padding:
-    0.75rem;
+  padding: 0.75rem;
 
-  font:
-    inherit;
+  font: inherit;
 }
 
 
 .custom-size-controls {
-
-  display:
-    grid;
+  display: grid;
 
   grid-template-columns:
     minmax(0, 1fr)
     auto
     minmax(0, 1fr);
 
-  align-items:
-    center;
+  align-items: center;
 
-  gap:
-    1rem;
+  gap: 1rem;
 
-  max-width:
-    650px;
+  max-width: 650px;
 
-  margin-bottom:
-    1rem;
+  margin-bottom: 1rem;
 
-  padding:
-    1rem;
+  padding: 1rem;
 
   background:
     rgba(
@@ -1236,43 +2001,32 @@ input[type="number"] {
     solid
     var(--border);
 
-  border-radius:
-    12px;
+  border-radius: 12px;
 }
 
 
 .size-separator {
+  align-self: center;
 
-  align-self:
-    center;
+  padding-top: 1.4rem;
 
-  padding-top:
-    1.4rem;
+  font-size: 1.4rem;
 
-  font-size:
-    1.4rem;
-
-  color:
-    var(--muted);
+  color: var(--muted);
 }
 
 
 .field-help,
 .quota-note {
+  color: var(--muted);
 
-  color:
-    var(--muted);
+  font-size: 0.82rem;
 
-  font-size:
-    0.82rem;
-
-  line-height:
-    1.5;
+  line-height: 1.5;
 }
 
 
 .quota-note {
-
   margin:
     0
     0
@@ -1281,16 +2035,12 @@ input[type="number"] {
 
 
 .verification-area {
-
-  margin-top:
-    0.5rem;
+  margin-top: 0.5rem;
 }
 
 
 .status {
-
-  min-height:
-    1.5rem;
+  min-height: 1.5rem;
 
   margin:
     1rem
@@ -1299,15 +2049,12 @@ input[type="number"] {
   color:
     var(--muted);
 
-  font-size:
-    1.05rem;
+  font-size: 1.05rem;
 }
 
 
 .results {
-
-  display:
-    grid;
+  display: grid;
 
   grid-template-columns:
     repeat(
@@ -1315,18 +2062,14 @@ input[type="number"] {
       minmax(0, 1fr)
     );
 
-  gap:
-    1rem;
+  gap: 1rem;
 
-  margin-top:
-    1rem;
+  margin-top: 1rem;
 }
 
 
 .result-card {
-
-  min-width:
-    0;
+  min-width: 0;
 
   background:
     rgba(
@@ -1341,170 +2084,559 @@ input[type="number"] {
     solid
     var(--border);
 
-  border-radius:
-    18px;
+  border-radius: 18px;
 
-  padding:
-    1rem;
+  padding: 1rem;
 }
 
 
 .result-card h3 {
-
   margin:
     0
     0
     0.4rem;
 
-  font-size:
-    1.05rem;
+  font-size: 1.05rem;
 }
 
 
 .result-meta {
+  color: var(--muted);
 
-  color:
-    var(--muted);
-
-  font-size:
-    0.82rem;
+  font-size: 0.82rem;
 
   margin:
     0
     0
     0.8rem;
 
-  line-height:
-    1.4;
+  line-height: 1.4;
 
-  overflow-wrap:
-    anywhere;
+  overflow-wrap: anywhere;
 }
 
 
 .image-frame {
+  width: 100%;
 
-  width:
-    100%;
+  display: flex;
 
-  display:
-    flex;
+  align-items: center;
 
-  align-items:
-    center;
+  justify-content: center;
 
-  justify-content:
-    center;
+  overflow: hidden;
 
-  overflow:
-    hidden;
+  background: #070a12;
 
-  background:
-    #070a12;
-
-  border-radius:
-    14px;
+  border-radius: 14px;
 }
 
 
 .result-card img {
+  display: block;
 
-  display:
-    block;
+  width: 100%;
 
-  width:
-    100%;
+  height: auto;
 
-  height:
-    auto;
+  object-fit: contain;
 
-  object-fit:
-    contain;
-
-  border-radius:
-    14px;
+  border-radius: 14px;
 }
 
 
 .result-actions {
+  display: flex;
 
-  display:
-    flex;
+  flex-wrap: wrap;
 
-  flex-wrap:
-    wrap;
+  gap: 0.5rem;
 
-  gap:
-    0.5rem;
-
-  margin-top:
-    0.75rem;
+  margin-top: 0.75rem;
 }
 
 
 .result-actions a {
+  display: inline-block;
 
-  display:
-    inline-block;
+  text-decoration: none;
 
-  text-decoration:
-    none;
-
-  color:
-    var(--text);
+  color: var(--text);
 
   border:
     1px
     solid
     var(--border);
 
-  border-radius:
-    999px;
+  border-radius: 999px;
 
   padding:
     0.55rem
     0.9rem;
 
-  font-size:
-    0.95rem;
+  font-size: 0.95rem;
 }
 
 
 .result-actions a:hover {
-
-  border-color:
-    var(--border-hover);
+  border-color: var(--border-hover);
 }
 
 
 .error-card {
-
-  border-color:
-    #6a2d2d;
+  border-color: #6a2d2d;
 }
 
 
 .error-card p {
+  color: var(--danger);
 
-  color:
-    var(--danger);
-
-  margin:
-    0;
+  margin: 0;
 }
 
 
 .hidden {
+  display: none !important;
+}
 
-  display:
-    none !important;
+
+/* ----------------------------------
+   PRIVACY PAGE
+---------------------------------- */
+
+
+.privacy-container {
+  max-width: 1000px;
+}
+
+
+.privacy-hero {
+  padding:
+    2rem
+    0
+    1.5rem;
+}
+
+
+.eyebrow {
+  color: var(--accent);
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.14em;
+
+  font-size: 0.78rem;
+
+  font-weight: 900;
+
+  margin:
+    0
+    0
+    0.8rem;
+}
+
+
+.privacy-hero h1 {
+  max-width: 900px;
+
+  font-size:
+    clamp(
+      2.3rem,
+      5vw,
+      4.5rem
+    );
+}
+
+
+.privacy-lead {
+  max-width: 800px;
+
+  font-size:
+    clamp(
+      1rem,
+      2vw,
+      1.2rem
+    );
+}
+
+
+.last-updated {
+  color: var(--muted);
+
+  font-size: 0.82rem;
+
+  margin-top: 1rem;
+}
+
+
+.privacy-summary {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+
+  gap: 1rem;
+
+  margin:
+    0
+    0
+    2rem;
+}
+
+
+.privacy-summary-card {
+  background:
+    rgba(
+      21,
+      27,
+      47,
+      0.92
+    );
+
+  border:
+    1px
+    solid
+    var(--border);
+
+  border-radius: 16px;
+
+  padding: 1.1rem;
+}
+
+
+.privacy-summary-card strong {
+  display: block;
+
+  margin-bottom: 0.45rem;
+
+  font-size: 0.95rem;
+}
+
+
+.privacy-summary-card p {
+  color: var(--muted);
+
+  margin: 0;
+
+  line-height: 1.55;
+
+  font-size: 0.88rem;
+}
+
+
+.privacy-document {
+  background:
+    rgba(
+      21,
+      27,
+      47,
+      0.7
+    );
+
+  border:
+    1px
+    solid
+    var(--border);
+
+  border-radius: 20px;
+
+  overflow: hidden;
+}
+
+
+.privacy-section {
+  padding:
+    1.6rem
+    1.6rem;
+
+  border-bottom:
+    1px
+    solid
+    rgba(
+      44,
+      54,
+      95,
+      0.65
+    );
+}
+
+
+.privacy-section:last-child {
+  border-bottom: 0;
+}
+
+
+.privacy-section h2 {
+  margin:
+    0
+    0
+    0.85rem;
+
+  font-size:
+    clamp(
+      1.2rem,
+      2vw,
+      1.5rem
+    );
+
+  letter-spacing: -0.02em;
+}
+
+
+.privacy-section p {
+  color: var(--muted);
+
+  line-height: 1.75;
+
+  margin:
+    0
+    0
+    1rem;
+}
+
+
+.privacy-section p:last-child {
+  margin-bottom: 0;
+}
+
+
+.privacy-section ul {
+  color: var(--muted);
+
+  line-height: 1.75;
+
+  padding-left: 1.4rem;
+}
+
+
+.privacy-callout {
+  background:
+    rgba(
+      110,
+      168,
+      254,
+      0.08
+    );
+
+  border:
+    1px
+    solid
+    rgba(
+      110,
+      168,
+      254,
+      0.3
+    );
+
+  border-radius: 12px;
+
+  padding: 1rem;
+
+  color: var(--muted);
+
+  line-height: 1.65;
+
+  margin-top: 1rem;
+}
+
+
+.privacy-callout strong {
+  color: var(--text);
+}
+
+
+.privacy-final {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(
+        110,
+        168,
+        254,
+        0.08
+      ),
+      rgba(
+        110,
+        168,
+        254,
+        0.02
+      )
+    );
+}
+
+
+.privacy-flow {
+  display: flex;
+
+  align-items: center;
+
+  flex-wrap: wrap;
+
+  gap: 0.7rem;
+
+  margin:
+    1.2rem
+    0;
+}
+
+
+.privacy-flow span:not(.privacy-arrow) {
+  background: var(--panel-2);
+
+  border:
+    1px
+    solid
+    var(--border);
+
+  border-radius: 999px;
+
+  padding:
+    0.55rem
+    0.85rem;
+
+  color: var(--text);
+
+  font-size: 0.9rem;
+
+  font-weight: 700;
+}
+
+
+.privacy-arrow {
+  color: var(--accent);
+
+  font-weight: 900;
+}
+
+
+.primary-link-button {
+  display: inline-block;
+
+  margin-top: 0.5rem;
+
+  background: var(--accent);
+
+  color: #08101f;
+
+  text-decoration: none;
+
+  font-weight: 800;
+
+  border-radius: 999px;
+
+  padding:
+    0.85rem
+    1.1rem;
+}
+
+
+.primary-link-button:hover {
+  color: #08101f;
+
+  background: var(--accent-hover);
+}
+
+
+/* ----------------------------------
+   FOOTER
+---------------------------------- */
+
+
+.site-footer {
+  width:
+    min(
+      var(--max-width),
+      calc(100% - 2rem)
+    );
+
+  margin:
+    auto
+    auto
+    0;
+
+  padding:
+    1.6rem
+    0
+    2rem;
+
+  border-top:
+    1px
+    solid
+    rgba(
+      44,
+      54,
+      95,
+      0.7
+    );
+
+  color: var(--muted);
+}
+
+
+.footer-inner {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 1rem;
+}
+
+
+.footer-inner p {
+  margin: 0;
+
+  font-weight: 800;
+
+  color: var(--text);
+}
+
+
+.footer-links {
+  display: flex;
+
+  gap: 1rem;
+}
+
+
+.footer-links a {
+  color: var(--muted);
+
+  text-decoration: none;
+
+  font-size: 0.9rem;
+
+  font-weight: 700;
+}
+
+
+.footer-links a:hover {
+  color: var(--text);
+}
+
+
+.footer-note {
+  margin:
+    0.8rem
+    0
+    0;
+
+  color: var(--muted);
+
+  font-size: 0.78rem;
+
+  line-height: 1.5;
 }
 
 
 @media (max-width: 950px) {
 
   .controls {
-
     grid-template-columns:
       repeat(
         2,
@@ -1518,9 +2650,12 @@ input[type="number"] {
 @media (max-width: 900px) {
 
   .results {
+    grid-template-columns: 1fr;
+  }
 
-    grid-template-columns:
-      1fr;
+
+  .privacy-summary {
+    grid-template-columns: 1fr;
   }
 
 }
@@ -1531,23 +2666,36 @@ input[type="number"] {
   .controls,
   .model-grid,
   .custom-size-controls {
-
-    grid-template-columns:
-      1fr;
+    grid-template-columns: 1fr;
   }
 
 
   .section-heading {
-
-    flex-direction:
-      column;
+    flex-direction: column;
   }
 
 
   .size-separator {
+    display: none;
+  }
 
-    display:
-      none;
+
+  .topbar {
+    align-items: flex-start;
+  }
+
+
+  .footer-inner {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+
+  .privacy-section {
+    padding:
+      1.25rem
+      1rem;
   }
 
 }
@@ -1629,16 +2777,12 @@ function getSelectedModelKeys() {
   return getModelCheckboxes()
     .filter(
       function(checkbox) {
-
         return checkbox.checked;
-
       }
     )
     .map(
       function(checkbox) {
-
         return checkbox.value;
-
       }
     );
 
@@ -1652,6 +2796,7 @@ function getImagesPerModel() {
       imagesPerModelEl.value,
       10
     );
+
 
   return [1, 2, 4].includes(value)
     ? value
@@ -2658,6 +3803,33 @@ export default {
 
     if (
       request.method === "GET" &&
+      (
+        url.pathname === "/privacy" ||
+        url.pathname === "/privacy/"
+      )
+    ) {
+
+      return new Response(
+        PRIVACY_HTML,
+        {
+
+          headers: {
+
+            ...COMMON_HEADERS,
+
+            "Content-Type":
+              "text/html; charset=UTF-8"
+
+          }
+
+        }
+      );
+
+    }
+
+
+    if (
+      request.method === "GET" &&
       url.pathname === "/styles.css"
     ) {
 
@@ -3116,8 +4288,7 @@ async function handleGenerate(
   ) {
 
     console.error(
-      "Turnstile verification failed:",
-      verification
+      "Turnstile verification failed."
     );
 
 
@@ -3441,9 +4612,8 @@ async function generateImageForModel(
   ) {
 
     console.error(
-      "Model failed:",
-      model.label,
-      error
+      "Model generation failed:",
+      model.label
     );
 
 
@@ -3836,8 +5006,7 @@ async function verifyTurnstile(
   ) {
 
     console.error(
-      "Turnstile verify error:",
-      error
+      "Turnstile verification request failed."
     );
 
 
