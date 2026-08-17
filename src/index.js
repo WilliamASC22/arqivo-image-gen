@@ -225,71 +225,151 @@ const SIZE_GROUPS = [
   }
 ];
 
-function buildModelOptions() {
-  return MODELS.map((model) => {
-    const checked = model.defaultSelected
-      ? " checked"
-      : "";
 
-    return `
-      <label class="model-option">
-        <input
-          type="checkbox"
-          name="models"
-          value="${model.key}"
-          ${checked}
-        />
+class ModelOutputError extends Error {
 
-        <span class="model-option-content">
-          <strong>${model.label}</strong>
-          <small>${model.description}</small>
-        </span>
-      </label>
-    `;
-  }).join("");
+  constructor(
+    message,
+    outputCode = "INVALID_OUTPUT"
+  ) {
+
+    super(message);
+
+    this.name =
+      "ModelOutputError";
+
+    this.outputCode =
+      outputCode;
+
+  }
+
 }
 
-function buildSizeOptions() {
-  const groups = SIZE_GROUPS.map((group) => {
-    const options = group.keys.map((key) => {
-      const size = SIZES[key];
 
-      const selected =
-        key === "square-1024"
-          ? " selected"
+class ProviderResponseError extends Error {
+
+  constructor(
+    message,
+    status
+  ) {
+
+    super(message);
+
+    this.name =
+      "ProviderResponseError";
+
+    this.status =
+      status;
+
+  }
+
+}
+
+
+function buildModelOptions() {
+
+  return MODELS.map(
+    (model) => {
+
+      const checked =
+        model.defaultSelected
+          ? " checked"
           : "";
 
       return `
-        <option
-          value="${key}"
-          data-width="${size.width}"
-          data-height="${size.height}"
-          ${selected}
-        >
-          ${size.label}
-        </option>
-      `;
-    }).join("");
+        <label class="model-option">
 
-    return `
-      <optgroup label="${group.label}">
-        ${options}
-      </optgroup>
-    `;
-  }).join("");
+          <input
+            type="checkbox"
+            name="models"
+            value="${model.key}"
+            ${checked}
+          />
+
+          <span class="model-option-content">
+
+            <strong>
+              ${model.label}
+            </strong>
+
+            <small>
+              ${model.description}
+            </small>
+
+          </span>
+
+        </label>
+      `;
+
+    }
+  ).join("");
+
+}
+
+
+function buildSizeOptions() {
+
+  const groups =
+    SIZE_GROUPS.map(
+      (group) => {
+
+        const options =
+          group.keys.map(
+            (key) => {
+
+              const size =
+                SIZES[key];
+
+              const selected =
+                key === "square-1024"
+                  ? " selected"
+                  : "";
+
+              return `
+                <option
+                  value="${key}"
+                  data-width="${size.width}"
+                  data-height="${size.height}"
+                  ${selected}
+                >
+                  ${size.label}
+                </option>
+              `;
+
+            }
+          ).join("");
+
+        return `
+          <optgroup label="${group.label}">
+            ${options}
+          </optgroup>
+        `;
+
+      }
+    ).join("");
 
   return groups + `
     <optgroup label="Other">
+
       <option value="custom">
         Custom resolution
       </option>
+
     </optgroup>
   `;
+
 }
 
-function buildNav(activePage) {
+
+function buildNav(
+  activePage
+) {
+
   return `
-    <nav class="site-nav" aria-label="Main navigation">
+    <nav
+      class="site-nav"
+      aria-label="Main navigation"
+    >
 
       <a
         href="/"
@@ -307,9 +387,12 @@ function buildNav(activePage) {
 
     </nav>
   `;
+
 }
 
+
 function buildFooter() {
+
   return `
     <footer class="site-footer">
 
@@ -320,8 +403,15 @@ function buildFooter() {
         </p>
 
         <div class="footer-links">
-          <a href="/">Generate</a>
-          <a href="/privacy">Privacy</a>
+
+          <a href="/">
+            Generate
+          </a>
+
+          <a href="/privacy">
+            Privacy
+          </a>
+
         </div>
 
       </div>
@@ -333,9 +423,12 @@ function buildFooter() {
 
     </footer>
   `;
+
 }
 
+
 const HTML = (siteKey) => `<!doctype html>
+
 <html lang="en">
 
 <head>
@@ -352,7 +445,9 @@ const HTML = (siteKey) => `<!doctype html>
     content="Privacy-focused AI image generation with multiple selectable models."
   />
 
-  <title>Arqivo Image Gen</title>
+  <title>
+    Arqivo Image Gen
+  </title>
 
   <link
     rel="stylesheet"
@@ -371,6 +466,7 @@ const HTML = (siteKey) => `<!doctype html>
   ></script>
 
 </head>
+
 
 <body>
 
@@ -405,10 +501,13 @@ const HTML = (siteKey) => `<!doctype html>
         </p>
 
         <p class="privacy-shortcut">
+
           Want to know exactly how generation data is handled?
+
           <a href="/privacy">
             Read the privacy page.
           </a>
+
         </p>
 
       </header>
@@ -703,6 +802,7 @@ const HTML = (siteKey) => `<!doctype html>
 
 
 const PRIVACY_HTML = `<!doctype html>
+
 <html lang="en">
 
 <head>
@@ -719,7 +819,9 @@ const PRIVACY_HTML = `<!doctype html>
     content="Privacy information for Arqivo Image Gen."
   />
 
-  <title>Privacy — Arqivo Image Gen</title>
+  <title>
+    Privacy — Arqivo Image Gen
+  </title>
 
   <link
     rel="stylesheet"
@@ -727,6 +829,7 @@ const PRIVACY_HTML = `<!doctype html>
   />
 
 </head>
+
 
 <body>
 
@@ -936,6 +1039,7 @@ const PRIVACY_HTML = `<!doctype html>
           </p>
 
           <ul>
+
             <li>
               SDXL Lightning
             </li>
@@ -951,6 +1055,7 @@ const PRIVACY_HTML = `<!doctype html>
             <li>
               Phoenix
             </li>
+
           </ul>
 
           <p>
@@ -1133,6 +1238,7 @@ const PRIVACY_HTML = `<!doctype html>
           </p>
 
           <ul>
+
             <li>
               your name
             </li>
@@ -1160,6 +1266,7 @@ const PRIVACY_HTML = `<!doctype html>
             <li>
               a social-media account
             </li>
+
           </ul>
 
         </section>
@@ -1365,6 +1472,8 @@ const CSS = `
   --accent-hover: #8abbff;
 
   --danger: #ff8d8d;
+  --warning: #ffd479;
+  --success: #8be3af;
 
   --max-width: 1200px;
 }
@@ -1422,6 +1531,7 @@ a:hover {
   min-height: 100vh;
 
   display: flex;
+
   flex-direction: column;
 }
 
@@ -1660,11 +1770,9 @@ textarea {
     solid
     var(--border);
 
-  background:
-    var(--panel-2);
+  background: var(--panel-2);
 
-  color:
-    var(--text);
+  color: var(--text);
 
   border-radius: 12px;
 
@@ -1745,8 +1853,7 @@ input[type="number"]:focus {
     0
     0;
 
-  color:
-    var(--muted);
+  color: var(--muted);
 
   font-size: 0.9rem;
 }
@@ -1874,6 +1981,7 @@ button:disabled {
 
 .model-option input {
   width: 18px;
+
   height: 18px;
 
   flex:
@@ -2046,10 +2154,24 @@ input[type="number"] {
     1rem
     0;
 
-  color:
-    var(--muted);
+  color: var(--muted);
 
   font-size: 1.05rem;
+}
+
+
+.status[data-tone="success"] {
+  color: var(--success);
+}
+
+
+.status[data-tone="warning"] {
+  color: var(--warning);
+}
+
+
+.status[data-tone="error"] {
+  color: var(--danger);
 }
 
 
@@ -2184,15 +2306,160 @@ input[type="number"] {
 }
 
 
+/* ----------------------------------
+   BETTER MODEL ERROR CARDS
+---------------------------------- */
+
+
 .error-card {
-  border-color: #6a2d2d;
+  border-color:
+    rgba(
+      255,
+      141,
+      141,
+      0.45
+    );
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(
+        80,
+        28,
+        37,
+        0.28
+      ),
+      rgba(
+        21,
+        27,
+        47,
+        0.92
+      )
+    );
 }
 
 
-.error-card p {
+.error-kicker {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 0.35rem;
+
+  margin:
+    0.35rem
+    0
+    0.65rem;
+
+  padding:
+    0.3rem
+    0.55rem;
+
+  border-radius: 999px;
+
   color: var(--danger);
 
+  background:
+    rgba(
+      255,
+      141,
+      141,
+      0.08
+    );
+
+  border:
+    1px
+    solid
+    rgba(
+      255,
+      141,
+      141,
+      0.22
+    );
+
+  font-size: 0.74rem;
+
+  font-weight: 800;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.06em;
+}
+
+
+.error-title {
+  margin:
+    0
+    0
+    0.45rem;
+
+  color: var(--text);
+
+  font-size: 1rem;
+
+  font-weight: 850;
+}
+
+
+.error-message {
   margin: 0;
+
+  color: var(--muted);
+
+  line-height: 1.6;
+
+  font-size: 0.92rem;
+}
+
+
+.error-hint {
+  margin:
+    0.75rem
+    0
+    0;
+
+  padding-top: 0.75rem;
+
+  border-top:
+    1px
+    solid
+    rgba(
+      255,
+      141,
+      141,
+      0.16
+    );
+
+  color: var(--muted);
+
+  line-height: 1.55;
+
+  font-size: 0.86rem;
+}
+
+
+.error-code {
+  display: inline-block;
+
+  margin-top: 0.75rem;
+
+  color:
+    rgba(
+      184,
+      193,
+      224,
+      0.78
+    );
+
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+
+  font-size: 0.72rem;
 }
 
 
@@ -2349,9 +2616,7 @@ input[type="number"] {
 
 
 .privacy-section {
-  padding:
-    1.6rem
-    1.6rem;
+  padding: 1.6rem;
 
   border-bottom:
     1px
@@ -2706,54 +2971,68 @@ const JS = `
 const MAX_IMAGES_PER_REQUEST = 8;
 const MAX_TOTAL_PIXELS = 12582912;
 
+
 const form =
   document.getElementById('gen-form');
+
 
 const promptEl =
   document.getElementById('prompt');
 
+
 const button =
   document.getElementById('submit-btn');
+
 
 const statusEl =
   document.getElementById('status');
 
+
 const resultsEl =
   document.getElementById('results');
+
 
 const sizeEl =
   document.getElementById('size');
 
+
 const qualityEl =
   document.getElementById('quality');
+
 
 const imagesPerModelEl =
   document.getElementById(
     'images-per-model'
   );
 
+
 const seedEl =
   document.getElementById('seed');
+
 
 const customSizeControls =
   document.getElementById(
     'custom-size-controls'
   );
 
+
 const customWidthEl =
   document.getElementById(
     'custom-width'
   );
+
 
 const customHeightEl =
   document.getElementById(
     'custom-height'
   );
 
+
 const selectAllModelsButton =
   document.getElementById(
     'select-all-models'
   );
+
 
 const clearModelsButton =
   document.getElementById(
@@ -2777,12 +3056,16 @@ function getSelectedModelKeys() {
   return getModelCheckboxes()
     .filter(
       function(checkbox) {
+
         return checkbox.checked;
+
       }
     )
     .map(
       function(checkbox) {
+
         return checkbox.value;
+
       }
     );
 
@@ -3018,17 +3301,16 @@ function updateCustomSizeVisibility() {
 
 function setStatus(
   message,
-  isError
+  tone
 ) {
 
   statusEl.textContent =
     message;
 
 
-  statusEl.style.color =
-    isError
-      ? '#ff8d8d'
-      : '#b8c1e0';
+  statusEl.dataset.tone =
+    tone ||
+    'neutral';
 
 }
 
@@ -3043,9 +3325,8 @@ window.onTurnstileError =
 
 
     setStatus(
-      'Turnstile error: ' +
-      errorCode,
-      true
+      'Verification could not load. Please refresh and try again.',
+      'error'
     );
 
   };
@@ -3140,11 +3421,14 @@ function extensionForDataURI(
   dataURI
 ) {
 
+  const value =
+    String(dataURI);
+
+
   if (
-    String(dataURI)
-      .startsWith(
-        'data:image/jpeg'
-      )
+    value.startsWith(
+      'data:image/jpeg'
+    )
   ) {
 
     return 'jpg';
@@ -3153,10 +3437,9 @@ function extensionForDataURI(
 
 
   if (
-    String(dataURI)
-      .startsWith(
-        'data:image/webp'
-      )
+    value.startsWith(
+      'data:image/webp'
+    )
   ) {
 
     return 'webp';
@@ -3165,6 +3448,37 @@ function extensionForDataURI(
 
 
   return 'png';
+
+}
+
+
+function appendTextElement(
+  parent,
+  tagName,
+  className,
+  text
+) {
+
+  const element =
+    document.createElement(
+      tagName
+    );
+
+
+  element.className =
+    className;
+
+
+  element.textContent =
+    text;
+
+
+  parent.appendChild(
+    element
+  );
+
+
+  return element;
 
 }
 
@@ -3216,19 +3530,84 @@ function createResultCard(
     );
 
 
-    const errorText =
-      document.createElement(
-        'p'
+    const errorInfo =
+      typeof item.error === 'object' &&
+      item.error !== null
+
+        ? item.error
+
+        : {
+
+            code:
+              'GENERATION_FAILED',
+
+            title:
+              'Generation failed',
+
+            message:
+              String(
+                item.error ||
+                'This model could not generate an image.'
+              ),
+
+            hint:
+              'Try again, or use another model.'
+
+          };
+
+
+    appendTextElement(
+      card,
+      'div',
+      'error-kicker',
+      'Generation error'
+    );
+
+
+    appendTextElement(
+      card,
+      'p',
+      'error-title',
+      errorInfo.title ||
+      'Generation failed'
+    );
+
+
+    appendTextElement(
+      card,
+      'p',
+      'error-message',
+      errorInfo.message ||
+      'This model could not generate an image.'
+    );
+
+
+    if (
+      errorInfo.hint
+    ) {
+
+      appendTextElement(
+        card,
+        'p',
+        'error-hint',
+        errorInfo.hint
       );
 
-
-    errorText.textContent =
-      item.error;
+    }
 
 
-    card.appendChild(
-      errorText
-    );
+    if (
+      errorInfo.code
+    ) {
+
+      appendTextElement(
+        card,
+        'code',
+        'error-code',
+        errorInfo.code
+      );
+
+    }
 
 
     return card;
@@ -3384,8 +3763,31 @@ function renderResults(
     '';
 
 
+  let successful =
+    0;
+
+
+  let failed =
+    0;
+
+
   results.forEach(
     function(item) {
+
+      if (
+        item.error
+      ) {
+
+        failed +=
+          1;
+
+      } else {
+
+        successful +=
+          1;
+
+      }
+
 
       resultsEl.appendChild(
         createResultCard(
@@ -3400,6 +3802,59 @@ function renderResults(
   resultsEl
     .classList
     .remove('hidden');
+
+
+  return {
+
+    successful:
+      successful,
+
+    failed:
+      failed,
+
+    total:
+      results.length
+
+  };
+
+}
+
+
+function requestErrorMessage(
+  response,
+  data
+) {
+
+  if (
+    data &&
+    typeof data.error === 'string' &&
+    data.error.trim()
+  ) {
+
+    return data.error;
+
+  }
+
+
+  if (
+    response.status === 429
+  ) {
+
+    return 'Arqivo is receiving too many generation requests right now. Please try again shortly.';
+
+  }
+
+
+  if (
+    response.status >= 500
+  ) {
+
+    return 'The generation service is temporarily unavailable. Please try again shortly.';
+
+  }
+
+
+  return 'Generation failed.';
 
 }
 
@@ -3479,7 +3934,7 @@ form.addEventListener(
 
       setStatus(
         'Please enter a prompt.',
-        true
+        'error'
       );
 
       return;
@@ -3493,7 +3948,7 @@ form.addEventListener(
 
       setStatus(
         'Please select at least one model.',
-        true
+        'error'
       );
 
       return;
@@ -3508,7 +3963,7 @@ form.addEventListener(
 
       setStatus(
         'Choose fewer models or fewer variations. Maximum: 8 images per request.',
-        true
+        'error'
       );
 
       return;
@@ -3530,7 +3985,7 @@ form.addEventListener(
 
       setStatus(
         'Custom width and height must be 256–2048 and multiples of 64.',
-        true
+        'error'
       );
 
       return;
@@ -3545,7 +4000,7 @@ form.addEventListener(
 
       setStatus(
         'That combination is too large. Reduce the resolution, model count, or variations.',
-        true
+        'error'
       );
 
       return;
@@ -3559,7 +4014,7 @@ form.addEventListener(
 
       setStatus(
         'Please complete the verification first.',
-        true
+        'error'
       );
 
       return;
@@ -3596,7 +4051,8 @@ form.addEventListener(
       summary.width +
       ' × ' +
       summary.height +
-      '...'
+      '...',
+      'neutral'
     );
 
 
@@ -3655,8 +4111,21 @@ form.addEventListener(
         );
 
 
-      const data =
-        await response.json();
+      let data =
+        {};
+
+
+      try {
+
+        data =
+          await response.json();
+
+      } catch {
+
+        data =
+          {};
+
+      }
 
 
       if (
@@ -3664,36 +4133,75 @@ form.addEventListener(
       ) {
 
         throw new Error(
-          data?.error ||
-          'Generation failed.'
+          requestErrorMessage(
+            response,
+            data
+          )
         );
 
       }
 
 
-      renderResults(
-        data.results ||
-        []
-      );
+      const summaryResult =
+        renderResults(
+          data.results ||
+          []
+        );
 
 
-      setStatus(
-        'Done.'
-      );
+      if (
+        summaryResult.failed === 0
+      ) {
+
+        setStatus(
+          summaryResult.successful +
+          (
+            summaryResult.successful === 1
+              ? ' image completed.'
+              : ' images completed.'
+          ),
+          'success'
+        );
+
+      } else if (
+        summaryResult.successful === 0
+      ) {
+
+        setStatus(
+          'All selected generations failed. See each model card for the reason and what to try next.',
+          'error'
+        );
+
+      } else {
+
+        setStatus(
+          summaryResult.successful +
+          ' completed, ' +
+          summaryResult.failed +
+          ' failed. See the failed model cards for details.',
+          'warning'
+        );
+
+      }
 
     } catch (
       error
     ) {
 
       console.error(
-        error
+        'Generation request failed.'
       );
 
 
       setStatus(
-        error.message ||
-        'Something went wrong.',
-        true
+        error &&
+        error.message
+
+          ? error.message
+
+          : 'Something went wrong while contacting the generation service.',
+
+        'error'
       );
 
     } finally {
@@ -4028,10 +4536,12 @@ async function handleGenerate(
     Array.isArray(
       body?.models
     )
+
       ? body.models.map(
           (value) =>
             String(value)
         )
+
       : [];
 
 
@@ -4075,7 +4585,9 @@ async function handleGenerate(
   const quality =
     body?.quality ===
     "standard"
+
       ? "standard"
+
       : "best";
 
 
@@ -4090,7 +4602,9 @@ async function handleGenerate(
     [1, 2, 4].includes(
       requestedImagesPerModel
     )
+
       ? requestedImagesPerModel
+
       : 1;
 
 
@@ -4519,6 +5033,681 @@ async function runWithConcurrency(
 }
 
 
+/* ----------------------------------
+   ERROR HELPERS
+---------------------------------- */
+
+
+function firstInteger(
+  values
+) {
+
+  for (
+    const value
+    of values
+  ) {
+
+    if (
+      Number.isInteger(
+        value
+      )
+    ) {
+
+      return value;
+
+    }
+
+
+    const parsed =
+      Number.parseInt(
+        value,
+        10
+      );
+
+
+    if (
+      Number.isInteger(
+        parsed
+      )
+    ) {
+
+      return parsed;
+
+    }
+
+  }
+
+
+  return null;
+
+}
+
+
+function firstNonEmptyString(
+  values
+) {
+
+  for (
+    const value
+    of values
+  ) {
+
+    if (
+      typeof value === "string" &&
+      value.trim()
+    ) {
+
+      return value.trim();
+
+    }
+
+  }
+
+
+  return "";
+
+}
+
+
+function extractProviderErrorInfo(
+  error
+) {
+
+  const status =
+    firstInteger(
+      [
+
+        error?.status,
+
+        error?.statusCode,
+
+        error?.response?.status,
+
+        error?.cause?.status,
+
+        error?.cause?.statusCode
+
+      ]
+    );
+
+
+  const providerCode =
+    firstNonEmptyString(
+      [
+
+        error?.code,
+
+        error?.errorCode,
+
+        error?.cause?.code,
+
+        error?.cause?.errorCode
+
+      ]
+    );
+
+
+  const messageParts =
+    [
+
+      error?.message,
+
+      error?.cause?.message,
+
+      error?.response?.statusText,
+
+      typeof error?.error === "string"
+        ? error.error
+        : ""
+
+    ].filter(
+      (value) =>
+        typeof value === "string" &&
+        value.trim()
+    );
+
+
+  if (
+    Array.isArray(
+      error?.errors
+    )
+  ) {
+
+    for (
+      const item
+      of error.errors
+    ) {
+
+      if (
+        typeof item?.message === "string" &&
+        item.message.trim()
+      ) {
+
+        messageParts.push(
+          item.message.trim()
+        );
+
+      }
+
+    }
+
+  }
+
+
+  return {
+
+    status:
+      status,
+
+    providerCode:
+      providerCode,
+
+    name:
+      firstNonEmptyString(
+        [
+          error?.name
+        ]
+      ),
+
+    message:
+      messageParts
+        .join(
+          " | "
+        )
+        .slice(
+          0,
+          1000
+        )
+
+  };
+
+}
+
+
+/* ----------------------------------
+   MODEL ERROR CLASSIFIER
+---------------------------------- */
+
+
+function classifyModelError(
+  error,
+  context
+) {
+
+  if (
+    error instanceof
+    ModelOutputError
+  ) {
+
+    return {
+
+      code:
+        "INVALID_MODEL_OUTPUT",
+
+      title:
+        "The model returned an unusable image",
+
+      message:
+        "The model finished, but Arqivo could not read the image data it returned.",
+
+      hint:
+        "Try this model again. If it keeps happening, use another model while the output format issue is investigated.",
+
+      retryable:
+        true
+
+    };
+
+  }
+
+
+  const info =
+    extractProviderErrorInfo(
+      error
+    );
+
+
+  const haystack =
+    (
+      info.message +
+      " " +
+      info.providerCode +
+      " " +
+      info.name
+    ).toLowerCase();
+
+
+  const isQuota =
+    /quota|daily limit|usage limit|neurons|allocation|exceeded.*limit|limit.*exceeded|insufficient.*quota/.test(
+      haystack
+    );
+
+
+  const isRateLimited =
+    info.status === 429 ||
+    /rate limit|too many requests|throttl|temporarily busy|capacity/.test(
+      haystack
+    );
+
+
+  /*
+   * Daily / account usage exhausted
+   */
+
+  if (
+    isQuota
+  ) {
+
+    return {
+
+      code:
+        "AI_DAILY_LIMIT_REACHED",
+
+      title:
+        "Daily AI capacity has been reached",
+
+      message:
+        context.model.label +
+        " could not run because the available AI usage allocation appears to be exhausted.",
+
+      hint:
+        "Try again after the AI allowance resets, or reduce the number of models, variations, resolution, or quality settings.",
+
+      retryable:
+        false
+
+    };
+
+  }
+
+
+  /*
+   * Temporary rate limiting / capacity
+   */
+
+  if (
+    isRateLimited
+  ) {
+
+    return {
+
+      code:
+        "MODEL_BUSY",
+
+      title:
+        "The model is busy right now",
+
+      message:
+        context.model.label +
+        " could not accept this generation request at the moment.",
+
+      hint:
+        "Wait a short time and try again. You can also generate with fewer models or fewer variations.",
+
+      retryable:
+        true
+
+    };
+
+  }
+
+
+  /*
+   * Billing requirement
+   */
+
+  if (
+    /billing|payment|paid plan|subscription|credit balance|insufficient balance|requires.*paid/.test(
+      haystack
+    )
+  ) {
+
+    return {
+
+      code:
+        "MODEL_REQUIRES_BILLING",
+
+      title:
+        "This model is not available on the current account setup",
+
+      message:
+        context.model.label +
+        " appears to require billing or account access that is not currently enabled.",
+
+      hint:
+        "Use another model. Do not add billing just to clear this message unless you intentionally want to change the project's cost policy.",
+
+      retryable:
+        false
+
+    };
+
+  }
+
+
+  /*
+   * Permissions / authentication
+   */
+
+  if (
+    info.status === 401 ||
+    info.status === 403 ||
+    /unauthori|forbidden|permission|access denied|not allowed|authentication/.test(
+      haystack
+    )
+  ) {
+
+    return {
+
+      code:
+        "MODEL_ACCESS_DENIED",
+
+      title:
+        "Arqivo does not currently have access to this model",
+
+      message:
+        context.model.label +
+        " rejected the request because the Worker account or AI binding does not have the required access.",
+
+      hint:
+        "Use another model and check the Workers AI model availability and account permissions before changing credentials.",
+
+      retryable:
+        false
+
+    };
+
+  }
+
+
+  /*
+   * Model ID missing / retired / unavailable
+   */
+
+  if (
+    info.status === 404 ||
+    /model.*not found|not found.*model|unknown model|does not exist|model unavailable/.test(
+      haystack
+    )
+  ) {
+
+    return {
+
+      code:
+        "MODEL_UNAVAILABLE",
+
+      title:
+        "This model is unavailable",
+
+      message:
+        context.model.label +
+        " could not be found or is not currently available through Workers AI.",
+
+      hint:
+        "Use another model. If this persists, verify the model ID in the MODELS configuration.",
+
+      retryable:
+        false
+
+    };
+
+  }
+
+
+  /*
+   * Resolution / parameter problems
+   */
+
+  if (
+    /width|height|dimension|resolution|image size|multiple of|invalid parameter|validation|out of range|must be between|unsupported.*size/.test(
+      haystack
+    )
+  ) {
+
+    return {
+
+      code:
+        "UNSUPPORTED_MODEL_SETTINGS",
+
+      title:
+        "This model rejected the selected settings",
+
+      message:
+        context.model.label +
+        " could not generate at " +
+        context.width +
+        " × " +
+        context.height +
+        " with the current quality settings.",
+
+      hint:
+        "Try 1024 × 1024 first. If that works, use a smaller or more standard resolution for this model.",
+
+      retryable:
+        true
+
+    };
+
+  }
+
+
+  /*
+   * Timeout
+   */
+
+  if (
+    /timeout|timed out|deadline|execution time/.test(
+      haystack
+    )
+  ) {
+
+    return {
+
+      code:
+        "MODEL_TIMEOUT",
+
+      title:
+        "The model took too long to respond",
+
+      message:
+        context.model.label +
+        " did not finish the image before the generation request timed out.",
+
+      hint:
+        "Try again with fewer variations, a smaller resolution, or Standard quality.",
+
+      retryable:
+        true
+
+    };
+
+  }
+
+
+  /*
+   * Content / moderation rejection
+   */
+
+  if (
+    /safety|moderation|content policy|policy violation|blocked prompt|unsafe|content blocked/.test(
+      haystack
+    )
+  ) {
+
+    return {
+
+      code:
+        "MODEL_REQUEST_REJECTED",
+
+      title:
+        "The model rejected this request",
+
+      message:
+        context.model.label +
+        " did not generate an image because the request was rejected by the model or its safety system.",
+
+      hint:
+        "Revise the prompt and try again. Different models can apply different request filters.",
+
+      retryable:
+        false
+
+    };
+
+  }
+
+
+  /*
+   * Provider outage / 5xx
+   */
+
+  if (
+    info.status >= 500 ||
+    /internal server error|service unavailable|bad gateway|gateway timeout|upstream|overloaded|temporary failure/.test(
+      haystack
+    )
+  ) {
+
+    return {
+
+      code:
+        "MODEL_TEMPORARILY_UNAVAILABLE",
+
+      title:
+        "The model service is temporarily unavailable",
+
+      message:
+        context.model.label +
+        " encountered a temporary provider-side error while generating the image.",
+
+      hint:
+        "Try again shortly. If only this model keeps failing, use another model until it recovers.",
+
+      retryable:
+        true
+
+    };
+
+  }
+
+
+  /*
+   * Network / connection problems
+   */
+
+  if (
+    /network|connection|fetch failed|socket|econn|dns/.test(
+      haystack
+    )
+  ) {
+
+    return {
+
+      code:
+        "MODEL_CONNECTION_ERROR",
+
+      title:
+        "The model connection failed",
+
+      message:
+        "Arqivo could not complete the connection needed to run " +
+        context.model.label +
+        ".",
+
+      hint:
+        "Try again shortly. If other models work, the issue is probably isolated to this model or provider path.",
+
+      retryable:
+        true
+
+    };
+
+  }
+
+
+  /*
+   * Unknown fallback
+   */
+
+  return {
+
+    code:
+      "MODEL_GENERATION_FAILED",
+
+    title:
+      "This model could not complete the image",
+
+    message:
+      context.model.label +
+      " encountered an unexpected generation error.",
+
+    hint:
+      "Try the same prompt again. If it repeatedly fails, try another model, a smaller resolution, or Standard quality.",
+
+    retryable:
+      true
+
+  };
+
+}
+
+
+/*
+ * Privacy-conscious logging.
+ *
+ * Notice that this intentionally does NOT log:
+ *
+ * - prompt
+ * - negative prompt
+ * - image bytes
+ * - base64 image
+ * - Turnstile token
+ * - IP address
+ * - full request body
+ */
+
+function logModelFailure(
+  model,
+  publicError,
+  error
+) {
+
+  const info =
+    extractProviderErrorInfo(
+      error
+    );
+
+
+  console.error(
+    "Model generation failed",
+    {
+
+      model:
+        model.label,
+
+      modelId:
+        model.id,
+
+      errorCode:
+        publicError.code,
+
+      providerStatus:
+        info.status,
+
+      providerCode:
+        info.providerCode ||
+        null,
+
+      errorName:
+        info.name ||
+        null
+
+    }
+  );
+
+}
+
+
 async function generateImageForModel(
   env,
   model,
@@ -4534,7 +5723,9 @@ async function generateImageForModel(
 
   const steps =
     quality === "best"
+
       ? model.bestSteps
+
       : model.standardSteps;
 
 
@@ -4611,9 +5802,34 @@ async function generateImageForModel(
     error
   ) {
 
-    console.error(
-      "Model generation failed:",
-      model.label
+    const publicError =
+      classifyModelError(
+        error,
+        {
+
+          model:
+            model,
+
+          width:
+            width,
+
+          height:
+            height,
+
+          steps:
+            steps,
+
+          quality:
+            quality
+
+        }
+      );
+
+
+    logModelFailure(
+      model,
+      publicError,
+      error
     );
 
 
@@ -4625,6 +5841,18 @@ async function generateImageForModel(
       model:
         model.id,
 
+      width:
+        width,
+
+      height:
+        height,
+
+      steps:
+        steps,
+
+      seed:
+        seed,
+
       variation:
         variation,
 
@@ -4632,7 +5860,7 @@ async function generateImageForModel(
         totalVariations,
 
       error:
-        "This model failed to generate an image."
+        publicError
 
     };
 
@@ -4644,6 +5872,10 @@ async function generateImageForModel(
 async function outputToDataURI(
   output
 ) {
+
+  /*
+   * Base64 object output
+   */
 
   if (
     output &&
@@ -4658,9 +5890,56 @@ async function outputToDataURI(
   }
 
 
+  /*
+   * Response object output
+   */
+
   if (
     output instanceof Response
   ) {
+
+    if (
+      !output.ok
+    ) {
+
+      let responseMessage =
+        "Provider returned an unsuccessful response.";
+
+
+      try {
+
+        const text =
+          await output.text();
+
+
+        if (
+          text.trim()
+        ) {
+
+          responseMessage =
+            text.slice(
+              0,
+              500
+            );
+
+        }
+
+      } catch {
+
+        /*
+         * Keep generic error.
+         */
+
+      }
+
+
+      throw new ProviderResponseError(
+        responseMessage,
+        output.status
+      );
+
+    }
+
 
     const contentType =
       output.headers.get(
@@ -4680,6 +5959,10 @@ async function outputToDataURI(
   }
 
 
+  /*
+   * ArrayBuffer output
+   */
+
   if (
     output instanceof ArrayBuffer
   ) {
@@ -4691,6 +5974,48 @@ async function outputToDataURI(
 
   }
 
+
+  /*
+   * Uint8Array or another ArrayBuffer view
+   */
+
+  if (
+    ArrayBuffer.isView(
+      output
+    )
+  ) {
+
+    return arrayBufferToDataURI(
+      output.buffer.slice(
+        output.byteOffset,
+        output.byteOffset +
+        output.byteLength
+      ),
+      ""
+    );
+
+  }
+
+
+  /*
+   * Empty result
+   */
+
+  if (
+    !output
+  ) {
+
+    throw new ModelOutputError(
+      "The model returned no image data.",
+      "EMPTY_OUTPUT"
+    );
+
+  }
+
+
+  /*
+   * ReadableStream output
+   */
 
   return streamToDataURI(
     output
@@ -4706,14 +6031,27 @@ function base64ImageToDataURI(
   const cleaned =
     String(
       base64
-    ).replace(
-      /^data:[^;]+;base64,/,
-      ""
+    )
+      .replace(
+        /^data:[^;]+;base64,/,
+        ""
+      )
+      .trim();
+
+
+  if (
+    !cleaned
+  ) {
+
+    throw new ModelOutputError(
+      "The model returned an empty Base64 image.",
+      "EMPTY_BASE64"
     );
 
+  }
 
-  let mimeType =
-    "image/jpeg";
+
+  let mimeType;
 
 
   if (
@@ -4743,6 +6081,13 @@ function base64ImageToDataURI(
     mimeType =
       "image/jpeg";
 
+  } else {
+
+    throw new ModelOutputError(
+      "The model returned an image format Arqivo could not identify.",
+      "UNKNOWN_BASE64_FORMAT"
+    );
+
   }
 
 
@@ -4760,10 +6105,24 @@ async function streamToDataURI(
   stream
 ) {
 
-  const arrayBuffer =
-    await new Response(
-      stream
-    ).arrayBuffer();
+  let arrayBuffer;
+
+
+  try {
+
+    arrayBuffer =
+      await new Response(
+        stream
+      ).arrayBuffer();
+
+  } catch {
+
+    throw new ModelOutputError(
+      "Arqivo could not read the model's image stream.",
+      "STREAM_READ_FAILED"
+    );
+
+  }
 
 
   return arrayBufferToDataURI(
@@ -4785,17 +6144,52 @@ function arrayBufferToDataURI(
     );
 
 
-  const mimeType =
+  if (
+    bytes.length < 8
+  ) {
+
+    throw new ModelOutputError(
+      "The model returned empty or incomplete image data.",
+      "IMAGE_DATA_TOO_SMALL"
+    );
+
+  }
+
+
+  const headerMimeType =
     contentType &&
     contentType.startsWith(
       "image/"
     )
+
       ? contentType.split(
           ";"
         )[0]
-      : detectImageMimeType(
-          bytes
-        );
+
+      : "";
+
+
+  const detectedMimeType =
+    detectImageMimeType(
+      bytes
+    );
+
+
+  const mimeType =
+    detectedMimeType ||
+    headerMimeType;
+
+
+  if (
+    !mimeType
+  ) {
+
+    throw new ModelOutputError(
+      "The model returned data that is not a supported image format.",
+      "UNKNOWN_BINARY_FORMAT"
+    );
+
+  }
 
 
   const base64 =
@@ -4818,6 +6212,10 @@ function detectImageMimeType(
   bytes
 ) {
 
+  /*
+   * PNG
+   */
+
   if (
     bytes.length >= 8 &&
     bytes[0] === 0x89 &&
@@ -4831,6 +6229,10 @@ function detectImageMimeType(
   }
 
 
+  /*
+   * JPEG
+   */
+
   if (
     bytes.length >= 3 &&
     bytes[0] === 0xff &&
@@ -4842,6 +6244,10 @@ function detectImageMimeType(
 
   }
 
+
+  /*
+   * WebP
+   */
 
   if (
     bytes.length >= 12 &&
@@ -4860,7 +6266,7 @@ function detectImageMimeType(
   }
 
 
-  return "image/png";
+  return "";
 
 }
 
@@ -5001,9 +6407,7 @@ async function verifyTurnstile(
 
     };
 
-  } catch (
-    error
-  ) {
+  } catch {
 
     console.error(
       "Turnstile verification request failed."
