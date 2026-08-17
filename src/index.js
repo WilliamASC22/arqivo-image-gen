@@ -3,51 +3,320 @@ const MAX_TOTAL_PIXELS = 12 * 1024 * 1024;
 const MAX_SEED = 2147483647;
 const MODEL_CONCURRENCY = 2;
 
+const AI_HORDE_API_BASE =
+  "https://aihorde.net/api/v2";
+
+const AI_HORDE_CLIENT_AGENT =
+  "ArqivoImageGen:1.0:https://github.com/arqivo/arqivo-image-gen";
+
+const AI_HORDE_POLL_INTERVAL_MS =
+  8000;
+
+const AI_HORDE_MAX_POLLS =
+  6;
+
+
+/* ----------------------------------
+   PROVIDERS
+---------------------------------- */
+
+
+const PROVIDERS = [
+
+  {
+    key:
+      "cloudflare",
+
+    label:
+      "Cloudflare Workers AI",
+
+    description:
+      "Runs through Arqivo's Cloudflare Workers AI binding."
+  },
+
+  {
+    key:
+      "horde",
+
+    label:
+      "AI Horde",
+
+    description:
+      "Community-powered generation. Prompts selected here are sent to AI Horde volunteer workers."
+  }
+
+];
+
+
+const PROVIDERS_BY_KEY =
+  Object.fromEntries(
+    PROVIDERS.map(
+      (provider) => [
+        provider.key,
+        provider
+      ]
+    )
+  );
+
+
+/* ----------------------------------
+   MODELS
+---------------------------------- */
+
 
 const MODELS = [
-  {
-    key: "sdxl-lightning",
-    label: "SDXL Lightning",
-    description: "Fast SDXL generation",
-    id: "@cf/bytedance/stable-diffusion-xl-lightning",
-    standardSteps: 10,
-    bestSteps: 20,
-    guidance: 7.5,
-    defaultSelected: true
-  },
 
   {
-    key: "sdxl-base",
-    label: "SDXL Base",
-    description: "Classic SDXL model",
-    id: "@cf/stabilityai/stable-diffusion-xl-base-1.0",
-    standardSteps: 12,
-    bestSteps: 20,
-    guidance: 7.5,
-    defaultSelected: true
+    key:
+      "sdxl-lightning",
+
+    provider:
+      "cloudflare",
+
+    label:
+      "SDXL Lightning",
+
+    description:
+      "Fast SDXL generation",
+
+    id:
+      "@cf/bytedance/stable-diffusion-xl-lightning",
+
+    standardSteps:
+      10,
+
+    bestSteps:
+      20,
+
+    guidance:
+      7.5,
+
+    defaultSelected:
+      true
   },
 
-  {
-    key: "lucid-origin",
-    label: "Lucid Origin",
-    description: "High prompt responsiveness",
-    id: "@cf/leonardo/lucid-origin",
-    standardSteps: 20,
-    bestSteps: 32,
-    guidance: 5.5,
-    defaultSelected: true
-  },
 
   {
-    key: "phoenix",
-    label: "Phoenix",
-    description: "Strong prompt adherence",
-    id: "@cf/leonardo/phoenix-1.0",
-    standardSteps: 20,
-    bestSteps: 35,
-    guidance: 7.5,
-    defaultSelected: true
+    key:
+      "sdxl-base",
+
+    provider:
+      "cloudflare",
+
+    label:
+      "SDXL Base",
+
+    description:
+      "Classic SDXL model",
+
+    id:
+      "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+
+    standardSteps:
+      12,
+
+    bestSteps:
+      20,
+
+    guidance:
+      7.5,
+
+    defaultSelected:
+      true
+  },
+
+
+  {
+    key:
+      "lucid-origin",
+
+    provider:
+      "cloudflare",
+
+    label:
+      "Lucid Origin",
+
+    description:
+      "High prompt responsiveness",
+
+    id:
+      "@cf/leonardo/lucid-origin",
+
+    standardSteps:
+      20,
+
+    bestSteps:
+      32,
+
+    guidance:
+      5.5,
+
+    defaultSelected:
+      true
+  },
+
+
+  {
+    key:
+      "phoenix",
+
+    provider:
+      "cloudflare",
+
+    label:
+      "Phoenix",
+
+    description:
+      "Strong prompt adherence",
+
+    id:
+      "@cf/leonardo/phoenix-1.0",
+
+    standardSteps:
+      20,
+
+    bestSteps:
+      35,
+
+    guidance:
+      7.5,
+
+    defaultSelected:
+      true
+  },
+
+
+  {
+    key:
+      "horde-a",
+
+    provider:
+      "horde",
+
+    label:
+      "Horde Model A",
+
+    description:
+      "AI Horde model slot A",
+
+    hordeModelEnv:
+      "AI_HORDE_MODEL_A",
+
+    hordeDefaultModel:
+      "AlbedoBase XL 3.1",
+
+    standardSteps:
+      20,
+
+    bestSteps:
+      30,
+
+    guidance:
+      7,
+
+    defaultSelected:
+      false
+  },
+
+
+  {
+    key:
+      "horde-b",
+
+    provider:
+      "horde",
+
+    label:
+      "Horde Model B",
+
+    description:
+      "AI Horde model slot B",
+
+    hordeModelEnv:
+      "AI_HORDE_MODEL_B",
+
+    hordeDefaultModel:
+      "AbsoluteReality",
+
+    standardSteps:
+      20,
+
+    bestSteps:
+      28,
+
+    guidance:
+      7,
+
+    defaultSelected:
+      false
+  },
+
+
+  {
+    key:
+      "horde-c",
+
+    provider:
+      "horde",
+
+    label:
+      "Horde Model C",
+
+    description:
+      "AI Horde model slot C",
+
+    hordeModelEnv:
+      "AI_HORDE_MODEL_C",
+
+    hordeDefaultModel:
+      "Realistic Vision",
+
+    standardSteps:
+      20,
+
+    bestSteps:
+      28,
+
+    guidance:
+      7,
+
+    defaultSelected:
+      false
+  },
+
+
+  {
+    key:
+      "horde-d",
+
+    provider:
+      "horde",
+
+    label:
+      "Horde Model D",
+
+    description:
+      "AI Horde model slot D",
+
+    hordeModelEnv:
+      "AI_HORDE_MODEL_D",
+
+    hordeDefaultModel:
+      "Deliberate 3.0",
+
+    standardSteps:
+      20,
+
+    bestSteps:
+      28,
+
+    guidance:
+      7,
+
+    defaultSelected:
+      false
   }
+
 ];
 
 
@@ -62,138 +331,274 @@ const MODELS_BY_KEY =
   );
 
 
+/* ----------------------------------
+   IMAGE SIZES
+---------------------------------- */
+
+
 const SIZES = {
 
   "square-512": {
-    label: "512 × 512",
-    width: 512,
-    height: 512
+    label:
+      "512 × 512",
+
+    width:
+      512,
+
+    height:
+      512
   },
+
 
   "square-768": {
-    label: "768 × 768",
-    width: 768,
-    height: 768
+    label:
+      "768 × 768",
+
+    width:
+      768,
+
+    height:
+      768
   },
+
 
   "square-1024": {
-    label: "1024 × 1024",
-    width: 1024,
-    height: 1024
+    label:
+      "1024 × 1024",
+
+    width:
+      1024,
+
+    height:
+      1024
   },
+
 
   "square-1280": {
-    label: "1280 × 1280",
-    width: 1280,
-    height: 1280
+    label:
+      "1280 × 1280",
+
+    width:
+      1280,
+
+    height:
+      1280
   },
+
 
   "square-1536": {
-    label: "1536 × 1536",
-    width: 1536,
-    height: 1536
+    label:
+      "1536 × 1536",
+
+    width:
+      1536,
+
+    height:
+      1536
   },
+
 
   "square-2048": {
-    label: "2048 × 2048",
-    width: 2048,
-    height: 2048
+    label:
+      "2048 × 2048",
+
+    width:
+      2048,
+
+    height:
+      2048
   },
+
 
   "landscape-1024x768": {
-    label: "1024 × 768 · 4:3",
-    width: 1024,
-    height: 768
+    label:
+      "1024 × 768 · 4:3",
+
+    width:
+      1024,
+
+    height:
+      768
   },
+
 
   "landscape-1152x768": {
-    label: "1152 × 768 · 3:2",
-    width: 1152,
-    height: 768
+    label:
+      "1152 × 768 · 3:2",
+
+    width:
+      1152,
+
+    height:
+      768
   },
+
 
   "landscape-1024x576": {
-    label: "1024 × 576 · 16:9",
-    width: 1024,
-    height: 576
+    label:
+      "1024 × 576 · 16:9",
+
+    width:
+      1024,
+
+    height:
+      576
   },
+
 
   "landscape-1344x768": {
-    label: "1344 × 768 · 7:4",
-    width: 1344,
-    height: 768
+    label:
+      "1344 × 768 · 7:4",
+
+    width:
+      1344,
+
+    height:
+      768
   },
+
 
   "landscape-1536x1024": {
-    label: "1536 × 1024 · 3:2",
-    width: 1536,
-    height: 1024
+    label:
+      "1536 × 1024 · 3:2",
+
+    width:
+      1536,
+
+    height:
+      1024
   },
+
 
   "landscape-1536x640": {
-    label: "1536 × 640 · cinematic",
-    width: 1536,
-    height: 640
+    label:
+      "1536 × 640 · cinematic",
+
+    width:
+      1536,
+
+    height:
+      640
   },
+
 
   "landscape-1792x1024": {
-    label: "1792 × 1024 · wide",
-    width: 1792,
-    height: 1024
+    label:
+      "1792 × 1024 · wide",
+
+    width:
+      1792,
+
+    height:
+      1024
   },
+
 
   "landscape-2048x1152": {
-    label: "2048 × 1152 · 16:9",
-    width: 2048,
-    height: 1152
+    label:
+      "2048 × 1152 · 16:9",
+
+    width:
+      2048,
+
+    height:
+      1152
   },
+
 
   "portrait-768x1024": {
-    label: "768 × 1024 · 3:4",
-    width: 768,
-    height: 1024
+    label:
+      "768 × 1024 · 3:4",
+
+    width:
+      768,
+
+    height:
+      1024
   },
+
 
   "portrait-768x1152": {
-    label: "768 × 1152 · 2:3",
-    width: 768,
-    height: 1152
+    label:
+      "768 × 1152 · 2:3",
+
+    width:
+      768,
+
+    height:
+      1152
   },
+
 
   "portrait-576x1024": {
-    label: "576 × 1024 · 9:16",
-    width: 576,
-    height: 1024
+    label:
+      "576 × 1024 · 9:16",
+
+    width:
+      576,
+
+    height:
+      1024
   },
+
 
   "portrait-768x1344": {
-    label: "768 × 1344 · 4:7",
-    width: 768,
-    height: 1344
+    label:
+      "768 × 1344 · 4:7",
+
+    width:
+      768,
+
+    height:
+      1344
   },
+
 
   "portrait-1024x1280": {
-    label: "1024 × 1280 · 4:5",
-    width: 1024,
-    height: 1280
+    label:
+      "1024 × 1280 · 4:5",
+
+    width:
+      1024,
+
+    height:
+      1280
   },
+
 
   "portrait-1024x1536": {
-    label: "1024 × 1536 · 2:3",
-    width: 1024,
-    height: 1536
+    label:
+      "1024 × 1536 · 2:3",
+
+    width:
+      1024,
+
+    height:
+      1536
   },
+
 
   "portrait-1024x1792": {
-    label: "1024 × 1792 · 4:7",
-    width: 1024,
-    height: 1792
+    label:
+      "1024 × 1792 · 4:7",
+
+    width:
+      1024,
+
+    height:
+      1792
   },
 
+
   "portrait-1152x2048": {
-    label: "1152 × 2048 · 9:16",
-    width: 1152,
-    height: 2048
+    label:
+      "1152 × 2048 · 9:16",
+
+    width:
+      1152,
+
+    height:
+      2048
   }
 
 };
@@ -202,7 +607,8 @@ const SIZES = {
 const SIZE_GROUPS = [
 
   {
-    label: "Square",
+    label:
+      "Square",
 
     keys: [
       "square-512",
@@ -214,8 +620,10 @@ const SIZE_GROUPS = [
     ]
   },
 
+
   {
-    label: "Landscape",
+    label:
+      "Landscape",
 
     keys: [
       "landscape-1024x768",
@@ -229,8 +637,10 @@ const SIZE_GROUPS = [
     ]
   },
 
+
   {
-    label: "Portrait",
+    label:
+      "Portrait",
 
     keys: [
       "portrait-768x1024",
@@ -247,6 +657,11 @@ const SIZE_GROUPS = [
 ];
 
 
+/* ----------------------------------
+   ERROR CLASSES
+---------------------------------- */
+
+
 class ModelOutputError extends Error {
 
   constructor(
@@ -254,10 +669,14 @@ class ModelOutputError extends Error {
     outputCode = "INVALID_OUTPUT"
   ) {
 
-    super(message);
+    super(
+      message
+    );
+
 
     this.name =
       "ModelOutputError";
+
 
     this.outputCode =
       outputCode;
@@ -271,18 +690,131 @@ class ProviderResponseError extends Error {
 
   constructor(
     message,
-    status
+    status,
+    providerCode = ""
   ) {
 
-    super(message);
+    super(
+      message
+    );
+
 
     this.name =
       "ProviderResponseError";
 
+
     this.status =
       status;
 
+
+    this.providerCode =
+      providerCode;
+
+
+    this.rc =
+      providerCode;
+
   }
+
+}
+
+
+class HordeTimeoutError extends Error {
+
+  constructor(
+    message
+  ) {
+
+    super(
+      message
+    );
+
+
+    this.name =
+      "HordeTimeoutError";
+
+
+    this.code =
+      "HORDE_TIMEOUT";
+
+  }
+
+}
+
+
+/* ----------------------------------
+   GENERAL HELPERS
+---------------------------------- */
+
+
+function escapeHTML(
+  value
+) {
+
+  return String(
+    value
+  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+
+}
+
+
+function resolveHordeModelName(
+  env,
+  model
+) {
+
+  const configured =
+    model.hordeModelEnv
+
+      ? String(
+          env?.[
+            model.hordeModelEnv
+          ] ||
+          ""
+        ).trim()
+
+      : "";
+
+
+  return (
+    configured ||
+    model.hordeDefaultModel ||
+    ""
+  );
+
+}
+
+
+function providerLabelForModel(
+  model
+) {
+
+  return (
+    PROVIDERS_BY_KEY[
+      model.provider
+    ]?.label ||
+    model.provider
+  );
 
 }
 
@@ -292,56 +824,175 @@ class ProviderResponseError extends Error {
 ---------------------------------- */
 
 
-function buildModelOptions() {
+function buildModelOption(
+  model,
+  env
+) {
 
-  return MODELS.map(
-    (model) => {
+  const checked =
+    model.defaultSelected
 
-      const checked =
-        model.defaultSelected
-          ? " checked"
+      ? " checked"
+
+      : "";
+
+
+  const providerLabel =
+    providerLabelForModel(
+      model
+    );
+
+
+  let description =
+    model.description;
+
+
+  if (
+    model.provider ===
+    "horde"
+  ) {
+
+    const runtimeModel =
+      resolveHordeModelName(
+        env,
+        model
+      );
+
+
+    description =
+      runtimeModel
+
+        ? "Uses " +
+          runtimeModel
+
+        : "Configure " +
+          model.hordeModelEnv;
+
+  }
+
+
+  return `
+    <label
+      class="model-option"
+      data-model-option="${escapeHTML(model.key)}"
+    >
+
+      <input
+        type="checkbox"
+        name="models"
+        value="${escapeHTML(model.key)}"
+        data-model-label="${escapeHTML(model.label)}"
+        data-provider-label="${escapeHTML(providerLabel)}"
+        ${checked}
+      />
+
+      <span class="model-option-content">
+
+        <span class="model-option-heading">
+
+          <strong>
+            ${escapeHTML(model.label)}
+          </strong>
+
+          <span
+            class="model-inline-status"
+            data-model-status-for="${escapeHTML(model.key)}"
+            data-tone="ready"
+          >
+            Ready
+          </span>
+
+        </span>
+
+        <small>
+          ${escapeHTML(description)}
+        </small>
+
+      </span>
+
+    </label>
+  `;
+
+}
+
+
+function buildProviderModelGroups(
+  env
+) {
+
+  return PROVIDERS.map(
+    (provider) => {
+
+      const models =
+        MODELS.filter(
+          (model) =>
+            model.provider ===
+            provider.key
+        );
+
+
+      const note =
+        provider.key ===
+        "horde"
+
+          ? `
+            <p class="provider-privacy-note">
+              Privacy note: AI Horde is volunteer-run.
+              Prompts selected for this group leave Cloudflare
+              and are processed by AI Horde workers.
+              Do not use sensitive or private prompts
+              with this provider.
+            </p>
+          `
+
           : "";
 
 
       return `
-        <label
-          class="model-option"
-          data-model-option="${model.key}"
+        <section
+          class="provider-group"
+          data-provider-group="${escapeHTML(provider.key)}"
         >
 
-          <input
-            type="checkbox"
-            name="models"
-            value="${model.key}"
-            data-model-label="${model.label}"
-            ${checked}
-          />
+          <div class="provider-group-header">
 
-          <span class="model-option-content">
+            <div>
 
-            <span class="model-option-heading">
+              <h3>
+                ${escapeHTML(provider.label)}
+              </h3>
 
-              <strong>
-                ${model.label}
-              </strong>
+              <p>
+                ${escapeHTML(provider.description)}
+              </p>
 
-              <span
-                class="model-inline-status"
-                data-model-status-for="${model.key}"
-                data-tone="ready"
-              >
-                Ready
-              </span>
+            </div>
 
+            <span class="provider-count">
+              ${models.length} models
             </span>
 
-            <small>
-              ${model.description}
-            </small>
+          </div>
 
-          </span>
+          ${note}
 
-        </label>
+          <div class="model-grid">
+
+            ${
+              models
+                .map(
+                  (model) =>
+                    buildModelOption(
+                      model,
+                      env
+                    )
+                )
+                .join("")
+            }
+
+          </div>
+
+        </section>
       `;
 
     }
@@ -361,12 +1012,17 @@ function buildSizeOptions() {
             (key) => {
 
               const size =
-                SIZES[key];
+                SIZES[
+                  key
+                ];
 
 
               const selected =
-                key === "square-1024"
+                key ===
+                "square-1024"
+
                   ? " selected"
+
                   : "";
 
 
@@ -386,7 +1042,9 @@ function buildSizeOptions() {
 
 
         return `
-          <optgroup label="${group.label}">
+          <optgroup
+            label="${group.label}"
+          >
             ${options}
           </optgroup>
         `;
@@ -464,8 +1122,8 @@ function buildFooter() {
       </div>
 
       <p class="footer-note">
-        Arqivo does not intentionally maintain a database
-        of prompts or generated images.
+        Arqivo does not intentionally maintain
+        a database of prompts or generated images.
       </p>
 
     </footer>
@@ -479,7 +1137,10 @@ function buildFooter() {
 ---------------------------------- */
 
 
-const HTML = (siteKey) => `<!doctype html>
+const HTML = (
+  siteKey,
+  env
+) => `<!doctype html>
 
 <html lang="en">
 
@@ -494,7 +1155,7 @@ const HTML = (siteKey) => `<!doctype html>
 
   <meta
     name="description"
-    content="Privacy-focused AI image generation with multiple selectable models."
+    content="Privacy-focused AI image generation with Cloudflare Workers AI and AI Horde."
   />
 
   <title>
@@ -554,7 +1215,7 @@ const HTML = (siteKey) => `<!doctype html>
 
         <p class="privacy-shortcut">
 
-          Want to know exactly how generation data is handled?
+          Provider privacy differs.
 
           <a href="/privacy">
             Read the privacy page.
@@ -599,8 +1260,8 @@ const HTML = (siteKey) => `<!doctype html>
               </legend>
 
               <p class="helper">
-                Choose one model, several models,
-                or compare all four.
+                Choose models from Cloudflare Workers AI,
+                AI Horde, or both.
               </p>
 
             </div>
@@ -629,9 +1290,9 @@ const HTML = (siteKey) => `<!doctype html>
           </div>
 
 
-          <div class="model-grid">
+          <div class="provider-groups">
 
-            ${buildModelOptions()}
+            ${buildProviderModelGroups(env)}
 
           </div>
 
@@ -800,10 +1461,13 @@ const HTML = (siteKey) => `<!doctype html>
         <p class="quota-note">
 
           Larger resolutions, more models, and more
-          variations use more AI capacity.
+          variations use more capacity.
 
           A single request is limited to
           8 generated images.
+
+          AI Horde availability and wait times
+          depend on volunteer workers.
 
         </p>
 
@@ -812,7 +1476,7 @@ const HTML = (siteKey) => `<!doctype html>
 
           <div
             class="cf-turnstile"
-            data-sitekey="${siteKey}"
+            data-sitekey="${escapeHTML(siteKey)}"
             data-error-callback="onTurnstileError"
           ></div>
 
@@ -851,8 +1515,9 @@ const HTML = (siteKey) => `<!doctype html>
             </h2>
 
             <p>
-              If one model fails, successful models
-              will still finish and remain available.
+              Each model is isolated.
+              If one provider or model fails,
+              successful results remain available.
             </p>
 
           </div>
@@ -958,9 +1623,10 @@ const PRIVACY_HTML = `<!doctype html>
         </h1>
 
         <p class="lead privacy-lead">
-          Arqivo Image Gen is designed to minimize
-          the amount of information the application
-          stores about the people who use it.
+          Arqivo is designed to minimize
+          application-level storage,
+          but the provider you select changes
+          where your prompt is processed.
         </p>
 
         <p class="last-updated">
@@ -979,8 +1645,8 @@ const PRIVACY_HTML = `<!doctype html>
           </strong>
 
           <p>
-            Arqivo does not require you to create
-            a user account or profile.
+            Arqivo does not require visitors
+            to create a user account or profile.
           </p>
 
         </div>
@@ -993,7 +1659,7 @@ const PRIVACY_HTML = `<!doctype html>
           </strong>
 
           <p>
-            Arqivo does not intentionally save your
+            Arqivo does not intentionally save
             prompts in an application database.
           </p>
 
@@ -1007,9 +1673,9 @@ const PRIVACY_HTML = `<!doctype html>
           </strong>
 
           <p>
-            Generated images are returned to your
-            browser instead of being intentionally
-            saved to an Arqivo image library.
+            Generated images are returned to
+            the browser instead of being saved
+            to an Arqivo gallery.
           </p>
 
         </div>
@@ -1026,30 +1692,27 @@ const PRIVACY_HTML = `<!doctype html>
           </h2>
 
           <p>
-            Arqivo Image Gen is built to generate an
-            image, return that image to your browser,
-            and avoid creating an application-level
-            history of your activity.
-          </p>
-
-          <p>
             Arqivo does not intentionally maintain a
-            database containing your prompts, generated
-            images, generation history, user profile,
-            or account information.
+            database containing your prompts,
+            generated images, generation history,
+            profile, or account information.
           </p>
 
           <div class="privacy-callout">
 
             <strong>
-              Important:
+              Provider difference:
             </strong>
 
-            Arqivo runs on third-party infrastructure.
-            Cloudflare and AI model providers involved
-            in processing a request may handle technical
-            or operational data according to their own
-            systems and policies.
+            Cloudflare Workers AI requests are
+            processed through Cloudflare.
+
+            AI Horde requests are sent to AI Horde's
+            distributed network and can be processed
+            by volunteer-operated workers.
+
+            Do not use AI Horde for prompts you
+            consider sensitive or private.
 
           </div>
 
@@ -1063,24 +1726,13 @@ const PRIVACY_HTML = `<!doctype html>
           </h2>
 
           <p>
-            When you enter an image prompt and click
-            Generate, the prompt is sent to the Arqivo
-            Cloudflare Worker so the requested AI model
-            can process it.
-          </p>
+            Prompts are sent to the Arqivo
+            Cloudflare Worker so the selected provider
+            can perform the generation.
 
-          <p>
-            The application does not intentionally write
-            that prompt to a database, KV store, R2 bucket,
-            Durable Object, prompt-history system, or other
-            persistent application storage.
-          </p>
-
-          <p>
-            Your prompt must still be transmitted through
-            the infrastructure required to perform the
-            generation. That processing is necessary for
-            the service to work.
+            Arqivo does not intentionally write
+            the prompt to KV, R2, Durable Objects,
+            a database, or a prompt-history system.
           </p>
 
         </section>
@@ -1093,28 +1745,11 @@ const PRIVACY_HTML = `<!doctype html>
           </h2>
 
           <p>
-            AI-generated images are produced by the
-            selected Workers AI model and returned to
-            the browser that requested them.
-          </p>
+            Generated images are returned to the
+            requesting browser.
 
-          <p>
-            Arqivo does not intentionally save those
-            generated images to an application database
-            or permanent image gallery.
-          </p>
-
-          <p>
-            The browser receives the generated image
-            data so that it can display the result and
-            allow you to download it.
-          </p>
-
-          <p>
-            If you refresh or close the page, Arqivo
-            does not provide an application-level image
-            history from which those images can later
-            be restored.
+            Arqivo does not intentionally save them
+            to a permanent application image library.
           </p>
 
         </section>
@@ -1123,14 +1758,17 @@ const PRIVACY_HTML = `<!doctype html>
         <section class="privacy-section">
 
           <h2>
-            4. AI models
+            4. Providers and models
           </h2>
 
           <p>
-            Arqivo can currently send generation requests
-            to multiple image models available through
-            Cloudflare Workers AI.
+            Arqivo currently exposes two provider groups:
           </p>
+
+
+          <h3>
+            Cloudflare Workers AI
+          </h3>
 
           <ul>
 
@@ -1152,10 +1790,45 @@ const PRIVACY_HTML = `<!doctype html>
 
           </ul>
 
+
+          <h3>
+            AI Horde
+          </h3>
+
+          <ul>
+
+            <li>
+              Horde Model A
+            </li>
+
+            <li>
+              Horde Model B
+            </li>
+
+            <li>
+              Horde Model C
+            </li>
+
+            <li>
+              Horde Model D
+            </li>
+
+          </ul>
+
+
           <p>
-            The selected model receives the information
-            necessary to perform the image-generation
-            request.
+            AI Horde is community-powered.
+
+            Requests can be processed on
+            volunteer-operated computers.
+
+            The AI Horde project states that
+            workers do not receive requestor IDs
+            or IP addresses, but workers technically
+            control the machines performing the
+            generation.
+
+            Treat AI Horde prompts as non-sensitive.
           </p>
 
         </section>
@@ -1168,30 +1841,16 @@ const PRIVACY_HTML = `<!doctype html>
           </h2>
 
           <p>
-            When you connect to any public website,
-            network information such as an IP address
-            is necessarily involved in delivering the
-            request.
-          </p>
+            Network information such as an IP address
+            is necessarily involved when using a
+            public website.
 
-          <p>
-            Arqivo receives the Cloudflare-provided
-            connecting IP address during a generation
-            request and can provide it to Cloudflare
-            Turnstile's server-side verification service
-            as part of abuse prevention.
-          </p>
+            Arqivo can provide the Cloudflare
+            connecting IP to Turnstile's verification
+            service.
 
-          <p>
-            Arqivo does not intentionally store that IP
-            address in an application database.
-          </p>
-
-          <p>
-            Cloudflare infrastructure may independently
-            process or retain network and operational
-            information according to Cloudflare's own
-            service, security, and logging practices.
+            Arqivo does not intentionally save that
+            IP in an application database.
           </p>
 
         </section>
@@ -1205,26 +1864,11 @@ const PRIVACY_HTML = `<!doctype html>
 
           <p>
             Arqivo uses Cloudflare Turnstile to reduce
-            automated abuse and protect the limited AI
-            generation capacity available to the site.
-          </p>
+            automated abuse.
 
-          <p>
-            Before an image is generated, the browser
-            obtains a Turnstile verification token.
-            Arqivo sends that token to Cloudflare for
-            server-side verification.
-          </p>
-
-          <p>
-            Turnstile may evaluate browser, network,
-            and security signals as part of determining
-            whether a request is legitimate.
-          </p>
-
-          <p>
-            Arqivo does not use the Turnstile token to
-            create a user account or advertising profile.
+            The browser obtains a verification token,
+            and the Worker verifies it server-side
+            before generation begins.
           </p>
 
         </section>
@@ -1233,26 +1877,29 @@ const PRIVACY_HTML = `<!doctype html>
         <section class="privacy-section">
 
           <h2>
-            7. Browser storage
+            7. AI Horde
           </h2>
 
           <p>
-            Arqivo does not intentionally use browser
-            localStorage to maintain prompt history,
-            generated-image history, or a user profile.
+            If you select a Horde model, Arqivo sends
+            the prompt and generation settings to
+            AI Horde.
+
+            AI Horde then assigns the job to a
+            compatible worker in its distributed
+            network.
           </p>
 
           <p>
-            Generated image data exists in the browser
-            while the page is displaying the results.
-          </p>
+            Arqivo requests non-shared generation
+            where the account and provider support
+            that option, and the integration requests
+            trusted workers.
 
-          <p>
-            Your browser, Cloudflare Turnstile, or other
-            browser-level systems may independently use
-            temporary storage, caches, cookies, or similar
-            mechanisms where required for normal browser
-            or security functionality.
+            Those settings reduce exposure but cannot
+            make a volunteer-run distributed system
+            equivalent to processing entirely inside
+            Arqivo's Cloudflare Worker.
           </p>
 
         </section>
@@ -1261,26 +1908,20 @@ const PRIVACY_HTML = `<!doctype html>
         <section class="privacy-section">
 
           <h2>
-            8. Caching
+            8. Browser storage and caching
           </h2>
 
           <p>
-            Arqivo sends no-store and no-cache response
-            headers for its application responses.
-          </p>
+            Arqivo does not intentionally use
+            localStorage for prompt or generated-image
+            history.
 
-          <p>
-            These headers are intended to discourage
-            browsers and intermediaries from retaining
-            dynamic Arqivo responses as normal cached
-            content.
-          </p>
+            Application responses use no-store and
+            no-cache headers.
 
-          <p>
-            No web application can guarantee that every
-            device, browser, network tool, screenshot
-            utility, or infrastructure system will never
-            retain a copy of information.
+            Browser and infrastructure behavior outside
+            Arqivo's code may still involve temporary
+            caches or security storage.
           </p>
 
         </section>
@@ -1293,190 +1934,36 @@ const PRIVACY_HTML = `<!doctype html>
           </h2>
 
           <p>
-            The Arqivo application is designed not to
-            intentionally log prompts, generated image
-            contents, Turnstile tokens, or full request
-            bodies.
-          </p>
+            Arqivo is designed not to intentionally log
+            prompts, generated image contents,
+            Turnstile tokens, or full request bodies.
 
-          <p>
-            Server-side error messages may be written
-            when a generation or verification operation
-            fails so that technical problems can be
+            Technical error metadata may be logged
+            without the prompt so failures can be
             diagnosed.
           </p>
 
-          <p>
-            Infrastructure providers may separately
-            maintain operational or security logs.
-          </p>
-
         </section>
 
 
         <section class="privacy-section">
 
           <h2>
-            10. Data Arqivo does not require
+            10. Security
           </h2>
 
           <p>
-            Arqivo does not require you to provide:
-          </p>
+            Arqivo reduces its attack surface by
+            avoiding visitor accounts,
+            application databases,
+            prompt-history storage,
+            and permanent generated-image storage.
 
-          <ul>
-
-            <li>
-              your name
-            </li>
-
-            <li>
-              an email address
-            </li>
-
-            <li>
-              a phone number
-            </li>
-
-            <li>
-              a mailing address
-            </li>
-
-            <li>
-              a password
-            </li>
-
-            <li>
-              payment information
-            </li>
-
-            <li>
-              a social-media account
-            </li>
-
-          </ul>
-
-        </section>
-
-
-        <section class="privacy-section">
-
-          <h2>
-            11. No advertising profile
-          </h2>
-
-          <p>
-            Arqivo does not intentionally build an
-            advertising profile from your prompts or
-            generated images.
-          </p>
-
-          <p>
-            The application does not include an Arqivo
-            advertising database or user-targeting
-            profile system.
-          </p>
-
-        </section>
-
-
-        <section class="privacy-section">
-
-          <h2>
-            12. Downloads
-          </h2>
-
-          <p>
-            When you choose Download, the generated
-            image is downloaded through your browser.
-          </p>
-
-          <p>
-            After that point, the copy saved on your
-            device is controlled by you and by the
-            software and storage systems on your device.
-          </p>
-
-        </section>
-
-
-        <section class="privacy-section">
-
-          <h2>
-            13. Security
-          </h2>
-
-          <p>
-            Arqivo attempts to minimize its attack
-            surface by avoiding user accounts,
-            application databases, prompt-history
-            storage, and permanent generated-image
-            storage.
-          </p>
-
-          <p>
-            The application also uses measures such as
-            Turnstile verification, same-origin request
-            checks, server-side secrets, request limits,
+            It also uses Turnstile,
+            same-origin checks,
+            server-side secrets,
+            request limits,
             and restrictive browser security headers.
-          </p>
-
-          <p>
-            No public internet service can truthfully
-            guarantee that it is impossible to compromise.
-          </p>
-
-        </section>
-
-
-        <section class="privacy-section">
-
-          <h2>
-            14. Third-party infrastructure
-          </h2>
-
-          <p>
-            Arqivo currently relies on Cloudflare
-            infrastructure to operate the website,
-            execute the Worker, perform Turnstile
-            verification, and provide access to
-            Workers AI models.
-          </p>
-
-          <p>
-            Because these systems are operated outside
-            of Arqivo's application code, their own
-            privacy, security, abuse-prevention, and
-            operational practices may apply.
-          </p>
-
-          <p>
-            This privacy page describes what the Arqivo
-            application itself is intentionally designed
-            to collect and retain. It should not be read
-            as a claim that third-party infrastructure
-            performs zero logging.
-          </p>
-
-        </section>
-
-
-        <section class="privacy-section">
-
-          <h2>
-            15. Changes to this page
-          </h2>
-
-          <p>
-            Arqivo may update this privacy page when the
-            application's models, infrastructure, storage
-            behavior, or features change.
-          </p>
-
-          <p>
-            If a future feature begins storing information
-            that is currently not stored, this page should
-            be updated to describe that change.
           </p>
 
         </section>
@@ -1487,12 +1974,6 @@ const PRIVACY_HTML = `<!doctype html>
           <h2>
             Privacy by architecture
           </h2>
-
-          <p>
-            Arqivo's privacy approach is based primarily
-            on avoiding unnecessary data collection in
-            the first place.
-          </p>
 
           <div class="privacy-flow">
 
@@ -1505,7 +1986,7 @@ const PRIVACY_HTML = `<!doctype html>
             </span>
 
             <span>
-              AI generation
+              Selected provider
             </span>
 
             <span class="privacy-arrow">
@@ -1593,7 +2074,8 @@ body {
       #121933 100%
     );
 
-  color: var(--text);
+  color:
+    var(--text);
 
   font-family:
     system-ui,
@@ -1610,12 +2092,14 @@ body {
 
 
 a {
-  color: var(--accent);
+  color:
+    var(--accent);
 }
 
 
 a:hover {
-  color: var(--accent-hover);
+  color:
+    var(--accent-hover);
 }
 
 
@@ -1635,19 +2119,24 @@ a:hover {
       calc(100% - 2rem)
     );
 
-  margin: 0 auto;
+  margin:
+    0 auto;
 
   padding:
     1.2rem
     0;
 
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
+  align-items:
+    center;
 
-  justify-content: space-between;
+  justify-content:
+    space-between;
 
-  gap: 1rem;
+  gap:
+    1rem;
 
   border-bottom:
     1px
@@ -1662,49 +2151,63 @@ a:hover {
 
 
 .brand {
-  color: var(--text);
+  color:
+    var(--text);
 
-  text-decoration: none;
+  text-decoration:
+    none;
 
-  font-size: 1.1rem;
+  font-size:
+    1.1rem;
 
-  font-weight: 900;
+  font-weight:
+    900;
 
-  letter-spacing: -0.02em;
+  letter-spacing:
+    -0.02em;
 }
 
 
 .brand:hover {
-  color: var(--text);
+  color:
+    var(--text);
 }
 
 
 .site-nav {
-  display: flex;
+  display:
+    flex;
 
-  gap: 0.4rem;
+  gap:
+    0.4rem;
 }
 
 
 .site-nav a {
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  text-decoration: none;
+  text-decoration:
+    none;
 
-  border-radius: 999px;
+  border-radius:
+    999px;
 
   padding:
     0.55rem
     0.9rem;
 
-  font-size: 0.92rem;
+  font-size:
+    0.92rem;
 
-  font-weight: 700;
+  font-weight:
+    700;
 }
 
 
 .site-nav a:hover {
-  color: var(--text);
+  color:
+    var(--text);
 
   background:
     rgba(
@@ -1717,7 +2220,8 @@ a:hover {
 
 
 .site-nav .nav-active {
-  color: var(--text);
+  color:
+    var(--text);
 
   background:
     rgba(
@@ -1746,19 +2250,22 @@ a:hover {
       calc(100% - 2rem)
     );
 
-  margin: 0 auto;
+  margin:
+    0 auto;
 
   padding:
     2rem
     0
     4rem;
 
-  flex: 1;
+  flex:
+    1;
 }
 
 
 .hero {
-  margin-bottom: 1.5rem;
+  margin-bottom:
+    1.5rem;
 }
 
 
@@ -1770,9 +2277,11 @@ h1 {
       4rem
     );
 
-  line-height: 1.05;
+  line-height:
+    1.05;
 
-  letter-spacing: -0.04em;
+  letter-spacing:
+    -0.04em;
 
   margin:
     0
@@ -1782,33 +2291,39 @@ h1 {
 
 
 .lead {
-  color: var(--muted);
+  color:
+    var(--muted);
 
   margin:
     0
     0
     0.7rem;
 
-  line-height: 1.6;
+  line-height:
+    1.6;
 
-  max-width: 760px;
+  max-width:
+    760px;
 }
 
 
 .privacy-shortcut {
-  color: var(--muted);
+  color:
+    var(--muted);
 
   margin:
     0
     0
     1.5rem;
 
-  font-size: 0.9rem;
+  font-size:
+    0.9rem;
 }
 
 
 .privacy-shortcut a {
-  font-weight: 700;
+  font-weight:
+    700;
 }
 
 
@@ -1826,9 +2341,11 @@ form {
     solid
     var(--border);
 
-  border-radius: 18px;
+  border-radius:
+    18px;
 
-  padding: 1rem;
+  padding:
+    1rem;
 
   backdrop-filter:
     blur(12px);
@@ -1837,46 +2354,59 @@ form {
 
 label,
 legend {
-  font-weight: 700;
+  font-weight:
+    700;
 
-  font-size: 1.05rem;
+  font-size:
+    1.05rem;
 }
 
 
 .prompt-block > label {
-  display: block;
+  display:
+    block;
 
-  margin-bottom: 0.5rem;
+  margin-bottom:
+    0.5rem;
 }
 
 
 textarea {
-  width: 100%;
+  width:
+    100%;
 
-  resize: vertical;
+  resize:
+    vertical;
 
-  min-height: 180px;
+  min-height:
+    180px;
 
   border:
     1px
     solid
     var(--border);
 
-  background: var(--panel-2);
+  background:
+    var(--panel-2);
 
-  color: var(--text);
+  color:
+    var(--text);
 
-  border-radius: 12px;
+  border-radius:
+    12px;
 
   padding:
     0.9rem
     1rem;
 
-  font: inherit;
+  font:
+    inherit;
 
-  line-height: 1.5;
+  line-height:
+    1.5;
 
-  margin-bottom: 1.25rem;
+  margin-bottom:
+    1.25rem;
 }
 
 
@@ -1900,8 +2430,14 @@ input[type="number"]:focus {
     solid
     var(--accent);
 
-  outline-offset: 1px;
+  outline-offset:
+    1px;
 }
+
+
+/* ----------------------------------
+   PROVIDER / MODEL UI
+---------------------------------- */
 
 
 .model-picker {
@@ -1910,9 +2446,11 @@ input[type="number"]:focus {
     solid
     var(--border);
 
-  border-radius: 14px;
+  border-radius:
+    14px;
 
-  padding: 1rem;
+  padding:
+    1rem;
 
   margin:
     0
@@ -1922,20 +2460,26 @@ input[type="number"]:focus {
 
 
 .model-picker legend {
-  padding: 0;
+  padding:
+    0;
 }
 
 
 .section-heading {
-  display: flex;
+  display:
+    flex;
 
-  align-items: flex-start;
+  align-items:
+    flex-start;
 
-  justify-content: space-between;
+  justify-content:
+    space-between;
 
-  gap: 1rem;
+  gap:
+    1rem;
 
-  margin-bottom: 0.8rem;
+  margin-bottom:
+    1rem;
 }
 
 
@@ -1945,73 +2489,238 @@ input[type="number"]:focus {
     0
     0;
 
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  font-size: 0.9rem;
+  font-size:
+    0.9rem;
 }
 
 
 .model-actions {
-  display: flex;
+  display:
+    flex;
 
-  gap: 0.5rem;
+  gap:
+    0.5rem;
 
-  flex-shrink: 0;
+  flex-shrink:
+    0;
+}
+
+
+.provider-groups {
+  display:
+    grid;
+
+  gap:
+    1rem;
+}
+
+
+.provider-group {
+  padding:
+    1rem;
+
+  border:
+    1px
+    solid
+    var(--border);
+
+  border-radius:
+    14px;
+
+  background:
+    rgba(
+      11,
+      16,
+      32,
+      0.28
+    );
+}
+
+
+.provider-group-header {
+  display:
+    flex;
+
+  justify-content:
+    space-between;
+
+  align-items:
+    flex-start;
+
+  gap:
+    1rem;
+
+  margin-bottom:
+    0.85rem;
+}
+
+
+.provider-group-header h3 {
+  margin:
+    0
+    0
+    0.25rem;
+
+  font-size:
+    1.08rem;
+}
+
+
+.provider-group-header p {
+  margin:
+    0;
+
+  color:
+    var(--muted);
+
+  font-size:
+    0.82rem;
+
+  line-height:
+    1.45;
+}
+
+
+.provider-count {
+  flex-shrink:
+    0;
+
+  border:
+    1px
+    solid
+    var(--border);
+
+  border-radius:
+    999px;
+
+  padding:
+    0.28rem
+    0.55rem;
+
+  color:
+    var(--muted);
+
+  font-size:
+    0.7rem;
+
+  font-weight:
+    800;
+}
+
+
+.provider-privacy-note {
+  margin:
+    0
+    0
+    0.85rem;
+
+  padding:
+    0.75rem
+    0.85rem;
+
+  color:
+    var(--warning);
+
+  background:
+    rgba(
+      255,
+      212,
+      121,
+      0.06
+    );
+
+  border:
+    1px
+    solid
+    rgba(
+      255,
+      212,
+      121,
+      0.22
+    );
+
+  border-radius:
+    10px;
+
+  font-size:
+    0.8rem;
+
+  line-height:
+    1.5;
 }
 
 
 button {
-  appearance: none;
+  appearance:
+    none;
 
-  border: none;
+  border:
+    none;
 
-  background: var(--accent);
+  background:
+    var(--accent);
 
-  color: #08101f;
+  color:
+    #08101f;
 
-  font-weight: 800;
+  font-weight:
+    800;
 
-  border-radius: 999px;
+  border-radius:
+    999px;
 
   padding:
     0.95rem
     1.3rem;
 
-  cursor: pointer;
+  cursor:
+    pointer;
 
-  margin-top: 1rem;
+  margin-top:
+    1rem;
 
-  font-size: 1rem;
+  font-size:
+    1rem;
 }
 
 
 button:hover:not(:disabled) {
-  background: var(--accent-hover);
+  background:
+    var(--accent-hover);
 }
 
 
 button:disabled {
-  opacity: 0.55;
+  opacity:
+    0.55;
 
-  cursor: not-allowed;
+  cursor:
+    not-allowed;
 }
 
 
 .small-button {
-  margin: 0;
+  margin:
+    0;
 
   padding:
     0.5rem
     0.8rem;
 
-  font-size: 0.85rem;
+  font-size:
+    0.85rem;
 }
 
 
 .small-button.secondary {
-  background: transparent;
+  background:
+    transparent;
 
-  color: var(--text);
+  color:
+    var(--text);
 
   border:
     1px
@@ -2021,7 +2730,8 @@ button:disabled {
 
 
 .model-grid {
-  display: grid;
+  display:
+    grid;
 
   grid-template-columns:
     repeat(
@@ -2029,29 +2739,37 @@ button:disabled {
       minmax(0, 1fr)
     );
 
-  gap: 0.75rem;
+  gap:
+    0.75rem;
 }
 
 
 .model-option {
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
+  align-items:
+    center;
 
-  gap: 0.75rem;
+  gap:
+    0.75rem;
 
-  cursor: pointer;
+  cursor:
+    pointer;
 
-  background: var(--panel-2);
+  background:
+    var(--panel-2);
 
   border:
     1px
     solid
     var(--border);
 
-  border-radius: 12px;
+  border-radius:
+    12px;
 
-  padding: 0.9rem;
+  padding:
+    0.9rem;
 
   transition:
     border-color 120ms ease,
@@ -2060,98 +2778,121 @@ button:disabled {
 
 
 .model-option:hover {
-  border-color: var(--border-hover);
+  border-color:
+    var(--border-hover);
 
-  background: var(--panel-3);
+  background:
+    var(--panel-3);
 }
 
 
 .model-option:has(input:checked) {
-  border-color: var(--accent);
+  border-color:
+    var(--accent);
 }
 
 
 .model-option input {
-  width: 18px;
+  width:
+    18px;
 
-  height: 18px;
+  height:
+    18px;
 
   flex:
     0
     0
     auto;
 
-  accent-color: var(--accent);
+  accent-color:
+    var(--accent);
 }
 
 
 .model-option-content {
-  display: flex;
+  display:
+    flex;
 
-  flex-direction: column;
+  flex-direction:
+    column;
 
-  gap: 0.25rem;
+  gap:
+    0.25rem;
 
-  flex: 1;
+  flex:
+    1;
 
-  min-width: 0;
+  min-width:
+    0;
 }
 
 
 .model-option-heading {
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
+  align-items:
+    center;
 
-  justify-content: space-between;
+  justify-content:
+    space-between;
 
-  gap: 0.6rem;
+  gap:
+    0.6rem;
 }
 
 
 .model-option-content strong {
-  font-size: 0.95rem;
+  font-size:
+    0.95rem;
 }
 
 
 .model-option-content small {
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  font-weight: 400;
+  font-weight:
+    400;
+
+  overflow-wrap:
+    anywhere;
 }
 
 
 .model-inline-status {
-  flex-shrink: 0;
+  flex-shrink:
+    0;
 
   padding:
     0.22rem
     0.48rem;
 
-  border-radius: 999px;
+  border-radius:
+    999px;
 
   border:
     1px
     solid
     var(--border);
 
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  font-size: 0.68rem;
+  font-size:
+    0.68rem;
 
-  font-weight: 850;
+  font-weight:
+    850;
 
-  line-height: 1;
-}
-
-
-.model-inline-status[data-tone="ready"] {
-  color: var(--muted);
+  line-height:
+    1;
 }
 
 
 .model-inline-status[data-tone="processing"] {
-  color: var(--accent);
+  color:
+    var(--accent);
 
   border-color:
     rgba(
@@ -2172,7 +2913,8 @@ button:disabled {
 
 
 .model-inline-status[data-tone="success"] {
-  color: var(--success);
+  color:
+    var(--success);
 
   border-color:
     rgba(
@@ -2193,7 +2935,8 @@ button:disabled {
 
 
 .model-inline-status[data-tone="warning"] {
-  color: var(--warning);
+  color:
+    var(--warning);
 
   border-color:
     rgba(
@@ -2214,7 +2957,8 @@ button:disabled {
 
 
 .model-inline-status[data-tone="error"] {
-  color: var(--danger);
+  color:
+    var(--danger);
 
   border-color:
     rgba(
@@ -2234,8 +2978,14 @@ button:disabled {
 }
 
 
+/* ----------------------------------
+   GENERATION CONTROLS
+---------------------------------- */
+
+
 .controls {
-  display: grid;
+  display:
+    grid;
 
   grid-template-columns:
     repeat(
@@ -2243,7 +2993,8 @@ button:disabled {
       minmax(0, 1fr)
     );
 
-  gap: 1rem;
+  gap:
+    1rem;
 
   margin:
     0
@@ -2253,68 +3004,88 @@ button:disabled {
 
 
 .control {
-  display: flex;
+  display:
+    flex;
 
-  flex-direction: column;
+  flex-direction:
+    column;
 
-  gap: 0.45rem;
+  gap:
+    0.45rem;
 }
 
 
 .control label {
-  margin: 0;
+  margin:
+    0;
 
-  font-size: 0.9rem;
+  font-size:
+    0.9rem;
 
-  color: var(--muted);
+  color:
+    var(--muted);
 }
 
 
 .optional {
-  font-weight: 400;
+  font-weight:
+    400;
 
-  opacity: 0.7;
+  opacity:
+    0.7;
 }
 
 
 select,
 input[type="number"] {
-  width: 100%;
+  width:
+    100%;
 
-  background: var(--panel-2);
+  background:
+    var(--panel-2);
 
-  color: var(--text);
+  color:
+    var(--text);
 
   border:
     1px
     solid
     var(--border);
 
-  border-radius: 10px;
+  border-radius:
+    10px;
 
-  padding: 0.75rem;
+  padding:
+    0.75rem;
 
-  font: inherit;
+  font:
+    inherit;
 }
 
 
 .custom-size-controls {
-  display: grid;
+  display:
+    grid;
 
   grid-template-columns:
     minmax(0, 1fr)
     auto
     minmax(0, 1fr);
 
-  align-items: center;
+  align-items:
+    center;
 
-  gap: 1rem;
+  gap:
+    1rem;
 
-  max-width: 650px;
+  max-width:
+    650px;
 
-  margin-bottom: 1rem;
+  margin-bottom:
+    1rem;
 
-  padding: 1rem;
+  padding:
+    1rem;
 
   background:
     rgba(
@@ -2329,28 +3100,36 @@ input[type="number"] {
     solid
     var(--border);
 
-  border-radius: 12px;
+  border-radius:
+    12px;
 }
 
 
 .size-separator {
-  align-self: center;
+  align-self:
+    center;
 
-  padding-top: 1.4rem;
+  padding-top:
+    1.4rem;
 
-  font-size: 1.4rem;
+  font-size:
+    1.4rem;
 
-  color: var(--muted);
+  color:
+    var(--muted);
 }
 
 
 .field-help,
 .quota-note {
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  font-size: 0.82rem;
+  font-size:
+    0.82rem;
 
-  line-height: 1.5;
+  line-height:
+    1.5;
 }
 
 
@@ -2363,35 +3142,42 @@ input[type="number"] {
 
 
 .verification-area {
-  margin-top: 0.5rem;
+  margin-top:
+    0.5rem;
 }
 
 
 .status {
-  min-height: 1.5rem;
+  min-height:
+    1.5rem;
 
   margin:
     1rem
     0;
 
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  font-size: 1.05rem;
+  font-size:
+    1.05rem;
 }
 
 
 .status[data-tone="success"] {
-  color: var(--success);
+  color:
+    var(--success);
 }
 
 
 .status[data-tone="warning"] {
-  color: var(--warning);
+  color:
+    var(--warning);
 }
 
 
 .status[data-tone="error"] {
-  color: var(--danger);
+  color:
+    var(--danger);
 }
 
 
@@ -2405,7 +3191,8 @@ input[type="number"] {
     1rem
     0;
 
-  padding: 1rem;
+  padding:
+    1rem;
 
   background:
     rgba(
@@ -2420,20 +3207,26 @@ input[type="number"] {
     solid
     var(--border);
 
-  border-radius: 16px;
+  border-radius:
+    16px;
 }
 
 
 .model-status-header {
-  display: flex;
+  display:
+    flex;
 
-  align-items: flex-start;
+  align-items:
+    flex-start;
 
-  justify-content: space-between;
+  justify-content:
+    space-between;
 
-  gap: 1rem;
+  gap:
+    1rem;
 
-  margin-bottom: 0.85rem;
+  margin-bottom:
+    0.85rem;
 }
 
 
@@ -2443,47 +3236,62 @@ input[type="number"] {
     0
     0.25rem;
 
-  font-size: 1rem;
+  font-size:
+    1rem;
 }
 
 
 .model-status-header p {
-  margin: 0;
+  margin:
+    0;
 
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  font-size: 0.82rem;
+  font-size:
+    0.82rem;
 
-  line-height: 1.45;
+  line-height:
+    1.45;
 }
 
 
 .model-status-summary {
-  flex-shrink: 0;
+  flex-shrink:
+    0;
 
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  font-size: 0.78rem;
+  font-size:
+    0.78rem;
 
-  font-weight: 750;
+  font-weight:
+    750;
 }
 
 
 .model-status-list {
-  display: grid;
+  display:
+    grid;
 
-  gap: 0.6rem;
+  gap:
+    0.6rem;
 }
 
 
 .model-status-row {
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
+  align-items:
+    center;
 
-  justify-content: space-between;
+  justify-content:
+    space-between;
 
-  gap: 1rem;
+  gap:
+    1rem;
 
   padding:
     0.75rem
@@ -2502,7 +3310,8 @@ input[type="number"] {
     solid
     var(--border);
 
-  border-radius: 11px;
+  border-radius:
+    11px;
 }
 
 
@@ -2540,58 +3349,74 @@ input[type="number"] {
 
 
 .model-status-left {
-  min-width: 0;
+  min-width:
+    0;
 }
 
 
 .model-status-name {
-  display: block;
+  display:
+    block;
 
-  color: var(--text);
+  color:
+    var(--text);
 
-  font-size: 0.9rem;
+  font-size:
+    0.9rem;
 
-  font-weight: 800;
+  font-weight:
+    800;
 }
 
 
 .model-status-detail {
-  display: block;
+  display:
+    block;
 
-  margin-top: 0.2rem;
+  margin-top:
+    0.2rem;
 
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  font-size: 0.78rem;
+  font-size:
+    0.78rem;
 
-  line-height: 1.4;
+  line-height:
+    1.4;
 }
 
 
 .model-status-badge {
-  flex-shrink: 0;
+  flex-shrink:
+    0;
 
   border:
     1px
     solid
     var(--border);
 
-  border-radius: 999px;
+  border-radius:
+    999px;
 
   padding:
     0.3rem
     0.55rem;
 
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  font-size: 0.7rem;
+  font-size:
+    0.7rem;
 
-  font-weight: 850;
+  font-weight:
+    850;
 }
 
 
 .model-status-badge[data-tone="processing"] {
-  color: var(--accent);
+  color:
+    var(--accent);
 
   border-color:
     rgba(
@@ -2612,7 +3437,8 @@ input[type="number"] {
 
 
 .model-status-badge[data-tone="success"] {
-  color: var(--success);
+  color:
+    var(--success);
 
   border-color:
     rgba(
@@ -2633,7 +3459,8 @@ input[type="number"] {
 
 
 .model-status-badge[data-tone="warning"] {
-  color: var(--warning);
+  color:
+    var(--warning);
 
   border-color:
     rgba(
@@ -2654,7 +3481,8 @@ input[type="number"] {
 
 
 .model-status-badge[data-tone="error"] {
-  color: var(--danger);
+  color:
+    var(--danger);
 
   border-color:
     rgba(
@@ -2680,7 +3508,8 @@ input[type="number"] {
 
 
 .results {
-  display: grid;
+  display:
+    grid;
 
   grid-template-columns:
     repeat(
@@ -2688,14 +3517,17 @@ input[type="number"] {
       minmax(0, 1fr)
     );
 
-  gap: 1rem;
+  gap:
+    1rem;
 
-  margin-top: 1rem;
+  margin-top:
+    1rem;
 }
 
 
 .result-card {
-  min-width: 0;
+  min-width:
+    0;
 
   background:
     rgba(
@@ -2710,49 +3542,63 @@ input[type="number"] {
     solid
     var(--border);
 
-  border-radius: 18px;
+  border-radius:
+    18px;
 
-  padding: 1rem;
+  padding:
+    1rem;
 }
 
 
 .result-heading-row {
-  display: flex;
+  display:
+    flex;
 
-  align-items: flex-start;
+  align-items:
+    flex-start;
 
-  justify-content: space-between;
+  justify-content:
+    space-between;
 
-  gap: 0.75rem;
+  gap:
+    0.75rem;
 
-  margin-bottom: 0.4rem;
+  margin-bottom:
+    0.4rem;
 }
 
 
 .result-card h3 {
-  margin: 0;
+  margin:
+    0;
 
-  font-size: 1.05rem;
+  font-size:
+    1.05rem;
 }
 
 
 .result-state {
-  flex-shrink: 0;
+  flex-shrink:
+    0;
 
-  border-radius: 999px;
+  border-radius:
+    999px;
 
   padding:
     0.28rem
     0.5rem;
 
-  font-size: 0.68rem;
+  font-size:
+    0.68rem;
 
-  font-weight: 850;
+  font-weight:
+    850;
 }
 
 
 .result-state.success {
-  color: var(--success);
+  color:
+    var(--success);
 
   border:
     1px
@@ -2767,7 +3613,8 @@ input[type="number"] {
 
 
 .result-state.error {
-  color: var(--danger);
+  color:
+    var(--danger);
 
   border:
     1px
@@ -2782,91 +3629,117 @@ input[type="number"] {
 
 
 .result-meta {
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  font-size: 0.82rem;
+  font-size:
+    0.82rem;
 
   margin:
     0
     0
     0.8rem;
 
-  line-height: 1.4;
+  line-height:
+    1.5;
 
-  overflow-wrap: anywhere;
+  overflow-wrap:
+    anywhere;
 }
 
 
 .image-frame {
-  width: 100%;
+  width:
+    100%;
 
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
+  align-items:
+    center;
 
-  justify-content: center;
+  justify-content:
+    center;
 
-  overflow: hidden;
+  overflow:
+    hidden;
 
-  background: #070a12;
+  background:
+    #070a12;
 
-  border-radius: 14px;
+  border-radius:
+    14px;
 }
 
 
 .result-card img {
-  display: block;
+  display:
+    block;
 
-  width: 100%;
+  width:
+    100%;
 
-  height: auto;
+  height:
+    auto;
 
-  object-fit: contain;
+  object-fit:
+    contain;
 
-  border-radius: 14px;
+  border-radius:
+    14px;
 }
 
 
 .result-actions {
-  display: flex;
+  display:
+    flex;
 
-  flex-wrap: wrap;
+  flex-wrap:
+    wrap;
 
-  gap: 0.5rem;
+  gap:
+    0.5rem;
 
-  margin-top: 0.75rem;
+  margin-top:
+    0.75rem;
 }
 
 
 .result-actions a {
-  display: inline-block;
+  display:
+    inline-block;
 
-  text-decoration: none;
+  text-decoration:
+    none;
 
-  color: var(--text);
+  color:
+    var(--text);
 
   border:
     1px
     solid
     var(--border);
 
-  border-radius: 999px;
+  border-radius:
+    999px;
 
   padding:
     0.55rem
     0.9rem;
 
-  font-size: 0.95rem;
+  font-size:
+    0.95rem;
 }
 
 
 .result-actions a:hover {
-  border-color: var(--border-hover);
+  border-color:
+    var(--border-hover);
 }
 
 
 /* ----------------------------------
-   MODEL ERROR CARDS
+   ERRORS
 ---------------------------------- */
 
 
@@ -2899,11 +3772,11 @@ input[type="number"] {
 
 
 .error-kicker {
-  display: inline-flex;
+  display:
+    inline-flex;
 
-  align-items: center;
-
-  gap: 0.35rem;
+  align-items:
+    center;
 
   margin:
     0.35rem
@@ -2914,9 +3787,11 @@ input[type="number"] {
     0.3rem
     0.55rem;
 
-  border-radius: 999px;
+  border-radius:
+    999px;
 
-  color: var(--danger);
+  color:
+    var(--danger);
 
   background:
     rgba(
@@ -2936,13 +3811,17 @@ input[type="number"] {
       0.22
     );
 
-  font-size: 0.74rem;
+  font-size:
+    0.74rem;
 
-  font-weight: 800;
+  font-weight:
+    800;
 
-  text-transform: uppercase;
+  text-transform:
+    uppercase;
 
-  letter-spacing: 0.06em;
+  letter-spacing:
+    0.06em;
 }
 
 
@@ -2952,22 +3831,29 @@ input[type="number"] {
     0
     0.45rem;
 
-  color: var(--text);
+  color:
+    var(--text);
 
-  font-size: 1rem;
+  font-size:
+    1rem;
 
-  font-weight: 850;
+  font-weight:
+    850;
 }
 
 
 .error-message {
-  margin: 0;
+  margin:
+    0;
 
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  line-height: 1.6;
+  line-height:
+    1.6;
 
-  font-size: 0.92rem;
+  font-size:
+    0.92rem;
 }
 
 
@@ -2977,7 +3863,8 @@ input[type="number"] {
     0
     0;
 
-  padding-top: 0.75rem;
+  padding-top:
+    0.75rem;
 
   border-top:
     1px
@@ -2989,18 +3876,23 @@ input[type="number"] {
       0.16
     );
 
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  line-height: 1.55;
+  line-height:
+    1.55;
 
-  font-size: 0.86rem;
+  font-size:
+    0.86rem;
 }
 
 
 .error-code {
-  display: inline-block;
+  display:
+    inline-block;
 
-  margin-top: 0.75rem;
+  margin-top:
+    0.75rem;
 
   color:
     rgba(
@@ -3018,12 +3910,14 @@ input[type="number"] {
     Consolas,
     monospace;
 
-  font-size: 0.72rem;
+  font-size:
+    0.72rem;
 }
 
 
 .hidden {
-  display: none !important;
+  display:
+    none !important;
 }
 
 
@@ -3033,7 +3927,8 @@ input[type="number"] {
 
 
 .privacy-container {
-  max-width: 1000px;
+  max-width:
+    1000px;
 }
 
 
@@ -3046,15 +3941,20 @@ input[type="number"] {
 
 
 .eyebrow {
-  color: var(--accent);
+  color:
+    var(--accent);
 
-  text-transform: uppercase;
+  text-transform:
+    uppercase;
 
-  letter-spacing: 0.14em;
+  letter-spacing:
+    0.14em;
 
-  font-size: 0.78rem;
+  font-size:
+    0.78rem;
 
-  font-weight: 900;
+  font-weight:
+    900;
 
   margin:
     0
@@ -3064,7 +3964,8 @@ input[type="number"] {
 
 
 .privacy-hero h1 {
-  max-width: 900px;
+  max-width:
+    900px;
 
   font-size:
     clamp(
@@ -3076,7 +3977,8 @@ input[type="number"] {
 
 
 .privacy-lead {
-  max-width: 800px;
+  max-width:
+    800px;
 
   font-size:
     clamp(
@@ -3088,16 +3990,20 @@ input[type="number"] {
 
 
 .last-updated {
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  font-size: 0.82rem;
+  font-size:
+    0.82rem;
 
-  margin-top: 1rem;
+  margin-top:
+    1rem;
 }
 
 
 .privacy-summary {
-  display: grid;
+  display:
+    grid;
 
   grid-template-columns:
     repeat(
@@ -3105,7 +4011,8 @@ input[type="number"] {
       minmax(0, 1fr)
     );
 
-  gap: 1rem;
+  gap:
+    1rem;
 
   margin:
     0
@@ -3128,29 +4035,38 @@ input[type="number"] {
     solid
     var(--border);
 
-  border-radius: 16px;
+  border-radius:
+    16px;
 
-  padding: 1.1rem;
+  padding:
+    1.1rem;
 }
 
 
 .privacy-summary-card strong {
-  display: block;
+  display:
+    block;
 
-  margin-bottom: 0.45rem;
+  margin-bottom:
+    0.45rem;
 
-  font-size: 0.95rem;
+  font-size:
+    0.95rem;
 }
 
 
 .privacy-summary-card p {
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  margin: 0;
+  margin:
+    0;
 
-  line-height: 1.55;
+  line-height:
+    1.55;
 
-  font-size: 0.88rem;
+  font-size:
+    0.88rem;
 }
 
 
@@ -3168,14 +4084,17 @@ input[type="number"] {
     solid
     var(--border);
 
-  border-radius: 20px;
+  border-radius:
+    20px;
 
-  overflow: hidden;
+  overflow:
+    hidden;
 }
 
 
 .privacy-section {
-  padding: 1.6rem;
+  padding:
+    1.6rem;
 
   border-bottom:
     1px
@@ -3190,7 +4109,8 @@ input[type="number"] {
 
 
 .privacy-section:last-child {
-  border-bottom: 0;
+  border-bottom:
+    0;
 }
 
 
@@ -3207,14 +4127,28 @@ input[type="number"] {
       1.5rem
     );
 
-  letter-spacing: -0.02em;
+  letter-spacing:
+    -0.02em;
+}
+
+
+.privacy-section h3 {
+  margin:
+    1.2rem
+    0
+    0.45rem;
+
+  font-size:
+    1rem;
 }
 
 
 .privacy-section p {
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  line-height: 1.75;
+  line-height:
+    1.75;
 
   margin:
     0
@@ -3224,16 +4158,20 @@ input[type="number"] {
 
 
 .privacy-section p:last-child {
-  margin-bottom: 0;
+  margin-bottom:
+    0;
 }
 
 
 .privacy-section ul {
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  line-height: 1.75;
+  line-height:
+    1.75;
 
-  padding-left: 1.4rem;
+  padding-left:
+    1.4rem;
 }
 
 
@@ -3256,20 +4194,26 @@ input[type="number"] {
       0.3
     );
 
-  border-radius: 12px;
+  border-radius:
+    12px;
 
-  padding: 1rem;
+  padding:
+    1rem;
 
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  line-height: 1.65;
+  line-height:
+    1.65;
 
-  margin-top: 1rem;
+  margin-top:
+    1rem;
 }
 
 
 .privacy-callout strong {
-  color: var(--text);
+  color:
+    var(--text);
 }
 
 
@@ -3294,13 +4238,17 @@ input[type="number"] {
 
 
 .privacy-flow {
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
+  align-items:
+    center;
 
-  flex-wrap: wrap;
+  flex-wrap:
+    wrap;
 
-  gap: 0.7rem;
+  gap:
+    0.7rem;
 
   margin:
     1.2rem
@@ -3309,48 +4257,62 @@ input[type="number"] {
 
 
 .privacy-flow span:not(.privacy-arrow) {
-  background: var(--panel-2);
+  background:
+    var(--panel-2);
 
   border:
     1px
     solid
     var(--border);
 
-  border-radius: 999px;
+  border-radius:
+    999px;
 
   padding:
     0.55rem
     0.85rem;
 
-  color: var(--text);
+  color:
+    var(--text);
 
-  font-size: 0.9rem;
+  font-size:
+    0.9rem;
 
-  font-weight: 700;
+  font-weight:
+    700;
 }
 
 
 .privacy-arrow {
-  color: var(--accent);
+  color:
+    var(--accent);
 
-  font-weight: 900;
+  font-weight:
+    900;
 }
 
 
 .primary-link-button {
-  display: inline-block;
+  display:
+    inline-block;
 
-  margin-top: 0.5rem;
+  margin-top:
+    0.5rem;
 
-  background: var(--accent);
+  background:
+    var(--accent);
 
-  color: #08101f;
+  color:
+    #08101f;
 
-  text-decoration: none;
+  text-decoration:
+    none;
 
-  font-weight: 800;
+  font-weight:
+    800;
 
-  border-radius: 999px;
+  border-radius:
+    999px;
 
   padding:
     0.85rem
@@ -3359,9 +4321,11 @@ input[type="number"] {
 
 
 .primary-link-button:hover {
-  color: #08101f;
+  color:
+    #08101f;
 
-  background: var(--accent-hover);
+  background:
+    var(--accent-hover);
 }
 
 
@@ -3397,50 +4361,65 @@ input[type="number"] {
       0.7
     );
 
-  color: var(--muted);
+  color:
+    var(--muted);
 }
 
 
 .footer-inner {
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
+  align-items:
+    center;
 
-  justify-content: space-between;
+  justify-content:
+    space-between;
 
-  gap: 1rem;
+  gap:
+    1rem;
 }
 
 
 .footer-inner p {
-  margin: 0;
+  margin:
+    0;
 
-  font-weight: 800;
+  font-weight:
+    800;
 
-  color: var(--text);
+  color:
+    var(--text);
 }
 
 
 .footer-links {
-  display: flex;
+  display:
+    flex;
 
-  gap: 1rem;
+  gap:
+    1rem;
 }
 
 
 .footer-links a {
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  text-decoration: none;
+  text-decoration:
+    none;
 
-  font-size: 0.9rem;
+  font-size:
+    0.9rem;
 
-  font-weight: 700;
+  font-weight:
+    700;
 }
 
 
 .footer-links a:hover {
-  color: var(--text);
+  color:
+    var(--text);
 }
 
 
@@ -3450,11 +4429,14 @@ input[type="number"] {
     0
     0;
 
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  font-size: 0.78rem;
+  font-size:
+    0.78rem;
 
-  line-height: 1.5;
+  line-height:
+    1.5;
 }
 
 
@@ -3479,12 +4461,14 @@ input[type="number"] {
 @media (max-width: 900px) {
 
   .results {
-    grid-template-columns: 1fr;
+    grid-template-columns:
+      1fr;
   }
 
 
   .privacy-summary {
-    grid-template-columns: 1fr;
+    grid-template-columns:
+      1fr;
   }
 
 }
@@ -3495,30 +4479,37 @@ input[type="number"] {
   .controls,
   .model-grid,
   .custom-size-controls {
-    grid-template-columns: 1fr;
+    grid-template-columns:
+      1fr;
   }
 
 
   .section-heading,
-  .model-status-header {
-    flex-direction: column;
+  .model-status-header,
+  .provider-group-header {
+    flex-direction:
+      column;
   }
 
 
   .size-separator {
-    display: none;
+    display:
+      none;
   }
 
 
   .topbar {
-    align-items: flex-start;
+    align-items:
+      flex-start;
   }
 
 
   .footer-inner {
-    align-items: flex-start;
+    align-items:
+      flex-start;
 
-    flex-direction: column;
+    flex-direction:
+      column;
   }
 
 
@@ -3530,14 +4521,17 @@ input[type="number"] {
 
 
   .model-status-row {
-    align-items: flex-start;
+    align-items:
+      flex-start;
 
-    flex-direction: column;
+    flex-direction:
+      column;
   }
 
 
   .model-option-heading {
-    align-items: flex-start;
+    align-items:
+      flex-start;
   }
 
 }
@@ -3555,23 +4549,33 @@ const MAX_TOTAL_PIXELS = 12582912;
 
 
 const form =
-  document.getElementById('gen-form');
+  document.getElementById(
+    'gen-form'
+  );
 
 
 const promptEl =
-  document.getElementById('prompt');
+  document.getElementById(
+    'prompt'
+  );
 
 
 const button =
-  document.getElementById('submit-btn');
+  document.getElementById(
+    'submit-btn'
+  );
 
 
 const statusEl =
-  document.getElementById('status');
+  document.getElementById(
+    'status'
+  );
 
 
 const resultsEl =
-  document.getElementById('results');
+  document.getElementById(
+    'results'
+  );
 
 
 const modelStatusPanel =
@@ -3593,11 +4597,15 @@ const modelStatusSummary =
 
 
 const sizeEl =
-  document.getElementById('size');
+  document.getElementById(
+    'size'
+  );
 
 
 const qualityEl =
-  document.getElementById('quality');
+  document.getElementById(
+    'quality'
+  );
 
 
 const imagesPerModelEl =
@@ -3607,7 +4615,9 @@ const imagesPerModelEl =
 
 
 const seedEl =
-  document.getElementById('seed');
+  document.getElementById(
+    'seed'
+  );
 
 
 const customSizeControls =
@@ -3681,23 +4691,53 @@ function modelLabelForKey(
       .find(
         function(item) {
 
-          return item.value === key;
+          return (
+            item.value ===
+            key
+          );
 
         }
       );
 
 
-  if (
+  return (
     checkbox &&
     checkbox.dataset.modelLabel
-  ) {
 
-    return checkbox.dataset.modelLabel;
+      ? checkbox.dataset.modelLabel
 
-  }
+      : key
+  );
+
+}
 
 
-  return key;
+function providerLabelForKey(
+  key
+) {
+
+  const checkbox =
+    getModelCheckboxes()
+      .find(
+        function(item) {
+
+          return (
+            item.value ===
+            key
+          );
+
+        }
+      );
+
+
+  return (
+    checkbox &&
+    checkbox.dataset.providerLabel
+
+      ? checkbox.dataset.providerLabel
+
+      : ''
+  );
 
 }
 
@@ -3711,9 +4751,15 @@ function getImagesPerModel() {
     );
 
 
-  return [1, 2, 4].includes(value)
-    ? value
-    : 1;
+  return (
+    [1, 2, 4].includes(
+      value
+    )
+
+      ? value
+
+      : 1
+  );
 
 }
 
@@ -3723,7 +4769,9 @@ function isValidCustomDimension(
 ) {
 
   return (
-    Number.isInteger(value) &&
+    Number.isInteger(
+      value
+    ) &&
     value >= 256 &&
     value <= 2048 &&
     value % 64 === 0
@@ -3735,7 +4783,8 @@ function isValidCustomDimension(
 function getChosenDimensions() {
 
   if (
-    sizeEl.value === 'custom'
+    sizeEl.value ===
+    'custom'
   ) {
 
     return {
@@ -3840,14 +4889,17 @@ function updateGenerateButton() {
 
 
   if (
-    summary.modelCount === 0
+    summary.modelCount ===
+    0
   ) {
 
     button.disabled =
       true;
 
+
     button.textContent =
       'Select a model';
+
 
     return;
 
@@ -3862,8 +4914,10 @@ function updateGenerateButton() {
     button.disabled =
       true;
 
+
     button.textContent =
       'Maximum 8 images';
+
 
     return;
 
@@ -3881,8 +4935,10 @@ function updateGenerateButton() {
     button.disabled =
       true;
 
+
     button.textContent =
       'Reduce size or image count';
+
 
     return;
 
@@ -3898,7 +4954,9 @@ function updateGenerateButton() {
     summary.totalImages +
     (
       summary.totalImages === 1
+
         ? ' image'
+
         : ' images'
     );
 
@@ -3908,18 +4966,23 @@ function updateGenerateButton() {
 function updateCustomSizeVisibility() {
 
   if (
-    sizeEl.value === 'custom'
+    sizeEl.value ===
+    'custom'
   ) {
 
     customSizeControls
       .classList
-      .remove('hidden');
+      .remove(
+        'hidden'
+      );
 
   } else {
 
     customSizeControls
       .classList
-      .add('hidden');
+      .add(
+        'hidden'
+      );
 
   }
 
@@ -3954,15 +5017,11 @@ function findInlineStatus(
   modelKey
 ) {
 
-  const statuses =
-    Array.from(
-      document.querySelectorAll(
-        '[data-model-status-for]'
-      )
-    );
-
-
-  return statuses.find(
+  return Array.from(
+    document.querySelectorAll(
+      '[data-model-status-for]'
+    )
+  ).find(
     function(element) {
 
       return (
@@ -4083,11 +5142,23 @@ function createModelStatusRow(
     'model-status-detail';
 
 
+  const providerLabel =
+    providerLabelForKey(
+      modelKey
+    );
+
+
   detail.textContent =
-    expectedImages === 1
-      ? '1 image submitted for generation'
-      : expectedImages +
-        ' variations submitted for generation';
+    providerLabel +
+    ' · ' +
+    (
+      expectedImages === 1
+
+        ? '1 image submitted for generation'
+
+        : expectedImages +
+          ' variations submitted for generation'
+    );
 
 
   left.appendChild(
@@ -4164,19 +5235,16 @@ function startModelStatuses(
   modelKeys.forEach(
     function(modelKey) {
 
-      const label =
-        modelLabelForKey(
-          modelKey
+      modelStatusList
+        .appendChild(
+          createModelStatusRow(
+            modelKey,
+            modelLabelForKey(
+              modelKey
+            ),
+            imagesPerModel
+          )
         );
-
-
-      modelStatusList.appendChild(
-        createModelStatusRow(
-          modelKey,
-          label,
-          imagesPerModel
-        )
-      );
 
 
       setInlineModelStatus(
@@ -4191,14 +5259,18 @@ function startModelStatuses(
 
   modelStatusSummary.textContent =
     modelKeys.length === 1
+
       ? '1 model processing'
+
       : modelKeys.length +
         ' models processing';
 
 
   modelStatusPanel
     .classList
-    .remove('hidden');
+    .remove(
+      'hidden'
+    );
 
 }
 
@@ -4247,7 +5319,8 @@ function updateModelStatusRow(
 
 
   if (
-    status.status === 'completed'
+    status.status ===
+    'completed'
   ) {
 
     tone =
@@ -4264,7 +5337,9 @@ function updateModelStatusRow(
       status.expected +
       (
         status.expected === 1
+
           ? ' image completed'
+
           : ' images completed'
       );
 
@@ -4276,7 +5351,8 @@ function updateModelStatusRow(
     );
 
   } else if (
-    status.status === 'partial'
+    status.status ===
+    'partial'
   ) {
 
     tone =
@@ -4313,14 +5389,6 @@ function updateModelStatusRow(
     );
 
   } else {
-
-    tone =
-      'error';
-
-
-    badgeText =
-      'Failed';
-
 
     if (
       status.error &&
@@ -4433,11 +5501,7 @@ function applyModelStatuses(
 
     parts.push(
       completedModels +
-      (
-        completedModels === 1
-          ? ' completed'
-          : ' completed'
-      )
+      ' completed'
     );
 
   }
@@ -4683,7 +5747,7 @@ window.onTurnstileError =
 
 
 /* ----------------------------------
-   FORM CONTROLS
+   CONTROLS
 ---------------------------------- */
 
 
@@ -4744,32 +5808,28 @@ getModelCheckboxes()
   );
 
 
-sizeEl
-  .addEventListener(
-    'change',
-    updateCustomSizeVisibility
-  );
+sizeEl.addEventListener(
+  'change',
+  updateCustomSizeVisibility
+);
 
 
-imagesPerModelEl
-  .addEventListener(
-    'change',
-    updateGenerateButton
-  );
+imagesPerModelEl.addEventListener(
+  'change',
+  updateGenerateButton
+);
 
 
-customWidthEl
-  .addEventListener(
-    'input',
-    updateGenerateButton
-  );
+customWidthEl.addEventListener(
+  'input',
+  updateGenerateButton
+);
 
 
-customHeightEl
-  .addEventListener(
-    'input',
-    updateGenerateButton
-  );
+customHeightEl.addEventListener(
+  'input',
+  updateGenerateButton
+);
 
 
 /* ----------------------------------
@@ -4882,8 +5942,10 @@ function createResultCard(
     ) +
     (
       item.totalVariations > 1
+
         ? ' · Variation ' +
           item.variation
+
         : ''
     );
 
@@ -4896,13 +5958,17 @@ function createResultCard(
 
   state.className =
     item.error
+
       ? 'result-state error'
+
       : 'result-state success';
 
 
   state.textContent =
     item.error
+
       ? 'Failed'
+
       : 'Completed';
 
 
@@ -4931,7 +5997,8 @@ function createResultCard(
 
 
     const errorInfo =
-      typeof item.error === 'object' &&
+      typeof item.error ===
+        'object' &&
       item.error !== null
 
         ? item.error
@@ -4960,6 +6027,7 @@ function createResultCard(
       card,
       'div',
       'error-kicker',
+      item.providerLabel ||
       'Model unavailable'
     );
 
@@ -5015,6 +6083,54 @@ function createResultCard(
   }
 
 
+  const metaParts =
+    [];
+
+
+  if (
+    item.providerLabel
+  ) {
+
+    metaParts.push(
+      item.providerLabel
+    );
+
+  }
+
+
+  if (
+    item.runtimeModel &&
+    item.provider ===
+    'horde'
+  ) {
+
+    metaParts.push(
+      item.runtimeModel
+    );
+
+  }
+
+
+  metaParts.push(
+    item.width +
+    ' × ' +
+    item.height +
+    ' px'
+  );
+
+
+  metaParts.push(
+    item.steps +
+    ' steps'
+  );
+
+
+  metaParts.push(
+    'seed ' +
+    item.seed
+  );
+
+
   const meta =
     document.createElement(
       'p'
@@ -5026,13 +6142,9 @@ function createResultCard(
 
 
   meta.textContent =
-    item.width +
-    ' × ' +
-    item.height +
-    ' px · ' +
-    item.steps +
-    ' steps · seed ' +
-    item.seed;
+    metaParts.join(
+      ' · '
+    );
 
 
   card.appendChild(
@@ -5201,7 +6313,9 @@ function renderResults(
 
   resultsEl
     .classList
-    .remove('hidden');
+    .remove(
+      'hidden'
+    );
 
 
   return {
@@ -5227,7 +6341,8 @@ function requestErrorMessage(
 
   if (
     data &&
-    typeof data.error === 'string' &&
+    typeof data.error ===
+      'string' &&
     data.error.trim()
   ) {
 
@@ -5237,7 +6352,8 @@ function requestErrorMessage(
 
 
   if (
-    response.status === 429
+    response.status ===
+    429
   ) {
 
     return 'Arqivo is receiving too many generation requests right now. Please try again shortly.';
@@ -5246,7 +6362,8 @@ function requestErrorMessage(
 
 
   if (
-    response.status >= 500
+    response.status >=
+    500
   ) {
 
     return 'The generation service is temporarily unavailable. Please try again shortly.';
@@ -5301,7 +6418,9 @@ form.addEventListener(
 
     const seed =
       seedValue === ''
+
         ? null
+
         : Number.parseInt(
             seedValue,
             10
@@ -5342,19 +6461,22 @@ form.addEventListener(
         'error'
       );
 
+
       return;
 
     }
 
 
     if (
-      selectedModels.length === 0
+      selectedModels.length ===
+      0
     ) {
 
       setStatus(
         'Please select at least one model.',
         'error'
       );
+
 
       return;
 
@@ -5371,13 +6493,15 @@ form.addEventListener(
         'error'
       );
 
+
       return;
 
     }
 
 
     if (
-      size === 'custom' &&
+      size ===
+        'custom' &&
       (
         !isValidCustomDimension(
           customWidth
@@ -5392,6 +6516,7 @@ form.addEventListener(
         'Custom width and height must be 256–2048 and multiples of 64.',
         'error'
       );
+
 
       return;
 
@@ -5408,6 +6533,7 @@ form.addEventListener(
         'error'
       );
 
+
       return;
 
     }
@@ -5421,6 +6547,7 @@ form.addEventListener(
         'Please complete the verification first.',
         'error'
       );
+
 
       return;
 
@@ -5437,7 +6564,9 @@ form.addEventListener(
 
     resultsEl
       .classList
-      .add('hidden');
+      .add(
+        'hidden'
+      );
 
 
     resultsEl.innerHTML =
@@ -5455,7 +6584,9 @@ form.addEventListener(
       summary.totalImages +
       (
         summary.totalImages === 1
+
           ? ' image'
+
           : ' images'
       ) +
       ' at ' +
@@ -5589,21 +6720,25 @@ form.addEventListener(
 
 
       if (
-        resultSummary.failed === 0
+        resultSummary.failed ===
+        0
       ) {
 
         setStatus(
           resultSummary.successful +
           (
             resultSummary.successful === 1
+
               ? ' image completed.'
+
               : ' images completed.'
           ),
           'success'
         );
 
       } else if (
-        resultSummary.successful === 0
+        resultSummary.successful ===
+        0
       ) {
 
         setStatus(
@@ -5741,14 +6876,17 @@ export default {
 
 
     if (
-      request.method === "GET" &&
-      url.pathname === "/"
+      request.method ===
+        "GET" &&
+      url.pathname ===
+        "/"
     ) {
 
       return new Response(
         HTML(
           env.TURNSTILE_SITE_KEY ||
-          ""
+          "",
+          env
         ),
         {
 
@@ -5768,10 +6906,13 @@ export default {
 
 
     if (
-      request.method === "GET" &&
+      request.method ===
+        "GET" &&
       (
-        url.pathname === "/privacy" ||
-        url.pathname === "/privacy/"
+        url.pathname ===
+          "/privacy" ||
+        url.pathname ===
+          "/privacy/"
       )
     ) {
 
@@ -5795,8 +6936,10 @@ export default {
 
 
     if (
-      request.method === "GET" &&
-      url.pathname === "/styles.css"
+      request.method ===
+        "GET" &&
+      url.pathname ===
+        "/styles.css"
     ) {
 
       return new Response(
@@ -5819,8 +6962,10 @@ export default {
 
 
     if (
-      request.method === "GET" &&
-      url.pathname === "/app.js"
+      request.method ===
+        "GET" &&
+      url.pathname ===
+        "/app.js"
     ) {
 
       return new Response(
@@ -5843,8 +6988,10 @@ export default {
 
 
     if (
-      request.method === "POST" &&
-      url.pathname === "/api/generate"
+      request.method ===
+        "POST" &&
+      url.pathname ===
+        "/api/generate"
     ) {
 
       return handleGenerate(
@@ -5892,7 +7039,8 @@ async function handleGenerate(
 
   if (
     requestOrigin &&
-    requestOrigin !== siteOrigin
+    requestOrigin !==
+      siteOrigin
   ) {
 
     return json(
@@ -5909,7 +7057,8 @@ async function handleGenerate(
   const contentType =
     request.headers.get(
       "content-type"
-    ) || "";
+    ) ||
+    "";
 
 
   if (
@@ -6002,7 +7151,9 @@ async function handleGenerate(
 
       ? body.models.map(
           (value) =>
-            String(value)
+            String(
+              value
+            )
         )
 
       : [];
@@ -6023,7 +7174,9 @@ async function handleGenerate(
     uniqueModelKeys
       .map(
         (key) =>
-          MODELS_BY_KEY[key]
+          MODELS_BY_KEY[
+            key
+          ]
       )
       .filter(
         Boolean
@@ -6031,7 +7184,8 @@ async function handleGenerate(
 
 
   if (
-    selectedModels.length === 0
+    selectedModels.length ===
+    0
   ) {
 
     return json(
@@ -6047,7 +7201,7 @@ async function handleGenerate(
 
   const quality =
     body?.quality ===
-    "standard"
+      "standard"
 
       ? "standard"
 
@@ -6248,7 +7402,8 @@ async function handleGenerate(
   const remoteip =
     request.headers.get(
       "CF-Connecting-IP"
-    ) || "";
+    ) ||
+    "";
 
 
   const verification =
@@ -6299,6 +7454,59 @@ async function handleGenerate(
     of selectedModels
   ) {
 
+    /*
+     * Horde variations are batched into one
+     * Horde request per model.
+     */
+
+    if (
+      model.provider ===
+      "horde"
+    ) {
+
+      tasks.push(
+        {
+
+          run:
+            () =>
+              generateImagesForHordeModel(
+                env,
+                model,
+                finalPrompt,
+                negativePrompt,
+                width,
+                height,
+                quality,
+                baseSeed,
+                imagesPerModel
+              ),
+
+          fallback:
+            () =>
+              createUnexpectedTaskFailures(
+                model,
+                env,
+                width,
+                height,
+                quality,
+                baseSeed,
+                imagesPerModel
+              )
+
+        }
+      );
+
+
+      continue;
+
+    }
+
+
+    /*
+     * Cloudflare generations remain one task
+     * per variation.
+     */
+
     for (
       let variationIndex = 0;
       variationIndex < imagesPerModel;
@@ -6326,7 +7534,7 @@ async function handleGenerate(
 
           run:
             () =>
-              generateImageForModel(
+              generateCloudflareImage(
                 env,
                 model,
                 finalPrompt,
@@ -6339,11 +7547,11 @@ async function handleGenerate(
                 imagesPerModel
               ),
 
-
           fallback:
             () =>
               createUnexpectedTaskFailure(
                 model,
+                env,
                 width,
                 height,
                 quality,
@@ -6360,10 +7568,30 @@ async function handleGenerate(
   }
 
 
-  const results =
+  const taskResults =
     await runWithConcurrency(
       tasks,
       MODEL_CONCURRENCY
+    );
+
+
+  /*
+   * Horde tasks return arrays because one Horde
+   * submission can contain multiple variations.
+   */
+
+  const results =
+    taskResults.flatMap(
+      (item) =>
+        Array.isArray(
+          item
+        )
+
+          ? item
+
+          : [
+              item
+            ]
     );
 
 
@@ -6469,6 +7697,36 @@ unrequested logo
 }
 
 
+function buildHordePrompt(
+  prompt,
+  negativePrompt
+) {
+
+  const positive =
+    String(
+      prompt ||
+      ""
+    ).trim();
+
+
+  const negative =
+    String(
+      negativePrompt ||
+      ""
+    ).trim();
+
+
+  return negative
+
+    ? positive +
+      " ### " +
+      negative
+
+    : positive;
+
+}
+
+
 /* ----------------------------------
    GRACEFUL CONCURRENCY
 ---------------------------------- */
@@ -6514,33 +7772,28 @@ async function runWithConcurrency(
 
 
       const task =
-        tasks[index];
+        tasks[
+          index
+        ];
 
 
       try {
 
-        results[index] =
+        results[
+          index
+        ] =
           await task.run();
 
       } catch {
-
-        /*
-         * This is the final safety net.
-         *
-         * generateImageForModel already catches expected
-         * model/provider failures.
-         *
-         * If some unexpected JavaScript error escapes
-         * anyway, it only affects this one image task.
-         * Other model tasks continue normally.
-         */
 
         console.error(
           "Unexpected isolated generation task failure."
         );
 
 
-        results[index] =
+        results[
+          index
+        ] =
           task.fallback();
 
       }
@@ -6651,7 +7904,8 @@ function summarizeModelStatuses(
 
 
       if (
-        status !== "completed" &&
+        status !==
+          "completed" &&
         !publicError
       ) {
 
@@ -6687,6 +7941,14 @@ function summarizeModelStatuses(
         label:
           model.label,
 
+        provider:
+          model.provider,
+
+        providerLabel:
+          providerLabelForModel(
+            model
+          ),
+
         status:
           status,
 
@@ -6711,7 +7973,7 @@ function summarizeModelStatuses(
 
 
 /* ----------------------------------
-   ERROR EXTRACTION HELPERS
+   ERROR EXTRACTION
 ---------------------------------- */
 
 
@@ -6770,7 +8032,8 @@ function firstNonEmptyString(
   ) {
 
     if (
-      typeof value === "string" &&
+      typeof value ===
+        "string" &&
       value.trim()
     ) {
 
@@ -6812,9 +8075,17 @@ function extractProviderErrorInfo(
     firstNonEmptyString(
       [
 
+        error?.providerCode,
+
+        error?.rc,
+
         error?.code,
 
         error?.errorCode,
+
+        error?.cause?.providerCode,
+
+        error?.cause?.rc,
 
         error?.cause?.code,
 
@@ -6833,13 +8104,17 @@ function extractProviderErrorInfo(
 
       error?.response?.statusText,
 
-      typeof error?.error === "string"
+      typeof error?.error ===
+        "string"
+
         ? error.error
+
         : ""
 
     ].filter(
       (value) =>
-        typeof value === "string" &&
+        typeof value ===
+          "string" &&
         value.trim()
     );
 
@@ -6856,7 +8131,8 @@ function extractProviderErrorInfo(
     ) {
 
       if (
-        typeof item?.message === "string" &&
+        typeof item?.message ===
+          "string" &&
         item.message.trim()
       ) {
 
@@ -6928,7 +8204,35 @@ function classifyModelError(
         "The model finished, but Arqivo could not read the image data it returned.",
 
       hint:
-        "Try this model again. If it keeps happening, use another model while the output issue is investigated.",
+        "Try this model again. If it keeps happening, use another model.",
+
+      retryable:
+        true
+
+    };
+
+  }
+
+
+  if (
+    error instanceof
+    HordeTimeoutError
+  ) {
+
+    return {
+
+      code:
+        "HORDE_QUEUE_TIMEOUT",
+
+      title:
+        "AI Horde is taking too long",
+
+      message:
+        context.model.label +
+        " did not finish before Arqivo stopped waiting for the volunteer queue.",
+
+      hint:
+        "Try again later, use a smaller resolution, or use a Cloudflare Workers AI model for faster completion.",
 
       retryable:
         true
@@ -6954,6 +8258,147 @@ function classifyModelError(
     ).toLowerCase();
 
 
+  const providerCode =
+    info.providerCode
+      .toLowerCase();
+
+
+  if (
+    context.model.provider ===
+      "horde" &&
+    (
+      providerCode ===
+        "novalidworkers" ||
+      /no valid workers/.test(
+        haystack
+      )
+    )
+  ) {
+
+    return {
+
+      code:
+        "HORDE_NO_VALID_WORKERS",
+
+      title:
+        "No AI Horde worker can run this request right now",
+
+      message:
+        context.model.label +
+        " could not find a compatible volunteer worker for the selected model and settings.",
+
+      hint:
+        "Try 1024 × 1024, Standard quality, another Horde model, or try again later.",
+
+      retryable:
+        true
+
+    };
+
+  }
+
+
+  if (
+    context.model.provider ===
+      "horde" &&
+    (
+      providerCode ===
+        "invalidapikey" ||
+      /invalid api key/.test(
+        haystack
+      )
+    )
+  ) {
+
+    return {
+
+      code:
+        "HORDE_API_KEY_INVALID",
+
+      title:
+        "AI Horde authentication is not configured correctly",
+
+      message:
+        "The AI Horde API key stored by Arqivo was rejected.",
+
+      hint:
+        "Update the AI_HORDE_API_KEY Worker secret, then deploy again.",
+
+      retryable:
+        false
+
+    };
+
+  }
+
+
+  if (
+    context.model.provider ===
+      "horde" &&
+    (
+      providerCode ===
+        "toomanyprompts" ||
+      /too many prompts/.test(
+        haystack
+      )
+    )
+  ) {
+
+    return {
+
+      code:
+        "HORDE_TOO_MANY_REQUESTS",
+
+      title:
+        "AI Horde has too many active requests for this account",
+
+      message:
+        "The shared Arqivo AI Horde account has reached its current request concurrency.",
+
+      hint:
+        "Wait for existing Horde jobs to finish, then try again.",
+
+      retryable:
+        true
+
+    };
+
+  }
+
+
+  if (
+    context.model.provider ===
+      "horde" &&
+    /kudosupfront|sharedkeyempty|sharedkeyinsufficientkudos|requires upfront kudos/.test(
+      providerCode +
+      " " +
+      haystack
+    )
+  ) {
+
+    return {
+
+      code:
+        "HORDE_PRIORITY_REQUIRED",
+
+      title:
+        "AI Horde cannot accept this request with the current priority",
+
+      message:
+        context.model.label +
+        " requires more available Horde priority or a different worker at the moment.",
+
+      hint:
+        "Try another Horde model, a smaller request, or a Cloudflare Workers AI model.",
+
+      retryable:
+        true
+
+    };
+
+  }
+
+
   const isQuota =
     /quota|daily limit|usage limit|neurons|allocation|exceeded.*limit|limit.*exceeded|insufficient.*quota/.test(
       haystack
@@ -6961,7 +8406,8 @@ function classifyModelError(
 
 
   const isRateLimited =
-    info.status === 429 ||
+    info.status ===
+      429 ||
     /rate limit|too many requests|throttl|temporarily busy|capacity/.test(
       haystack
     );
@@ -6984,7 +8430,7 @@ function classifyModelError(
         " could not run because the available AI usage allocation appears to be exhausted.",
 
       hint:
-        "Try again after the AI allowance resets, or reduce the number of models, variations, resolution, or quality settings.",
+        "Try again after the allowance resets, or reduce models, variations, size, or quality.",
 
       retryable:
         false
@@ -7011,7 +8457,7 @@ function classifyModelError(
         " could not accept this generation request at the moment.",
 
       hint:
-        "Wait a short time and try again. You can also generate with fewer models or fewer variations.",
+        "Wait a short time and try again.",
 
       retryable:
         true
@@ -7022,7 +8468,7 @@ function classifyModelError(
 
 
   if (
-    /billing|payment|paid plan|subscription|credit balance|insufficient balance|requires.*paid/.test(
+    /billing|payment|paid plan|subscription|credit balance|requires.*paid/.test(
       haystack
     )
   ) {
@@ -7037,7 +8483,7 @@ function classifyModelError(
 
       message:
         context.model.label +
-        " appears to require billing or account access that is not currently enabled.",
+        " appears to require billing or account access that is not enabled.",
 
       hint:
         "Use another available model.",
@@ -7051,8 +8497,10 @@ function classifyModelError(
 
 
   if (
-    info.status === 401 ||
-    info.status === 403 ||
+    info.status ===
+      401 ||
+    info.status ===
+      403 ||
     /unauthori|forbidden|permission|access denied|not allowed|authentication/.test(
       haystack
     )
@@ -7068,10 +8516,10 @@ function classifyModelError(
 
       message:
         context.model.label +
-        " rejected the request because the Worker account or AI binding does not have the required access.",
+        " rejected the request because access was denied.",
 
       hint:
-        "Use another model and verify this model's availability and account permissions.",
+        "Use another model and verify provider credentials and permissions.",
 
       retryable:
         false
@@ -7082,8 +8530,9 @@ function classifyModelError(
 
 
   if (
-    info.status === 404 ||
-    /model.*not found|not found.*model|unknown model|does not exist|model unavailable/.test(
+    info.status ===
+      404 ||
+    /model.*not found|not found.*model|unknown model|does not exist|model unavailable|unsupportedmodel|unexpectedmodelname/.test(
       haystack
     )
   ) {
@@ -7098,10 +8547,10 @@ function classifyModelError(
 
       message:
         context.model.label +
-        " could not be found or is not currently available through Workers AI.",
+        " could not be found or is not currently available.",
 
       hint:
-        "Use another model. If this persists, verify the model ID in the MODELS configuration.",
+        "Use another model or update the configured model name.",
 
       retryable:
         false
@@ -7112,7 +8561,7 @@ function classifyModelError(
 
 
   if (
-    /width|height|dimension|resolution|image size|multiple of|invalid parameter|validation|out of range|must be between|unsupported.*size/.test(
+    /width|height|dimension|resolution|image size|multiple of|invalid parameter|validation|out of range|must be between|unsupported.*size|invalidsize|toomanysteps/.test(
       haystack
     )
   ) {
@@ -7134,7 +8583,7 @@ function classifyModelError(
         " with the current quality settings.",
 
       hint:
-        "Try 1024 × 1024 first. If that works, use a smaller or more standard resolution for this model.",
+        "Try 1024 × 1024 first, then use a smaller or more standard resolution.",
 
       retryable:
         true
@@ -7145,7 +8594,7 @@ function classifyModelError(
 
 
   if (
-    /timeout|timed out|deadline|execution time/.test(
+    /timeout|timed out|deadline|execution time|requestexpired/.test(
       haystack
     )
   ) {
@@ -7160,10 +8609,10 @@ function classifyModelError(
 
       message:
         context.model.label +
-        " did not finish the image before the generation request timed out.",
+        " did not finish before the request timed out.",
 
       hint:
-        "Try again with fewer variations, a smaller resolution, or Standard quality.",
+        "Try fewer variations, a smaller resolution, or Standard quality.",
 
       retryable:
         true
@@ -7174,7 +8623,7 @@ function classifyModelError(
 
 
   if (
-    /safety|moderation|content policy|policy violation|blocked prompt|unsafe|content blocked/.test(
+    /safety|moderation|content policy|policy violation|blocked prompt|unsafe|content blocked|corruptprompt/.test(
       haystack
     )
   ) {
@@ -7189,10 +8638,10 @@ function classifyModelError(
 
       message:
         context.model.label +
-        " did not generate an image because the request was rejected by the model or its safety system.",
+        " did not generate an image because the request was rejected.",
 
       hint:
-        "Revise the prompt and try again. Different models can apply different request filters.",
+        "Revise the prompt and try again.",
 
       retryable:
         false
@@ -7205,9 +8654,10 @@ function classifyModelError(
   if (
     (
       info.status !== null &&
-      info.status >= 500
+      info.status >=
+        500
     ) ||
-    /internal server error|service unavailable|bad gateway|gateway timeout|upstream|overloaded|temporary failure/.test(
+    /internal server error|service unavailable|bad gateway|gateway timeout|upstream|overloaded|temporary failure|maintenance/.test(
       haystack
     )
   ) {
@@ -7222,10 +8672,10 @@ function classifyModelError(
 
       message:
         context.model.label +
-        " encountered a temporary provider-side error while generating the image.",
+        " encountered a temporary provider-side error.",
 
       hint:
-        "Try again shortly. If only this model keeps failing, use another model until it recovers.",
+        "Try again shortly. If only this model keeps failing, use another model.",
 
       retryable:
         true
@@ -7255,7 +8705,7 @@ function classifyModelError(
         ".",
 
       hint:
-        "Try again shortly. If other models work, the problem is probably isolated to this model or provider path.",
+        "Try again shortly.",
 
       retryable:
         true
@@ -7278,7 +8728,7 @@ function classifyModelError(
       " encountered an unexpected generation error.",
 
     hint:
-      "Try the same prompt again. If it repeatedly fails, use another model, a smaller resolution, or Standard quality.",
+      "Try again, use another model, a smaller resolution, or Standard quality.",
 
     retryable:
       true
@@ -7296,13 +8746,26 @@ function classifyModelError(
 function logModelFailure(
   model,
   publicError,
-  error
+  error,
+  env
 ) {
 
   const info =
     extractProviderErrorInfo(
       error
     );
+
+
+  const runtimeModel =
+    model.provider ===
+      "horde"
+
+      ? resolveHordeModelName(
+          env,
+          model
+        )
+
+      : model.id;
 
 
   console.error(
@@ -7312,8 +8775,11 @@ function logModelFailure(
       model:
         model.label,
 
-      modelId:
-        model.id,
+      provider:
+        model.provider,
+
+      runtimeModel:
+        runtimeModel,
 
       errorCode:
         publicError.code,
@@ -7331,7 +8797,7 @@ function logModelFailure(
 
       outputCode:
         error instanceof
-        ModelOutputError
+          ModelOutputError
 
           ? error.outputCode
 
@@ -7344,12 +8810,13 @@ function logModelFailure(
 
 
 /* ----------------------------------
-   UNEXPECTED TASK FALLBACK
+   TASK FALLBACKS
 ---------------------------------- */
 
 
 function createUnexpectedTaskFailure(
   model,
+  env,
   width,
   height,
   quality,
@@ -7359,11 +8826,30 @@ function createUnexpectedTaskFailure(
 ) {
 
   const steps =
-    quality === "best"
+    quality ===
+      "best"
 
       ? model.bestSteps
 
       : model.standardSteps;
+
+
+  const providerLabel =
+    providerLabelForModel(
+      model
+    );
+
+
+  const runtimeModel =
+    model.provider ===
+      "horde"
+
+      ? resolveHordeModelName(
+          env,
+          model
+        )
+
+      : model.id;
 
 
   return {
@@ -7371,11 +8857,20 @@ function createUnexpectedTaskFailure(
     modelKey:
       model.key,
 
+    provider:
+      model.provider,
+
+    providerLabel:
+      providerLabel,
+
     label:
       model.label,
 
     model:
-      model.id,
+      runtimeModel,
+
+    runtimeModel:
+      runtimeModel,
 
     width:
       width,
@@ -7421,12 +8916,54 @@ function createUnexpectedTaskFailure(
 }
 
 
+function createUnexpectedTaskFailures(
+  model,
+  env,
+  width,
+  height,
+  quality,
+  baseSeed,
+  totalVariations
+) {
+
+  return Array.from(
+    {
+      length:
+        totalVariations
+    },
+    (
+      _,
+      index
+    ) =>
+      createUnexpectedTaskFailure(
+        model,
+        env,
+        width,
+        height,
+        quality,
+        (
+          baseSeed +
+          index
+        ) %
+        (
+          MAX_SEED +
+          1
+        ),
+        index +
+        1,
+        totalVariations
+      )
+  );
+
+}
+
+
 /* ----------------------------------
-   MODEL GENERATION
+   CLOUDFLARE GENERATION
 ---------------------------------- */
 
 
-async function generateImageForModel(
+async function generateCloudflareImage(
   env,
   model,
   prompt,
@@ -7440,7 +8977,8 @@ async function generateImageForModel(
 ) {
 
   const steps =
-    quality === "best"
+    quality ===
+      "best"
 
       ? model.bestSteps
 
@@ -7490,10 +9028,21 @@ async function generateImageForModel(
       modelKey:
         model.key,
 
+      provider:
+        model.provider,
+
+      providerLabel:
+        providerLabelForModel(
+          model
+        ),
+
       label:
         model.label,
 
       model:
+        model.id,
+
+      runtimeModel:
         model.id,
 
       width:
@@ -7550,7 +9099,8 @@ async function generateImageForModel(
     logModelFailure(
       model,
       publicError,
-      error
+      error,
+      env
     );
 
 
@@ -7559,10 +9109,21 @@ async function generateImageForModel(
       modelKey:
         model.key,
 
+      provider:
+        model.provider,
+
+      providerLabel:
+        providerLabelForModel(
+          model
+        ),
+
       label:
         model.label,
 
       model:
+        model.id,
+
+      runtimeModel:
         model.id,
 
       width:
@@ -7594,6 +9155,1045 @@ async function generateImageForModel(
 
 
 /* ----------------------------------
+   AI HORDE GENERATION
+---------------------------------- */
+
+
+async function generateImagesForHordeModel(
+  env,
+  model,
+  prompt,
+  negativePrompt,
+  width,
+  height,
+  quality,
+  baseSeed,
+  totalVariations
+) {
+
+  const steps =
+    quality ===
+      "best"
+
+      ? model.bestSteps
+
+      : model.standardSteps;
+
+
+  const runtimeModel =
+    resolveHordeModelName(
+      env,
+      model
+    );
+
+
+  const providerLabel =
+    providerLabelForModel(
+      model
+    );
+
+
+  /*
+   * Horde model names may be overridden from
+   * wrangler variables.
+   */
+
+  if (
+    !runtimeModel
+  ) {
+
+    const configError =
+      {
+
+        code:
+          "HORDE_MODEL_NOT_CONFIGURED",
+
+        title:
+          "This AI Horde model slot is not configured",
+
+        message:
+          model.label +
+          " has no AI Horde model name configured.",
+
+        hint:
+          "Set " +
+          model.hordeModelEnv +
+          " in wrangler.jsonc or use the default model in this file.",
+
+        retryable:
+          false
+
+      };
+
+
+    return Array.from(
+      {
+        length:
+          totalVariations
+      },
+      (
+        _,
+        index
+      ) => ({
+
+        modelKey:
+          model.key,
+
+        provider:
+          model.provider,
+
+        providerLabel:
+          providerLabel,
+
+        label:
+          model.label,
+
+        model:
+          runtimeModel,
+
+        runtimeModel:
+          runtimeModel,
+
+        width:
+          width,
+
+        height:
+          height,
+
+        steps:
+          steps,
+
+        seed:
+          (
+            baseSeed +
+            index
+          ) %
+          (
+            MAX_SEED +
+            1
+          ),
+
+        variation:
+          index +
+          1,
+
+        totalVariations:
+          totalVariations,
+
+        error:
+          configError
+
+      })
+    );
+
+  }
+
+
+  /*
+   * Intentionally do not silently use AI Horde's
+   * anonymous API key.
+   *
+   * Keep the integration behind a Worker secret.
+   */
+
+  const apiKey =
+    String(
+      env.AI_HORDE_API_KEY ||
+      ""
+    ).trim();
+
+
+  if (
+    !apiKey
+  ) {
+
+    const configError =
+      {
+
+        code:
+          "HORDE_API_KEY_NOT_CONFIGURED",
+
+        title:
+          "AI Horde is not configured yet",
+
+        message:
+          "Arqivo requires an AI Horde API key before Horde models can be used.",
+
+        hint:
+          "Create a free AI Horde key and store it with: npx wrangler secret put AI_HORDE_API_KEY",
+
+        retryable:
+          false
+
+      };
+
+
+    return Array.from(
+      {
+        length:
+          totalVariations
+      },
+      (
+        _,
+        index
+      ) => ({
+
+        modelKey:
+          model.key,
+
+        provider:
+          model.provider,
+
+        providerLabel:
+          providerLabel,
+
+        label:
+          model.label,
+
+        model:
+          runtimeModel,
+
+        runtimeModel:
+          runtimeModel,
+
+        width:
+          width,
+
+        height:
+          height,
+
+        steps:
+          steps,
+
+        seed:
+          (
+            baseSeed +
+            index
+          ) %
+          (
+            MAX_SEED +
+            1
+          ),
+
+        variation:
+          index +
+          1,
+
+        totalVariations:
+          totalVariations,
+
+        error:
+          configError
+
+      })
+    );
+
+  }
+
+
+  try {
+
+    /*
+     * One AI Horde request can ask for several
+     * images with params.n.
+     */
+
+    const submitData =
+      await hordeRequest(
+        AI_HORDE_API_BASE +
+        "/generate/async",
+        {
+
+          method:
+            "POST",
+
+          headers:
+            hordeHeaders(
+              apiKey
+            ),
+
+          body:
+            JSON.stringify(
+              {
+
+                prompt:
+                  buildHordePrompt(
+                    prompt,
+                    negativePrompt
+                  ),
+
+                params:
+                  {
+
+                    width:
+                      width,
+
+                    height:
+                      height,
+
+                    steps:
+                      steps,
+
+                    cfg_scale:
+                      model.guidance,
+
+                    n:
+                      totalVariations,
+
+                    seed:
+                      String(
+                        baseSeed
+                      )
+
+                  },
+
+                models:
+                  [
+                    runtimeModel
+                  ],
+
+                /*
+                 * Arqivo currently exposes safe-only
+                 * generation through Horde.
+                 */
+
+                nsfw:
+                  false,
+
+                censor_nsfw:
+                  true,
+
+                replacement_filter:
+                  true,
+
+                /*
+                 * Prefer trusted Horde workers.
+                 */
+
+                trusted_workers:
+                  true,
+
+                slow_workers:
+                  true,
+
+                /*
+                 * Ask Horde not to intentionally share
+                 * this generation.
+                 */
+
+                shared:
+                  false,
+
+                /*
+                 * Ask Horde for a temporary image URL
+                 * when supported. Arqivo downloads it
+                 * server-side and returns a data URI.
+                 */
+
+                r2:
+                  true
+
+              }
+            )
+
+        }
+      );
+
+
+    const requestId =
+      String(
+        submitData?.id ||
+        ""
+      ).trim();
+
+
+    if (
+      !requestId
+    ) {
+
+      throw new ModelOutputError(
+        "AI Horde did not return a request ID.",
+        "HORDE_MISSING_REQUEST_ID"
+      );
+
+    }
+
+
+    let done =
+      false;
+
+
+    for (
+      let attempt = 0;
+      attempt < AI_HORDE_MAX_POLLS;
+      attempt += 1
+    ) {
+
+      await sleep(
+        AI_HORDE_POLL_INTERVAL_MS
+      );
+
+
+      const checkData =
+        await hordeRequest(
+          AI_HORDE_API_BASE +
+          "/generate/check/" +
+          encodeURIComponent(
+            requestId
+          ),
+          {
+
+            method:
+              "GET",
+
+            headers:
+              hordeHeaders(
+                apiKey
+              )
+
+          }
+        );
+
+
+      if (
+        checkData?.faulted ===
+        true
+      ) {
+
+        throw new ProviderResponseError(
+          "AI Horde marked the generation request as faulted.",
+          502,
+          "AbortedGen"
+        );
+
+      }
+
+
+      if (
+        checkData?.done ===
+        true
+      ) {
+
+        done =
+          true;
+
+
+        break;
+
+      }
+
+    }
+
+
+    if (
+      !done
+    ) {
+
+      throw new HordeTimeoutError(
+        "AI Horde generation did not finish before the polling window ended."
+      );
+
+    }
+
+
+    const statusData =
+      await hordeRequest(
+        AI_HORDE_API_BASE +
+        "/generate/status/" +
+        encodeURIComponent(
+          requestId
+        ),
+        {
+
+          method:
+            "GET",
+
+          headers:
+            hordeHeaders(
+              apiKey
+            )
+
+        }
+      );
+
+
+    const generations =
+      Array.isArray(
+        statusData?.generations
+      )
+
+        ? statusData.generations
+            .slice(
+              0,
+              totalVariations
+            )
+
+        : [];
+
+
+    const results =
+      [];
+
+
+    for (
+      let index = 0;
+      index < generations.length;
+      index += 1
+    ) {
+
+      const generation =
+        generations[
+          index
+        ];
+
+
+      const dataURI =
+        await hordeGenerationToDataURI(
+          generation
+        );
+
+
+      const returnedSeed =
+        safeSeed(
+          generation?.seed,
+          (
+            baseSeed +
+            index
+          ) %
+          (
+            MAX_SEED +
+            1
+          )
+        );
+
+
+      results.push(
+        {
+
+          modelKey:
+            model.key,
+
+          provider:
+            model.provider,
+
+          providerLabel:
+            providerLabel,
+
+          label:
+            model.label,
+
+          model:
+            runtimeModel,
+
+          runtimeModel:
+            String(
+              generation?.model ||
+              runtimeModel
+            ),
+
+          width:
+            width,
+
+          height:
+            height,
+
+          steps:
+            steps,
+
+          seed:
+            returnedSeed,
+
+          variation:
+            index +
+            1,
+
+          totalVariations:
+            totalVariations,
+
+          dataURI:
+            dataURI
+
+        }
+      );
+
+    }
+
+
+    /*
+     * If Horde returned fewer images than expected,
+     * fill the missing slots with useful error cards.
+     */
+
+    while (
+      results.length <
+      totalVariations
+    ) {
+
+      const index =
+        results.length;
+
+
+      results.push(
+        {
+
+          modelKey:
+            model.key,
+
+          provider:
+            model.provider,
+
+          providerLabel:
+            providerLabel,
+
+          label:
+            model.label,
+
+          model:
+            runtimeModel,
+
+          runtimeModel:
+            runtimeModel,
+
+          width:
+            width,
+
+          height:
+            height,
+
+          steps:
+            steps,
+
+          seed:
+            (
+              baseSeed +
+              index
+            ) %
+            (
+              MAX_SEED +
+              1
+            ),
+
+          variation:
+            index +
+            1,
+
+          totalVariations:
+            totalVariations,
+
+          error:
+            {
+
+              code:
+                "HORDE_RESULT_MISSING",
+
+              title:
+                "AI Horde did not return every requested image",
+
+              message:
+                model.label +
+                " completed with fewer images than Arqivo requested.",
+
+              hint:
+                "Try fewer variations or run this Horde model again.",
+
+              retryable:
+                true
+
+            }
+
+        }
+      );
+
+    }
+
+
+    return results;
+
+  } catch (
+    error
+  ) {
+
+    const publicError =
+      classifyModelError(
+        error,
+        {
+
+          model:
+            model,
+
+          width:
+            width,
+
+          height:
+            height,
+
+          steps:
+            steps,
+
+          quality:
+            quality
+
+        }
+      );
+
+
+    logModelFailure(
+      model,
+      publicError,
+      error,
+      env
+    );
+
+
+    return Array.from(
+      {
+        length:
+          totalVariations
+      },
+      (
+        _,
+        index
+      ) => ({
+
+        modelKey:
+          model.key,
+
+        provider:
+          model.provider,
+
+        providerLabel:
+          providerLabel,
+
+        label:
+          model.label,
+
+        model:
+          runtimeModel,
+
+        runtimeModel:
+          runtimeModel,
+
+        width:
+          width,
+
+        height:
+          height,
+
+        steps:
+          steps,
+
+        seed:
+          (
+            baseSeed +
+            index
+          ) %
+          (
+            MAX_SEED +
+            1
+          ),
+
+        variation:
+          index +
+          1,
+
+        totalVariations:
+          totalVariations,
+
+        error:
+          publicError
+
+      })
+    );
+
+  }
+
+}
+
+
+/* ----------------------------------
+   AI HORDE REQUEST HELPERS
+---------------------------------- */
+
+
+function hordeHeaders(
+  apiKey
+) {
+
+  return {
+
+    "Accept":
+      "application/json",
+
+    "Content-Type":
+      "application/json",
+
+    "apikey":
+      apiKey,
+
+    "Client-Agent":
+      AI_HORDE_CLIENT_AGENT
+
+  };
+
+}
+
+
+async function hordeRequest(
+  url,
+  options
+) {
+
+  let response;
+
+
+  try {
+
+    response =
+      await fetch(
+        url,
+        options
+      );
+
+  } catch (
+    error
+  ) {
+
+    throw new ProviderResponseError(
+      error?.message ||
+      "AI Horde network request failed.",
+      503,
+      "HORDE_NETWORK_ERROR"
+    );
+
+  }
+
+
+  let data =
+    {};
+
+
+  try {
+
+    data =
+      await response.json();
+
+  } catch {
+
+    data =
+      {};
+
+  }
+
+
+  if (
+    !response.ok
+  ) {
+
+    const message =
+      firstNonEmptyString(
+        [
+
+          data?.message,
+
+          data?.error,
+
+          response.statusText,
+
+          "AI Horde returned an unsuccessful response."
+
+        ]
+      );
+
+
+    const providerCode =
+      firstNonEmptyString(
+        [
+
+          data?.rc,
+
+          data?.code
+
+        ]
+      );
+
+
+    throw new ProviderResponseError(
+      message,
+      response.status,
+      providerCode
+    );
+
+  }
+
+
+  return data;
+
+}
+
+
+function safeSeed(
+  value,
+  fallback
+) {
+
+  const parsed =
+    Number.parseInt(
+      value,
+      10
+    );
+
+
+  return (
+    Number.isSafeInteger(
+      parsed
+    ) &&
+    parsed >= 0 &&
+    parsed <= MAX_SEED
+
+      ? parsed
+
+      : fallback
+  );
+
+}
+
+
+function sleep(
+  milliseconds
+) {
+
+  return new Promise(
+    (resolve) =>
+      setTimeout(
+        resolve,
+        milliseconds
+      )
+  );
+
+}
+
+
+/* ----------------------------------
+   AI HORDE IMAGE HANDLING
+---------------------------------- */
+
+
+async function hordeGenerationToDataURI(
+  generation
+) {
+
+  const imageValue =
+    String(
+      generation?.img ||
+      ""
+    ).trim();
+
+
+  if (
+    !imageValue
+  ) {
+
+    throw new ModelOutputError(
+      "AI Horde returned a generation without image data.",
+      "HORDE_EMPTY_IMAGE"
+    );
+
+  }
+
+
+  /*
+   * Already a data URI.
+   */
+
+  if (
+    imageValue.startsWith(
+      "data:image/"
+    )
+  ) {
+
+    return imageValue;
+
+  }
+
+
+  /*
+   * AI Horde can return a temporary hosted URL.
+   *
+   * Fetch it inside the Worker so the visitor's
+   * browser never needs to contact that image
+   * host directly.
+   */
+
+  if (
+    /^https:\/\//i.test(
+      imageValue
+    )
+  ) {
+
+    const imageResponse =
+      await fetch(
+        imageValue,
+        {
+
+          method:
+            "GET",
+
+          headers:
+            {
+
+              "Accept":
+                "image/*"
+
+            }
+
+        }
+      );
+
+
+    if (
+      !imageResponse.ok
+    ) {
+
+      throw new ProviderResponseError(
+        "AI Horde image download failed.",
+        imageResponse.status,
+        "HORDE_IMAGE_DOWNLOAD_FAILED"
+      );
+
+    }
+
+
+    const contentType =
+      imageResponse.headers.get(
+        "content-type"
+      ) ||
+      "";
+
+
+    const arrayBuffer =
+      await imageResponse.arrayBuffer();
+
+
+    return arrayBufferToDataURI(
+      arrayBuffer,
+      contentType
+    );
+
+  }
+
+
+  /*
+   * Otherwise treat it as raw Base64.
+   */
+
+  return base64ImageToDataURI(
+    imageValue
+  );
+
+}
+
+
+/* ----------------------------------
    MODEL OUTPUT HANDLING
 ---------------------------------- */
 
@@ -7604,8 +10204,10 @@ async function outputToDataURI(
 
   if (
     output &&
-    typeof output === "object" &&
-    typeof output.image === "string"
+    typeof output ===
+      "object" &&
+    typeof output.image ===
+      "string"
   ) {
 
     return base64ImageToDataURI(
@@ -7616,7 +10218,8 @@ async function outputToDataURI(
 
 
   if (
-    output instanceof Response
+    output instanceof
+    Response
   ) {
 
     if (
@@ -7665,7 +10268,8 @@ async function outputToDataURI(
     const contentType =
       output.headers.get(
         "content-type"
-      ) || "";
+      ) ||
+      "";
 
 
     const arrayBuffer =
@@ -7681,7 +10285,8 @@ async function outputToDataURI(
 
 
   if (
-    output instanceof ArrayBuffer
+    output instanceof
+    ArrayBuffer
   ) {
 
     return arrayBufferToDataURI(
@@ -7850,7 +10455,8 @@ function arrayBufferToDataURI(
 
 
   if (
-    bytes.length < 8
+    bytes.length <
+    8
   ) {
 
     throw new ModelOutputError(
@@ -7918,11 +10524,16 @@ function detectImageMimeType(
 ) {
 
   if (
-    bytes.length >= 8 &&
-    bytes[0] === 0x89 &&
-    bytes[1] === 0x50 &&
-    bytes[2] === 0x4e &&
-    bytes[3] === 0x47
+    bytes.length >=
+      8 &&
+    bytes[0] ===
+      0x89 &&
+    bytes[1] ===
+      0x50 &&
+    bytes[2] ===
+      0x4e &&
+    bytes[3] ===
+      0x47
   ) {
 
     return "image/png";
@@ -7931,10 +10542,14 @@ function detectImageMimeType(
 
 
   if (
-    bytes.length >= 3 &&
-    bytes[0] === 0xff &&
-    bytes[1] === 0xd8 &&
-    bytes[2] === 0xff
+    bytes.length >=
+      3 &&
+    bytes[0] ===
+      0xff &&
+    bytes[1] ===
+      0xd8 &&
+    bytes[2] ===
+      0xff
   ) {
 
     return "image/jpeg";
@@ -7943,15 +10558,24 @@ function detectImageMimeType(
 
 
   if (
-    bytes.length >= 12 &&
-    bytes[0] === 0x52 &&
-    bytes[1] === 0x49 &&
-    bytes[2] === 0x46 &&
-    bytes[3] === 0x46 &&
-    bytes[8] === 0x57 &&
-    bytes[9] === 0x45 &&
-    bytes[10] === 0x42 &&
-    bytes[11] === 0x50
+    bytes.length >=
+      12 &&
+    bytes[0] ===
+      0x52 &&
+    bytes[1] ===
+      0x49 &&
+    bytes[2] ===
+      0x46 &&
+    bytes[3] ===
+      0x46 &&
+    bytes[8] ===
+      0x57 &&
+    bytes[9] ===
+      0x45 &&
+    bytes[10] ===
+      0x42 &&
+    bytes[11] ===
+      0x50
   ) {
 
     return "image/webp";
@@ -7985,7 +10609,8 @@ function uint8ToBase64(
     const chunk =
       bytes.subarray(
         i,
-        i + chunkSize
+        i +
+        chunkSize
       );
 
 
@@ -8067,12 +10692,13 @@ async function verifyTurnstile(
           method:
             "POST",
 
-          headers: {
+          headers:
+            {
 
-            "Content-Type":
-              "application/x-www-form-urlencoded"
+              "Content-Type":
+                "application/x-www-form-urlencoded"
 
-          },
+            },
 
           body:
             params.toString()
@@ -8100,8 +10726,10 @@ async function verifyTurnstile(
     return {
 
       success:
-        data.success === true &&
-        data.hostname === expectedHostname
+        data.success ===
+          true &&
+        data.hostname ===
+          expectedHostname
 
     };
 
@@ -8141,14 +10769,15 @@ function json(
       status:
         status,
 
-      headers: {
+      headers:
+        {
 
-        ...COMMON_HEADERS,
+          ...COMMON_HEADERS,
 
-        "Content-Type":
-          "application/json; charset=UTF-8"
+          "Content-Type":
+            "application/json; charset=UTF-8"
 
-      }
+        }
 
     }
   );
