@@ -73,7 +73,7 @@ const MODELS = [
       "SDXL Lightning",
 
     description:
-      "Fast SDXL generation",
+      "Fastest Cloudflare model for quick image generation",
 
     id:
       "@cf/bytedance/stable-diffusion-xl-lightning",
@@ -103,7 +103,7 @@ const MODELS = [
       "SDXL Base",
 
     description:
-      "Classic SDXL model",
+      "Balanced general-purpose model for high-quality images",
 
     id:
       "@cf/stabilityai/stable-diffusion-xl-base-1.0",
@@ -133,7 +133,7 @@ const MODELS = [
       "Lucid Origin",
 
     description:
-      "High prompt responsiveness",
+      "Strong prompt responsiveness and clean compositions",
 
     id:
       "@cf/leonardo/lucid-origin",
@@ -163,7 +163,7 @@ const MODELS = [
       "Phoenix",
 
     description:
-      "Strong prompt adherence",
+      "Detailed images with strong instruction following",
 
     id:
       "@cf/leonardo/phoenix-1.0",
@@ -190,10 +190,10 @@ const MODELS = [
       "horde",
 
     label:
-      "Horde Model A",
+      "AlbedoBase XL 3.1",
 
     description:
-      "AI Horde model slot A",
+      "Best all-around Horde model",
 
     hordeModelEnv:
       "AI_HORDE_MODEL_A",
@@ -223,10 +223,10 @@ const MODELS = [
       "horde",
 
     label:
-      "Horde Model B",
+      "AbsoluteReality",
 
     description:
-      "AI Horde model slot B",
+      "Photorealistic images and portraits",
 
     hordeModelEnv:
       "AI_HORDE_MODEL_B",
@@ -256,10 +256,10 @@ const MODELS = [
       "horde",
 
     label:
-      "Horde Model C",
+      "Realistic Vision",
 
     description:
-      "AI Horde model slot C",
+      "Realism and human photography",
 
     hordeModelEnv:
       "AI_HORDE_MODEL_C",
@@ -289,10 +289,10 @@ const MODELS = [
       "horde",
 
     label:
-      "Horde Model D",
+      "Deliberate 3.0",
 
     description:
-      "AI Horde model slot D",
+      "Cinematic and creative images",
 
     hordeModelEnv:
       "AI_HORDE_MODEL_D",
@@ -798,13 +798,25 @@ function modelDescription(
     "horde"
   ) {
 
-    return (
-      "Uses " +
+    const runtimeModel =
       resolveHordeModelName(
         env,
         model
-      )
-    );
+      );
+
+
+    if (
+      runtimeModel &&
+      runtimeModel !== model.label
+    ) {
+
+      return (
+        model.description +
+        " · Runtime model: " +
+        runtimeModel
+      );
+
+    }
 
   }
 
