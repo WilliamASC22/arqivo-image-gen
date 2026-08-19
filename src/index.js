@@ -88,7 +88,7 @@ const MODELS = [
       7.5,
 
     defaultSelected:
-      true
+      false
   },
 
 
@@ -118,7 +118,7 @@ const MODELS = [
       7.5,
 
     defaultSelected:
-      true
+      false
   },
 
 
@@ -148,7 +148,7 @@ const MODELS = [
       5.5,
 
     defaultSelected:
-      true
+      false
   },
 
 
@@ -178,7 +178,7 @@ const MODELS = [
       7.5,
 
     defaultSelected:
-      true
+      false
   },
 
 
@@ -211,7 +211,7 @@ const MODELS = [
       7,
 
     defaultSelected:
-      false
+      true
   },
 
 
@@ -7374,10 +7374,10 @@ async function submitHordeModel(
                   ],
 
                 nsfw:
-                  false,
+                  true,
 
                 censor_nsfw:
-                  true,
+                  false,
 
                 replacement_filter:
                   true,
