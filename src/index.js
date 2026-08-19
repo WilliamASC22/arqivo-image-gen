@@ -9,23 +9,38 @@ const AI_HORDE_API_BASE =
   "https://aihorde.net/api/v2";
 
 const AI_HORDE_CLIENT_AGENT =
-  "ArqivoImageGen:1.1:https://github.com/arqivo/arqivo-image-gen";
+  "ArqivoImageGen:1.2:https://github.com/arqivo/arqivo-image-gen";
+
+
+/* ----------------------------------
+   PROVIDERS
+---------------------------------- */
 
 
 const PROVIDERS = [
+
   {
-    key: "cloudflare",
-    label: "Cloudflare Workers AI",
+    key:
+      "cloudflare",
+
+    label:
+      "Cloudflare Workers AI",
+
     description:
       "Runs through Arqivo's Cloudflare Workers AI binding."
   },
 
   {
-    key: "horde",
-    label: "AI Horde",
+    key:
+      "horde",
+
+    label:
+      "AI Horde",
+
     description:
       "Community-powered generation using volunteer workers."
   }
+
 ];
 
 
@@ -40,106 +55,262 @@ const PROVIDERS_BY_KEY =
   );
 
 
+/* ----------------------------------
+   MODELS
+---------------------------------- */
+
+
 const MODELS = [
 
   {
-    key: "sdxl-lightning",
-    provider: "cloudflare",
-    label: "SDXL Lightning",
-    description: "Fast SDXL generation",
-    id: "@cf/bytedance/stable-diffusion-xl-lightning",
-    standardSteps: 10,
-    bestSteps: 20,
-    guidance: 7.5,
-    defaultSelected: true
+    key:
+      "sdxl-lightning",
+
+    provider:
+      "cloudflare",
+
+    label:
+      "SDXL Lightning",
+
+    description:
+      "Fast SDXL generation",
+
+    id:
+      "@cf/bytedance/stable-diffusion-xl-lightning",
+
+    standardSteps:
+      10,
+
+    bestSteps:
+      20,
+
+    guidance:
+      7.5,
+
+    defaultSelected:
+      true
   },
 
-  {
-    key: "sdxl-base",
-    provider: "cloudflare",
-    label: "SDXL Base",
-    description: "Classic SDXL model",
-    id: "@cf/stabilityai/stable-diffusion-xl-base-1.0",
-    standardSteps: 12,
-    bestSteps: 20,
-    guidance: 7.5,
-    defaultSelected: true
-  },
 
   {
-    key: "lucid-origin",
-    provider: "cloudflare",
-    label: "Lucid Origin",
-    description: "High prompt responsiveness",
-    id: "@cf/leonardo/lucid-origin",
-    standardSteps: 20,
-    bestSteps: 32,
-    guidance: 5.5,
-    defaultSelected: true
+    key:
+      "sdxl-base",
+
+    provider:
+      "cloudflare",
+
+    label:
+      "SDXL Base",
+
+    description:
+      "Classic SDXL model",
+
+    id:
+      "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+
+    standardSteps:
+      12,
+
+    bestSteps:
+      20,
+
+    guidance:
+      7.5,
+
+    defaultSelected:
+      true
   },
 
-  {
-    key: "phoenix",
-    provider: "cloudflare",
-    label: "Phoenix",
-    description: "Strong prompt adherence",
-    id: "@cf/leonardo/phoenix-1.0",
-    standardSteps: 20,
-    bestSteps: 35,
-    guidance: 7.5,
-    defaultSelected: true
-  },
 
   {
-    key: "horde-a",
-    provider: "horde",
-    label: "Horde Model A",
-    description: "AI Horde model slot A",
-    hordeModelEnv: "AI_HORDE_MODEL_A",
-    hordeDefaultModel: "AlbedoBase XL 3.1",
-    standardSteps: 18,
-    bestSteps: 24,
-    guidance: 7,
-    defaultSelected: false
+    key:
+      "lucid-origin",
+
+    provider:
+      "cloudflare",
+
+    label:
+      "Lucid Origin",
+
+    description:
+      "High prompt responsiveness",
+
+    id:
+      "@cf/leonardo/lucid-origin",
+
+    standardSteps:
+      20,
+
+    bestSteps:
+      32,
+
+    guidance:
+      5.5,
+
+    defaultSelected:
+      true
   },
 
-  {
-    key: "horde-b",
-    provider: "horde",
-    label: "Horde Model B",
-    description: "AI Horde model slot B",
-    hordeModelEnv: "AI_HORDE_MODEL_B",
-    hordeDefaultModel: "AbsoluteReality",
-    standardSteps: 16,
-    bestSteps: 22,
-    guidance: 7,
-    defaultSelected: false
-  },
 
   {
-    key: "horde-c",
-    provider: "horde",
-    label: "Horde Model C",
-    description: "AI Horde model slot C",
-    hordeModelEnv: "AI_HORDE_MODEL_C",
-    hordeDefaultModel: "Realistic Vision",
-    standardSteps: 16,
-    bestSteps: 22,
-    guidance: 7,
-    defaultSelected: false
+    key:
+      "phoenix",
+
+    provider:
+      "cloudflare",
+
+    label:
+      "Phoenix",
+
+    description:
+      "Strong prompt adherence",
+
+    id:
+      "@cf/leonardo/phoenix-1.0",
+
+    standardSteps:
+      20,
+
+    bestSteps:
+      35,
+
+    guidance:
+      7.5,
+
+    defaultSelected:
+      true
   },
 
+
   {
-    key: "horde-d",
-    provider: "horde",
-    label: "Horde Model D",
-    description: "AI Horde model slot D",
-    hordeModelEnv: "AI_HORDE_MODEL_D",
-    hordeDefaultModel: "Deliberate 3.0",
-    standardSteps: 16,
-    bestSteps: 22,
-    guidance: 7,
-    defaultSelected: false
+    key:
+      "horde-a",
+
+    provider:
+      "horde",
+
+    label:
+      "Horde Model A",
+
+    description:
+      "AI Horde model slot A",
+
+    hordeModelEnv:
+      "AI_HORDE_MODEL_A",
+
+    hordeDefaultModel:
+      "AlbedoBase XL 3.1",
+
+    standardSteps:
+      18,
+
+    bestSteps:
+      24,
+
+    guidance:
+      7,
+
+    defaultSelected:
+      false
+  },
+
+
+  {
+    key:
+      "horde-b",
+
+    provider:
+      "horde",
+
+    label:
+      "Horde Model B",
+
+    description:
+      "AI Horde model slot B",
+
+    hordeModelEnv:
+      "AI_HORDE_MODEL_B",
+
+    hordeDefaultModel:
+      "AbsoluteReality",
+
+    standardSteps:
+      16,
+
+    bestSteps:
+      22,
+
+    guidance:
+      7,
+
+    defaultSelected:
+      false
+  },
+
+
+  {
+    key:
+      "horde-c",
+
+    provider:
+      "horde",
+
+    label:
+      "Horde Model C",
+
+    description:
+      "AI Horde model slot C",
+
+    hordeModelEnv:
+      "AI_HORDE_MODEL_C",
+
+    hordeDefaultModel:
+      "Realistic Vision",
+
+    standardSteps:
+      16,
+
+    bestSteps:
+      22,
+
+    guidance:
+      7,
+
+    defaultSelected:
+      false
+  },
+
+
+  {
+    key:
+      "horde-d",
+
+    provider:
+      "horde",
+
+    label:
+      "Horde Model D",
+
+    description:
+      "AI Horde model slot D",
+
+    hordeModelEnv:
+      "AI_HORDE_MODEL_D",
+
+    hordeDefaultModel:
+      "Deliberate 3.0",
+
+    standardSteps:
+      16,
+
+    bestSteps:
+      22,
+
+    guidance:
+      7,
+
+    defaultSelected:
+      false
   }
 
 ];
@@ -156,138 +327,274 @@ const MODELS_BY_KEY =
   );
 
 
+/* ----------------------------------
+   IMAGE SIZES
+---------------------------------- */
+
+
 const SIZES = {
 
   "square-512": {
-    label: "512 × 512",
-    width: 512,
-    height: 512
+    label:
+      "512 × 512",
+
+    width:
+      512,
+
+    height:
+      512
   },
+
 
   "square-768": {
-    label: "768 × 768",
-    width: 768,
-    height: 768
+    label:
+      "768 × 768",
+
+    width:
+      768,
+
+    height:
+      768
   },
+
 
   "square-1024": {
-    label: "1024 × 1024",
-    width: 1024,
-    height: 1024
+    label:
+      "1024 × 1024",
+
+    width:
+      1024,
+
+    height:
+      1024
   },
+
 
   "square-1280": {
-    label: "1280 × 1280",
-    width: 1280,
-    height: 1280
+    label:
+      "1280 × 1280",
+
+    width:
+      1280,
+
+    height:
+      1280
   },
+
 
   "square-1536": {
-    label: "1536 × 1536",
-    width: 1536,
-    height: 1536
+    label:
+      "1536 × 1536",
+
+    width:
+      1536,
+
+    height:
+      1536
   },
+
 
   "square-2048": {
-    label: "2048 × 2048",
-    width: 2048,
-    height: 2048
+    label:
+      "2048 × 2048",
+
+    width:
+      2048,
+
+    height:
+      2048
   },
+
 
   "landscape-1024x768": {
-    label: "1024 × 768 · 4:3",
-    width: 1024,
-    height: 768
+    label:
+      "1024 × 768 · 4:3",
+
+    width:
+      1024,
+
+    height:
+      768
   },
+
 
   "landscape-1152x768": {
-    label: "1152 × 768 · 3:2",
-    width: 1152,
-    height: 768
+    label:
+      "1152 × 768 · 3:2",
+
+    width:
+      1152,
+
+    height:
+      768
   },
+
 
   "landscape-1024x576": {
-    label: "1024 × 576 · 16:9",
-    width: 1024,
-    height: 576
+    label:
+      "1024 × 576 · 16:9",
+
+    width:
+      1024,
+
+    height:
+      576
   },
+
 
   "landscape-1344x768": {
-    label: "1344 × 768 · 7:4",
-    width: 1344,
-    height: 768
+    label:
+      "1344 × 768 · 7:4",
+
+    width:
+      1344,
+
+    height:
+      768
   },
+
 
   "landscape-1536x1024": {
-    label: "1536 × 1024 · 3:2",
-    width: 1536,
-    height: 1024
+    label:
+      "1536 × 1024 · 3:2",
+
+    width:
+      1536,
+
+    height:
+      1024
   },
+
 
   "landscape-1536x640": {
-    label: "1536 × 640 · cinematic",
-    width: 1536,
-    height: 640
+    label:
+      "1536 × 640 · cinematic",
+
+    width:
+      1536,
+
+    height:
+      640
   },
+
 
   "landscape-1792x1024": {
-    label: "1792 × 1024 · wide",
-    width: 1792,
-    height: 1024
+    label:
+      "1792 × 1024 · wide",
+
+    width:
+      1792,
+
+    height:
+      1024
   },
+
 
   "landscape-2048x1152": {
-    label: "2048 × 1152 · 16:9",
-    width: 2048,
-    height: 1152
+    label:
+      "2048 × 1152 · 16:9",
+
+    width:
+      2048,
+
+    height:
+      1152
   },
+
 
   "portrait-768x1024": {
-    label: "768 × 1024 · 3:4",
-    width: 768,
-    height: 1024
+    label:
+      "768 × 1024 · 3:4",
+
+    width:
+      768,
+
+    height:
+      1024
   },
+
 
   "portrait-768x1152": {
-    label: "768 × 1152 · 2:3",
-    width: 768,
-    height: 1152
+    label:
+      "768 × 1152 · 2:3",
+
+    width:
+      768,
+
+    height:
+      1152
   },
+
 
   "portrait-576x1024": {
-    label: "576 × 1024 · 9:16",
-    width: 576,
-    height: 1024
+    label:
+      "576 × 1024 · 9:16",
+
+    width:
+      576,
+
+    height:
+      1024
   },
+
 
   "portrait-768x1344": {
-    label: "768 × 1344 · 4:7",
-    width: 768,
-    height: 1344
+    label:
+      "768 × 1344 · 4:7",
+
+    width:
+      768,
+
+    height:
+      1344
   },
+
 
   "portrait-1024x1280": {
-    label: "1024 × 1280 · 4:5",
-    width: 1024,
-    height: 1280
+    label:
+      "1024 × 1280 · 4:5",
+
+    width:
+      1024,
+
+    height:
+      1280
   },
+
 
   "portrait-1024x1536": {
-    label: "1024 × 1536 · 2:3",
-    width: 1024,
-    height: 1536
+    label:
+      "1024 × 1536 · 2:3",
+
+    width:
+      1024,
+
+    height:
+      1536
   },
+
 
   "portrait-1024x1792": {
-    label: "1024 × 1792 · 4:7",
-    width: 1024,
-    height: 1792
+    label:
+      "1024 × 1792 · 4:7",
+
+    width:
+      1024,
+
+    height:
+      1792
   },
 
+
   "portrait-1152x2048": {
-    label: "1152 × 2048 · 9:16",
-    width: 1152,
-    height: 2048
+    label:
+      "1152 × 2048 · 9:16",
+
+    width:
+      1152,
+
+    height:
+      2048
   }
 
 };
@@ -296,7 +603,8 @@ const SIZES = {
 const SIZE_GROUPS = [
 
   {
-    label: "Square",
+    label:
+      "Square",
 
     keys: [
       "square-512",
@@ -308,8 +616,10 @@ const SIZE_GROUPS = [
     ]
   },
 
+
   {
-    label: "Landscape",
+    label:
+      "Landscape",
 
     keys: [
       "landscape-1024x768",
@@ -323,8 +633,10 @@ const SIZE_GROUPS = [
     ]
   },
 
+
   {
-    label: "Portrait",
+    label:
+      "Portrait",
 
     keys: [
       "portrait-768x1024",
@@ -341,6 +653,11 @@ const SIZE_GROUPS = [
 ];
 
 
+/* ----------------------------------
+   ERROR CLASSES
+---------------------------------- */
+
+
 class ModelOutputError extends Error {
 
   constructor(
@@ -348,10 +665,14 @@ class ModelOutputError extends Error {
     outputCode = "INVALID_OUTPUT"
   ) {
 
-    super(message);
+    super(
+      message
+    );
+
 
     this.name =
       "ModelOutputError";
+
 
     this.outputCode =
       outputCode;
@@ -369,13 +690,18 @@ class ProviderResponseError extends Error {
     providerCode = ""
   ) {
 
-    super(message);
+    super(
+      message
+    );
+
 
     this.name =
       "ProviderResponseError";
 
+
     this.status =
       status;
+
 
     this.providerCode =
       providerCode;
@@ -383,6 +709,11 @@ class ProviderResponseError extends Error {
   }
 
 }
+
+
+/* ----------------------------------
+   GENERAL HELPERS
+---------------------------------- */
 
 
 function escapeHTML(
@@ -437,12 +768,14 @@ function resolveHordeModelName(
 
   const configured =
     model.hordeModelEnv
+
       ? String(
           env?.[
             model.hordeModelEnv
           ] ||
           ""
         ).trim()
+
       : "";
 
 
@@ -455,6 +788,37 @@ function resolveHordeModelName(
 }
 
 
+function modelDescription(
+  model,
+  env
+) {
+
+  if (
+    model.provider ===
+    "horde"
+  ) {
+
+    return (
+      "Uses " +
+      resolveHordeModelName(
+        env,
+        model
+      )
+    );
+
+  }
+
+
+  return model.description;
+
+}
+
+
+/* ----------------------------------
+   HTML BUILDERS
+---------------------------------- */
+
+
 function buildModelOption(
   model,
   env
@@ -462,25 +826,10 @@ function buildModelOption(
 
   const checked =
     model.defaultSelected
+
       ? " checked"
+
       : "";
-
-
-  const providerLabel =
-    providerLabelForModel(
-      model
-    );
-
-
-  const description =
-    model.provider ===
-    "horde"
-      ? "Uses " +
-        resolveHordeModelName(
-          env,
-          model
-        )
-      : model.description;
 
 
   return `
@@ -491,7 +840,7 @@ function buildModelOption(
         name="models"
         value="${escapeHTML(model.key)}"
         data-model-label="${escapeHTML(model.label)}"
-        data-provider-label="${escapeHTML(providerLabel)}"
+        data-provider-label="${escapeHTML(providerLabelForModel(model))}"
         ${checked}
       />
 
@@ -514,7 +863,12 @@ function buildModelOption(
         </span>
 
         <small>
-          ${escapeHTML(description)}
+          ${escapeHTML(
+            modelDescription(
+              model,
+              env
+            )
+          )}
         </small>
 
       </span>
@@ -540,24 +894,34 @@ function buildProviderGroups(
         );
 
 
-      const note =
+      let note =
+        "";
+
+
+      if (
         provider.key ===
         "horde"
-          ? `
-            <p class="provider-note">
-              AI Horde is volunteer-run.
-              Jobs can stay queued for several minutes.
+      ) {
 
-              To improve availability, Arqivo allows
-              evaluating and very slow workers and lets
-              Horde reduce steps or resolution when a
-              low-priority request would otherwise require
-              upfront kudos.
+        note = `
+          <p class="provider-note">
+            AI Horde is volunteer-run.
+            Jobs can remain queued for a long time.
 
-              Do not send sensitive prompts through AI Horde.
-            </p>
-          `
-          : "";
+            Arqivo will keep checking a submitted
+            Horde job for up to one hour while
+            this browser tab remains open.
+
+            A priority rejection happens before
+            queueing and cannot be fixed by
+            waiting longer.
+
+            Do not send sensitive prompts
+            through AI Horde.
+          </p>
+        `;
+
+      }
 
 
       return `
@@ -629,7 +993,9 @@ function buildSizeOptions() {
               const selected =
                 key ===
                 "square-1024"
+
                   ? " selected"
+
                   : "";
 
 
@@ -739,6 +1105,11 @@ function buildFooter() {
 }
 
 
+/* ----------------------------------
+   GENERATE PAGE
+---------------------------------- */
+
+
 const HTML = (
   siteKey,
   env
@@ -811,7 +1182,8 @@ const HTML = (
 
         <p class="lead">
           Private-by-default text-to-image generation.
-          No accounts. No prompt history. No database.
+          No accounts. No prompt history.
+          No application database.
         </p>
 
         <p class="small-copy">
@@ -860,8 +1232,11 @@ const HTML = (
               </legend>
 
               <p>
-                Choose models from Cloudflare Workers AI,
-                AI Horde, or both.
+                Choose from Cloudflare Workers AI,
+                AI Horde,
+                or a mixture of both providers.
+
+                Maximum 8 total images per request.
               </p>
 
             </div>
@@ -1049,12 +1424,15 @@ const HTML = (
 
 
         <p class="quota-note">
-          Maximum 8 images per request.
 
-          AI Horde is asynchronous:
-          if a Horde job is queued,
-          leave this tab open and Arqivo
-          will keep checking for it.
+          AI Horde is asynchronous.
+
+          Leave this tab open for queued Horde jobs;
+          Arqivo will poll for up to one hour.
+
+          Cloudflare Workers AI results can finish
+          while Horde jobs remain queued.
+
         </p>
 
 
@@ -1101,8 +1479,9 @@ const HTML = (
             </h2>
 
             <p>
-              Cloudflare results can finish
-              while AI Horde remains queued.
+              Providers are isolated.
+              Cloudflare results can finish while
+              AI Horde remains queued.
             </p>
 
           </div>
@@ -1137,6 +1516,11 @@ const HTML = (
 </body>
 
 </html>`;
+
+
+/* ----------------------------------
+   PRIVACY PAGE
+---------------------------------- */
 
 
 const PRIVACY_HTML = `<!doctype html>
@@ -1201,7 +1585,7 @@ const PRIVACY_HTML = `<!doctype html>
         </p>
 
         <p class="small-copy">
-          Last updated: August 17, 2026
+          Last updated: August 18, 2026
         </p>
 
       </header>
@@ -1219,11 +1603,11 @@ const PRIVACY_HTML = `<!doctype html>
             Arqivo does not intentionally maintain
             a prompt-history database,
             generated-image gallery,
-            visitor accounts,
-            or visitor profiles.
+            visitor account system,
+            or visitor profile.
 
             Prompts and image data are handled
-            in memory as needed to complete a request.
+            in memory as needed to complete requests.
           </p>
 
         </section>
@@ -1236,7 +1620,7 @@ const PRIVACY_HTML = `<!doctype html>
           </h2>
 
           <p>
-            If you choose a Cloudflare model,
+            When you choose a Cloudflare model,
             the prompt and generation settings
             are processed through Cloudflare Workers
             and Workers AI.
@@ -1252,27 +1636,29 @@ const PRIVACY_HTML = `<!doctype html>
           </h2>
 
           <p>
-            If you choose a Horde model,
+            When you choose a Horde model,
             the prompt and settings are sent
             from Arqivo's Worker to AI Horde.
 
-            AI Horde is a distributed volunteer network.
+            AI Horde is a distributed
+            volunteer network.
 
-            Arqivo allows evaluating workers
-            as well as trusted workers
-            to increase availability,
-            so you should not use AI Horde
+            Arqivo allows a broader set of workers
+            to improve availability,
+            so do not use AI Horde
             for sensitive or private prompts.
           </p>
 
           <p>
-            Arqivo also enables AI Horde's
-            allow-downgrade option.
+            Horde jobs are asynchronous.
 
-            When a low-priority request would
-            otherwise require upfront kudos,
-            Horde may reduce steps and/or resolution
-            so the request can be accepted.
+            Your browser asks Arqivo
+            for status updates;
+            Arqivo then asks AI Horde.
+
+            The current UI will keep checking
+            for up to one hour while
+            the browser tab remains open.
           </p>
 
         </section>
@@ -1323,9 +1709,11 @@ const PRIVACY_HTML = `<!doctype html>
           </h2>
 
           <p>
-            The application does not intentionally log
-            prompts, generated image contents,
+            Arqivo's application code does not
+            intentionally log prompts,
+            generated image contents,
             Turnstile tokens,
+            AI Horde API keys,
             or full request bodies.
 
             Technical error metadata may be logged.
@@ -1350,8 +1738,7 @@ const PRIVACY_HTML = `<!doctype html>
             zero logging or zero compromise.
 
             This page describes the behavior
-            intentionally implemented
-            by Arqivo's application code.
+            intentionally implemented by Arqivo's code.
           </p>
 
         </section>
@@ -1380,6 +1767,11 @@ const PRIVACY_HTML = `<!doctype html>
 </body>
 
 </html>`;
+
+
+/* ----------------------------------
+   CSS
+---------------------------------- */
 
 
 const CSS = `
@@ -1420,6 +1812,8 @@ html,
 body {
   margin: 0;
   padding: 0;
+
+  min-height: 100%;
 
   background:
     linear-gradient(
@@ -1487,6 +1881,8 @@ footer {
   align-items: center;
 
   justify-content: space-between;
+
+  gap: 1rem;
 
   border-bottom:
     1px
@@ -1614,20 +2010,6 @@ h1 {
 }
 
 
-.prompt-block > label,
-label,
-legend {
-  font-weight: 700;
-}
-
-
-.prompt-block > label {
-  display: block;
-
-  margin-bottom: 0.5rem;
-}
-
-
 form,
 .model-status-panel,
 .result-card,
@@ -1651,6 +2033,20 @@ form,
 
 form {
   padding: 1rem;
+}
+
+
+label,
+legend,
+.prompt-block > label {
+  font-weight: 700;
+}
+
+
+.prompt-block > label {
+  display: block;
+
+  margin-bottom: 0.5rem;
 }
 
 
@@ -1901,6 +2297,7 @@ footer > div {
 
 .model-option input {
   width: 18px;
+
   height: 18px;
 
   accent-color: var(--accent);
@@ -2588,6 +2985,11 @@ footer p {
 `;
 
 
+/* ----------------------------------
+   BROWSER JAVASCRIPT
+---------------------------------- */
+
+
 const JS = `
 const MAX_IMAGES_PER_REQUEST =
   8;
@@ -2595,11 +2997,23 @@ const MAX_IMAGES_PER_REQUEST =
 const MAX_TOTAL_PIXELS =
   12582912;
 
-const HORDE_POLL_INTERVAL_MS =
-  5000;
 
-const HORDE_MAX_POLL_ROUNDS =
-  120;
+/*
+ * AI Horde:
+ *
+ * Check every 15 seconds
+ * for up to one hour.
+ *
+ * The browser does the waiting.
+ * A Worker request is NOT held open
+ * for an hour.
+ */
+
+const HORDE_POLL_INTERVAL_MS =
+  15000;
+
+const HORDE_MAX_WAIT_MS =
+  60 * 60 * 1000;
 
 
 const form =
@@ -2708,6 +3122,11 @@ let latestResults =
   [];
 
 
+/* ----------------------------------
+   MODEL SELECTION
+---------------------------------- */
+
+
 function getModelCheckboxes() {
 
   return Array.from(
@@ -2761,7 +3180,9 @@ function modelLabelForKey(
   return (
     checkbox &&
     checkbox.dataset.modelLabel
+
       ? checkbox.dataset.modelLabel
+
       : key
   );
 
@@ -2789,11 +3210,18 @@ function providerLabelForKey(
   return (
     checkbox &&
     checkbox.dataset.providerLabel
+
       ? checkbox.dataset.providerLabel
+
       : ''
   );
 
 }
+
+
+/* ----------------------------------
+   REQUEST SETTINGS
+---------------------------------- */
 
 
 function getImagesPerModel() {
@@ -2809,7 +3237,9 @@ function getImagesPerModel() {
     [1, 2, 4].includes(
       value
     )
+
       ? value
+
       : 1
   );
 
@@ -3017,7 +3447,9 @@ function updateGenerateButton() {
     summary.totalImages +
     (
       summary.totalImages === 1
+
         ? ' image'
+
         : ' images'
     );
 
@@ -3038,6 +3470,11 @@ function updateCustomSizeVisibility() {
   updateGenerateButton();
 
 }
+
+
+/* ----------------------------------
+   INLINE MODEL STATUS
+---------------------------------- */
 
 
 function findInlineStatus(
@@ -3094,9 +3531,13 @@ function setInlineModelStatus(
 }
 
 
+/* ----------------------------------
+   MODEL STATUS PANEL
+---------------------------------- */
+
+
 function startStatuses(
-  keys,
-  imagesPerModel
+  keys
 ) {
 
   modelStatusList.innerHTML =
@@ -3217,7 +3658,9 @@ function startStatuses(
     ' model' +
     (
       keys.length === 1
+
         ? ''
+
         : 's'
     ) +
     ' processing';
@@ -3490,6 +3933,11 @@ function refreshStatusSummary() {
 }
 
 
+/* ----------------------------------
+   TURNSTILE
+---------------------------------- */
+
+
 window.onTurnstileError =
   function(errorCode) {
 
@@ -3505,6 +3953,11 @@ window.onTurnstileError =
     );
 
   };
+
+
+/* ----------------------------------
+   CONTROL EVENTS
+---------------------------------- */
 
 
 selectAllModelsButton
@@ -3588,6 +4041,11 @@ customHeightEl.addEventListener(
 );
 
 
+/* ----------------------------------
+   RESULT RENDERING
+---------------------------------- */
+
+
 function extensionForDataURI(
   uri
 ) {
@@ -3616,6 +4074,17 @@ function extensionForDataURI(
   ) {
 
     return 'webp';
+
+  }
+
+
+  if (
+    value.startsWith(
+      'data:image/svg+xml'
+    )
+  ) {
+
+    return 'svg';
 
   }
 
@@ -3693,8 +4162,10 @@ function createResultCard(
     ) +
     (
       item.totalVariations > 1
+
         ? ' · Variation ' +
           item.variation
+
         : ''
     );
 
@@ -3711,13 +4182,17 @@ function createResultCard(
 
   state.dataset.tone =
     item.error
+
       ? 'error'
+
       : 'success';
 
 
   state.textContent =
     item.error
+
       ? 'Failed'
+
       : 'Completed';
 
 
@@ -3749,7 +4224,9 @@ function createResultCard(
       typeof item.error ===
         'object' &&
       item.error
+
         ? item.error
+
         : {
 
             code:
@@ -3846,8 +4323,6 @@ function createResultCard(
 
 
   if (
-    item.provider ===
-      'horde' &&
     item.runtimeModel
   ) {
 
@@ -3858,36 +4333,26 @@ function createResultCard(
   }
 
 
+  parts.push(
+    item.width +
+    ' × ' +
+    item.height +
+    ' px'
+  );
+
+
   if (
-    item.provider ===
-      'horde' &&
-    item.adaptive
+    Number.isInteger(
+      item.steps
+    )
   ) {
 
     parts.push(
-      'requested ' +
-      item.width +
-      ' × ' +
-      item.height +
-      ' · adaptive Horde settings'
-    );
-
-  } else {
-
-    parts.push(
-      item.width +
-      ' × ' +
-      item.height +
-      ' px'
+      item.steps +
+      ' steps'
     );
 
   }
-
-
-  parts.push(
-    item.steps +
-    ' steps'
-  );
 
 
   parts.push(
@@ -4098,6 +4563,11 @@ function addResults(
 }
 
 
+/* ----------------------------------
+   HORDE ONE-HOUR POLLING
+---------------------------------- */
+
+
 function sleep(
   milliseconds
 ) {
@@ -4168,13 +4638,13 @@ function timeoutResult(
           'HORDE_QUEUE_TIMEOUT',
 
         title:
-          'AI Horde is still queued',
+          'AI Horde is still queued after one hour',
 
         message:
-          'This job did not finish within Arqivo\\'s 10-minute polling window.',
+          'This job did not finish within Arqivo\\'s one-hour browser polling window.',
 
         hint:
-          'The volunteer network may be busy. Try again later, choose 512 × 512, or use fewer Horde models.'
+          'The volunteer network may be busy. Try again later, use 512 × 512, or choose fewer Horde models.'
 
       }
 
@@ -4191,16 +4661,23 @@ async function pollHordeJobs(
     initialJobs.slice();
 
 
-  for (
-    let round = 0;
-    round <
-      HORDE_MAX_POLL_ROUNDS &&
-    jobs.length;
-    round += 1
+  const startedAt =
+    Date.now();
+
+
+  let firstRound =
+    true;
+
+
+  while (
+    jobs.length &&
+    Date.now() -
+      startedAt <
+      HORDE_MAX_WAIT_MS
   ) {
 
     if (
-      round > 0
+      !firstRound
     ) {
 
       await sleep(
@@ -4208,6 +4685,10 @@ async function pollHordeJobs(
       );
 
     }
+
+
+    firstRound =
+      false;
 
 
     let response;
@@ -4294,7 +4775,9 @@ async function pollHordeJobs(
       Array.isArray(
         data.updates
       )
+
         ? data.updates
+
         : [];
 
 
@@ -4364,7 +4847,9 @@ async function pollHordeJobs(
               ' image' +
               (
                 successful === 1
+
                   ? ''
+
                   : 's'
               ) +
               ' completed'
@@ -4394,17 +4879,16 @@ async function pollHordeJobs(
 
         } else {
 
-          const detail =
-            update.detail ||
-            'Waiting for a volunteer worker.';
-
-
           setModelStatus(
             job.modelKey,
             update.processing > 0
+
               ? 'generating'
+
               : 'queued',
-            detail
+
+            update.detail ||
+            'Waiting for a volunteer worker.'
           );
 
 
@@ -4470,16 +4954,38 @@ async function pollHordeJobs(
       jobs.length
     ) {
 
+      const elapsedMinutes =
+        Math.floor(
+          (
+            Date.now() -
+            startedAt
+          ) /
+          60000
+        );
+
+
       setStatus(
-        'Cloudflare results are available. Waiting for ' +
+        'Waiting for ' +
         jobs.length +
         ' AI Horde job' +
         (
           jobs.length === 1
+
             ? ''
+
             : 's'
         ) +
-        '...',
+        ' · ' +
+        elapsedMinutes +
+        ' minute' +
+        (
+          elapsedMinutes === 1
+
+            ? ''
+
+            : 's'
+        ) +
+        ' elapsed...',
         'warning'
       );
 
@@ -4501,6 +5007,7 @@ async function pollHordeJobs(
               length:
                 job.totalVariations
             },
+
             function(
               _,
               index
@@ -4523,7 +5030,7 @@ async function pollHordeJobs(
         setModelStatus(
           job.modelKey,
           'failed',
-          'Still queued after 10 minutes'
+          'Still queued after one hour'
         );
 
       }
@@ -4532,6 +5039,11 @@ async function pollHordeJobs(
   }
 
 }
+
+
+/* ----------------------------------
+   SUBMIT FORM
+---------------------------------- */
 
 
 form.addEventListener(
@@ -4585,7 +5097,9 @@ form.addEventListener(
 
     const seed =
       seedValue === ''
+
         ? null
+
         : Number.parseInt(
             seedValue,
             10
@@ -4720,8 +5234,7 @@ form.addEventListener(
 
 
     startStatuses(
-      selectedModels,
-      imagesPerModel
+      selectedModels
     );
 
 
@@ -4731,7 +5244,9 @@ form.addEventListener(
       ' image' +
       (
         summary.totalImages === 1
+
           ? ''
+
           : 's'
       ) +
       '...',
@@ -4884,7 +5399,9 @@ form.addEventListener(
         Array.isArray(
           data.pendingHorde
         )
+
           ? data.pendingHorde
+
           : [];
 
 
@@ -4906,7 +5423,7 @@ form.addEventListener(
       ) {
 
         setStatus(
-          'Cloudflare work finished or is shown below. Waiting for AI Horde...',
+          'Cloudflare results are shown as they finish. Waiting for AI Horde for up to one hour...',
           'warning'
         );
 
@@ -4966,7 +5483,9 @@ form.addEventListener(
           ' image' +
           (
             successful === 1
+
               ? ''
+
               : 's'
           ) +
           ' completed.',
@@ -5031,6 +5550,11 @@ updateGenerateButton();
 `;
 
 
+/* ----------------------------------
+   SECURITY HEADERS
+---------------------------------- */
+
+
 const COMMON_HEADERS = {
 
   "Cache-Control":
@@ -5073,6 +5597,11 @@ const COMMON_HEADERS = {
     "frame-ancestors 'none'"
 
 };
+
+
+/* ----------------------------------
+   WORKER ROUTER
+---------------------------------- */
 
 
 export default {
@@ -5247,6 +5776,11 @@ export default {
 };
 
 
+/* ----------------------------------
+   BASIC REQUEST HELPERS
+---------------------------------- */
+
+
 function sameOrigin(
   request
 ) {
@@ -5309,6 +5843,11 @@ async function readJSONRequest(
   }
 
 }
+
+
+/* ----------------------------------
+   GENERATION ENDPOINT
+---------------------------------- */
 
 
 async function handleGenerate(
@@ -5408,9 +5947,11 @@ async function handleGenerate(
     Array.isArray(
       body?.models
     )
+
       ? body.models.map(
           String
         )
+
       : [];
 
 
@@ -5453,7 +5994,9 @@ async function handleGenerate(
   const quality =
     body?.quality ===
       "standard"
+
       ? "standard"
+
       : "best";
 
 
@@ -5468,7 +6011,9 @@ async function handleGenerate(
     [1, 2, 4].includes(
       requestedImagesPerModel
     )
+
       ? requestedImagesPerModel
+
       : 1;
 
 
@@ -5770,6 +6315,11 @@ async function handleGenerate(
 }
 
 
+/* ----------------------------------
+   HORDE STATUS ENDPOINT
+---------------------------------- */
+
+
 async function handleHordeStatus(
   request,
   env
@@ -5822,10 +6372,12 @@ async function handleHordeStatus(
     Array.isArray(
       body?.jobs
     )
+
       ? body.jobs.slice(
           0,
           4
         )
+
       : [];
 
 
@@ -5913,6 +6465,11 @@ async function handleHordeStatus(
   );
 
 }
+
+
+/* ----------------------------------
+   VALIDATION
+---------------------------------- */
 
 
 function validatePendingHordeJob(
@@ -6077,19 +6634,23 @@ function resolveDimensions(
     ) {
 
       return {
+
         error:
           "Custom dimensions must be between 256 and 2048 pixels and use increments of 64."
+
       };
 
     }
 
 
     return {
+
       width:
         width,
 
       height:
         height
+
     };
 
   }
@@ -6202,6 +6763,11 @@ function resolveSeed(
 }
 
 
+/* ----------------------------------
+   PROMPT HELPERS
+---------------------------------- */
+
+
 function buildPrompt(
   userPrompt
 ) {
@@ -6270,6 +6836,11 @@ function buildHordePrompt(
   );
 
 }
+
+
+/* ----------------------------------
+   CONCURRENCY
+---------------------------------- */
 
 
 async function runWithConcurrency(
@@ -6369,6 +6940,11 @@ async function runWithConcurrency(
 }
 
 
+/* ----------------------------------
+   STATUS SUMMARY
+---------------------------------- */
+
+
 function summarizeInitialStatuses(
   selectedModels,
   results,
@@ -6447,9 +7023,13 @@ function summarizeInitialStatuses(
         status:
           successful ===
             imagesPerModel
+
             ? "completed"
+
             : successful > 0
+
               ? "partial"
+
               : "failed",
 
         expected:
@@ -6473,6 +7053,11 @@ function summarizeInitialStatuses(
 }
 
 
+/* ----------------------------------
+   CLOUDFLARE GENERATION
+---------------------------------- */
+
+
 async function generateCloudflareImage(
   env,
   model,
@@ -6489,7 +7074,9 @@ async function generateCloudflareImage(
   const steps =
     quality ===
       "best"
+
       ? model.bestSteps
+
       : model.standardSteps;
 
 
@@ -6647,6 +7234,11 @@ async function generateCloudflareImage(
 }
 
 
+/* ----------------------------------
+   HORDE SUBMISSION
+---------------------------------- */
+
+
 async function submitHordeModel(
   env,
   model,
@@ -6662,7 +7254,9 @@ async function submitHordeModel(
   const steps =
     quality ===
       "best"
+
       ? model.bestSteps
+
       : model.standardSteps;
 
 
@@ -6707,7 +7301,7 @@ async function submitHordeModel(
               "AI_HORDE_API_KEY is missing.",
 
             hint:
-              "Run npx wrangler secret put AI_HORDE_API_KEY and deploy again."
+              "Add the AI_HORDE_API_KEY Worker secret and deploy again."
 
           }
         )
@@ -6913,6 +7507,11 @@ async function submitHordeModel(
 }
 
 
+/* ----------------------------------
+   HORDE STATUS
+---------------------------------- */
+
+
 async function checkHordeJob(
   apiKey,
   job
@@ -7034,8 +7633,7 @@ async function checkHordeJob(
 
 
       if (
-        processing >
-        0
+        processing > 0
       ) {
 
         parts.push(
@@ -7047,8 +7645,7 @@ async function checkHordeJob(
 
 
       if (
-        waiting >
-        0
+        waiting > 0
       ) {
 
         parts.push(
@@ -7140,10 +7737,12 @@ async function checkHordeJob(
       Array.isArray(
         status?.generations
       )
+
         ? status.generations.slice(
             0,
             job.totalVariations
           )
+
         : [];
 
 
@@ -7221,9 +7820,6 @@ async function checkHordeJob(
 
           totalVariations:
             job.totalVariations,
-
-          adaptive:
-            true,
 
           dataURI:
             dataURI
@@ -7335,10 +7931,13 @@ async function checkHordeJob(
 
     if (
       (
-        info.status !== null &&
-        info.status >= 500
+        info.status !==
+          null &&
+        info.status >=
+          500
       ) ||
-      info.status === 429 ||
+      info.status ===
+        429 ||
       /network|temporary|timeout|busy/i.test(
         info.message
       )
@@ -7411,6 +8010,11 @@ async function checkHordeJob(
 }
 
 
+/* ----------------------------------
+   HORDE HELPERS
+---------------------------------- */
+
+
 function makeHordeFailures(
   model,
   runtimeModel,
@@ -7431,57 +8035,56 @@ function makeHordeFailures(
     (
       _,
       index
-    ) =>
-      ({
+    ) => ({
 
-        modelKey:
-          model.key,
+      modelKey:
+        model.key,
 
-        provider:
-          "horde",
+      provider:
+        "horde",
 
-        providerLabel:
-          "AI Horde",
+      providerLabel:
+        "AI Horde",
 
-        label:
-          model.label,
+      label:
+        model.label,
 
-        model:
-          runtimeModel,
+      model:
+        runtimeModel,
 
-        runtimeModel:
-          runtimeModel,
+      runtimeModel:
+        runtimeModel,
 
-        width:
-          width,
+      width:
+        width,
 
-        height:
-          height,
+      height:
+        height,
 
-        steps:
-          steps,
+      steps:
+        steps,
 
-        seed:
-          (
-            baseSeed +
-            index
-          ) %
-          (
-            MAX_SEED +
-            1
-          ),
+      seed:
+        (
+          baseSeed +
+          index
+        ) %
+        (
+          MAX_SEED +
+          1
+        ),
 
-        variation:
-          index +
-          1,
+      variation:
+        index +
+        1,
 
-        totalVariations:
-          totalVariations,
+      totalVariations:
+        totalVariations,
 
-        error:
-          error
+      error:
+        error
 
-      })
+    })
   );
 
 }
@@ -7690,11 +8293,18 @@ function safeSeed(
     ) &&
     seed >= 0 &&
     seed <= MAX_SEED
+
       ? seed
+
       : fallback
   );
 
 }
+
+
+/* ----------------------------------
+   ERROR EXTRACTION
+---------------------------------- */
 
 
 function extractProviderErrorInfo(
@@ -7805,6 +8415,11 @@ function extractProviderErrorInfo(
 }
 
 
+/* ----------------------------------
+   ERROR CLASSIFIER
+---------------------------------- */
+
+
 function classifyModelError(
   error,
   model,
@@ -7857,6 +8472,11 @@ function classifyModelError(
     ).toLowerCase();
 
 
+  /* --------------------------------
+     HORDE PRIORITY
+  -------------------------------- */
+
+
   if (
     model?.provider ===
       "horde" &&
@@ -7877,14 +8497,14 @@ function classifyModelError(
         "HORDE_PRIORITY_REQUIRED",
 
       title:
-        "AI Horde still requires more priority for this request",
+        "AI Horde cannot accept this request with the current priority",
 
       message:
         model.label +
-        " could not be accepted even with adaptive downgrade enabled.",
+        " was rejected before it entered the queue because the request requires more Horde priority.",
 
       hint:
-        "Try 512 × 512, Standard quality, one image, or wait until the network is less busy."
+        "Waiting longer will not fix this error. Try 512 × 512, Standard quality, one image, another Horde model, or build more Horde kudos."
 
     };
 
@@ -7956,10 +8576,14 @@ function classifyModelError(
 
 
   if (
-    providerCode ===
-      "invalidapikey" ||
-    /invalid api key/.test(
-      text
+    model?.provider ===
+      "horde" &&
+    (
+      providerCode ===
+        "invalidapikey" ||
+      /invalid api key/.test(
+        text
+      )
     )
   ) {
 
@@ -7980,6 +8604,11 @@ function classifyModelError(
     };
 
   }
+
+
+  /* --------------------------------
+     GENERAL ERRORS
+  -------------------------------- */
 
 
   if (
@@ -8087,7 +8716,7 @@ function classifyModelError(
         " is not currently available under the configured model name.",
 
       hint:
-        "Try another model or update the Horde model variable."
+        "Try another model or update the configured model ID."
 
     };
 
@@ -8114,7 +8743,7 @@ function classifyModelError(
         width +
         " × " +
         height +
-        " or the selected step settings.",
+        " or the selected generation settings.",
 
       hint:
         "Try 512 × 512 or 1024 × 1024 with Standard quality."
@@ -8125,8 +8754,10 @@ function classifyModelError(
 
 
   if (
-    info.status !== null &&
-    info.status >= 500
+    info.status !==
+      null &&
+    info.status >=
+      500
   ) {
 
     return {
@@ -8167,6 +8798,11 @@ function classifyModelError(
   };
 
 }
+
+
+/* ----------------------------------
+   PRIVACY-CONSCIOUS LOGGING
+---------------------------------- */
 
 
 function logModelFailure(
@@ -8213,6 +8849,11 @@ function logModelFailure(
   );
 
 }
+
+
+/* ----------------------------------
+   IMAGE OUTPUT HANDLING
+---------------------------------- */
 
 
 async function outputToDataURI(
@@ -8384,6 +9025,18 @@ function base64ImageToDataURI(
     mimeType =
       "image/jpeg";
 
+  } else if (
+    cleaned.startsWith(
+      "PHN2Zy"
+    ) ||
+    cleaned.startsWith(
+      "PD94bW"
+    )
+  ) {
+
+    mimeType =
+      "image/svg+xml";
+
   }
 
 
@@ -8443,9 +9096,11 @@ function arrayBufferToDataURI(
     contentType.startsWith(
       "image/"
     )
+
       ? contentType.split(
           ";"
         )[0]
+
       : "";
 
 
@@ -8524,6 +9179,34 @@ function detectImageMimeType(
   }
 
 
+  const prefix =
+    new TextDecoder()
+      .decode(
+        bytes.subarray(
+          0,
+          Math.min(
+            bytes.length,
+            256
+          )
+        )
+      )
+      .trimStart();
+
+
+  if (
+    prefix.startsWith(
+      "<svg"
+    ) ||
+    prefix.startsWith(
+      "<?xml"
+    )
+  ) {
+
+    return "image/svg+xml";
+
+  }
+
+
   return "";
 
 }
@@ -8564,6 +9247,11 @@ function uint8ToBase64(
   );
 
 }
+
+
+/* ----------------------------------
+   TURNSTILE
+---------------------------------- */
 
 
 async function verifyTurnstile(
@@ -8675,6 +9363,11 @@ async function verifyTurnstile(
   }
 
 }
+
+
+/* ----------------------------------
+   JSON RESPONSE
+---------------------------------- */
 
 
 function json(
