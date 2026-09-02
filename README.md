@@ -1,6 +1,6 @@
 # Arqivo Image Gen
 
-Arqivo Image Gen is a privacy-focused text-to-image web application built on **Cloudflare Workers**.
+Arqivo Image Gen is a privacy focused text-to-image web application built on **Cloudflare Workers**.
 
 The project combines:
 
