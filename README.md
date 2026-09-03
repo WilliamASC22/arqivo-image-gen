@@ -5,7 +5,7 @@ Arqivo Image Gen is a privacy focused text-to-image web application built on **C
 The project combines:
 
 * Cloudflare Workers AI for fast hosted generation
-* AI Horde for community-powered image generation
+* AI Horde for community powered image generation
 * Cloudflare Turnstile for abuse prevention
 
 Arqivo is designed around three goals:
