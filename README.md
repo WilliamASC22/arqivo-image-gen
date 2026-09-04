@@ -17,7 +17,7 @@ Arqivo is designed around three goals:
    * No application image storage
    * No generated image gallery
 
-2. **Free-tier operation**
+2. **Free tier operation**
 
    * Designed to run without paid image APIs
    * Uses free available infrastructure where possible
