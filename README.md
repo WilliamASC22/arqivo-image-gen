@@ -34,7 +34,7 @@ Arqivo is designed around three goals:
 
 # Features
 
-* Text to-image generation
+* Text to image generation
 * Multiple AI providers
 * Cloudflare Workers AI models
 * AI Horde models
