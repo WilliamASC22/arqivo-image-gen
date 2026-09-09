@@ -94,7 +94,7 @@ Model:
 Description:
 
 ```text
-Balanced general-purpose model for high-quality images
+Balanced general purpose model for high-quality images
 ```
 
 Best for:
