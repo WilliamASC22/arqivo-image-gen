@@ -163,7 +163,7 @@ Current Horde models:
 Description:
 
 ```text
-Best all-around Horde model
+Best all around Horde model
 ```
 
 Best for:
