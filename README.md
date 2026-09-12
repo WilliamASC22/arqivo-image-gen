@@ -170,7 +170,7 @@ Best for:
 
 * General image generation
 * Balanced quality
-* SDXL-style output
+* SDXL style output
 
 Default selected model.
 
