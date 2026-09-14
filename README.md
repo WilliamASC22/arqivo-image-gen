@@ -188,7 +188,7 @@ Best for:
 
 * People
 * Portraits
-* Photography-style images
+* Photography style images
 
 ---
 
