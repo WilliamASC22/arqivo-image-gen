@@ -364,7 +364,7 @@ Arqivo includes:
 
 Every generation request requires verification.
 
-## Same-Origin Protection
+## Same Origin Protection
 
 API endpoints reject unexpected origins.
 
