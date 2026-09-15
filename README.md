@@ -373,7 +373,7 @@ API endpoints reject unexpected origins.
 The Worker sends:
 
 ```text
-Content-Security-Policy
+Content Security-Policy
 
 X-Content-Type-Options
 
