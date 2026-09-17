@@ -373,7 +373,7 @@ API endpoints reject unexpected origins.
 The Worker sends:
 
 ```text
-Content Security Policy
+Content-Security-Policy
 
 X-Content-Type-Options
 
@@ -390,7 +390,7 @@ Cross-Origin-Resource-Policy
 
 ## Secret Protection
 
-Private keys remain server-side.
+Private keys remain server side.
 
 Browser JavaScript does not contain provider secrets.
 
