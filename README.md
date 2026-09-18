@@ -605,7 +605,7 @@ Future improvements:
 
 * Better model availability indicators
 * Improved progress reporting
-* Model-specific settings
+* Model specific settings
 * Better mobile experience
 * More provider options
 * Improved accessibility
