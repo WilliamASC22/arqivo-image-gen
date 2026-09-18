@@ -574,7 +574,7 @@ Before adding a model:
 1. Confirm provider availability
 2. Confirm supported parameters
 3. Confirm image output format
-4. Confirm free-tier behavior
+4. Confirm free tier behavior
 5. Test generation quality
 6. Confirm it improves the application
 
