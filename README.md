@@ -635,7 +635,7 @@ Simplicity
 
 No license selected yet.
 
-Add an open-source license before encouraging redistribution.
+Add an open source license before encouraging redistribution.
 
 ---
 
